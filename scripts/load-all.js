@@ -24,6 +24,14 @@ const steps = [
   { name: 'Load outpatient data', script: 'load-outpatient.js' },
   { name: 'Load physician data', script: 'load-physician.js' },
   { name: 'Load Census demographics', script: 'load-census.js' },
+  /* Phase 2: Quality Command Center datasets */
+  { name: 'Load NHSN HAI data',            script: 'load-nhsn-hai.js' },
+  { name: 'Load hospital readmissions',     script: 'load-readmissions.js' },
+  { name: 'Load patient safety indicators', script: 'load-psi.js' },
+  { name: 'Load timely & effective care',   script: 'load-timely-care.js' },
+  { name: 'Load complications & deaths',    script: 'load-complications.js' },
+  { name: 'Load payment & value of care',   script: 'load-payment-value.js' },
+  /* Cross-dataset views (must be last) */
   { name: 'Create cross-dataset views', script: 'create-cross-views.js' },
 ];
 

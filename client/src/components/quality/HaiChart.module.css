@@ -1,0 +1,46 @@
+.hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.legendValue {
+  color: var(--text-tertiary);
+}
+
+.legendBetter {
+  color: #22c55e;
+}
+
+.legendWorse {
+  color: #ef4444;
+}

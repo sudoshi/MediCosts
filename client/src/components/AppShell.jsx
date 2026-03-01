@@ -1,0 +1,87 @@
+import { useState } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboardIcon, ShieldCheckIcon, BuildingIcon,
+  MapIcon, StethoscopeIcon, PlugIcon, GearIcon,
+  LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
+} from './icons/NavIcons';
+import s from './AppShell.module.css';
+
+const NAV_ITEMS = [
+  { path: '/overview',   label: 'Overview',             icon: LayoutDashboardIcon },
+  { path: '/quality',    label: 'Quality Command',      icon: ShieldCheckIcon },
+  { path: '/hospitals',  label: 'Hospital Explorer',    icon: BuildingIcon },
+  { path: '/geography',  label: 'Geographic Analysis',  icon: MapIcon },
+  { path: '/physicians', label: 'Physician Analytics',  icon: StethoscopeIcon },
+  { path: '/connectors', label: 'Data Connectors',      icon: PlugIcon },
+  { path: '/settings',   label: 'Settings',             icon: GearIcon },
+];
+
+export default function AppShell({ onLogout }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  const current = NAV_ITEMS.find(i => location.pathname.startsWith(i.path));
+
+  return (
+    <div className={`${s.shell} ${collapsed ? s.shellCollapsed : ''}`}>
+      {/* ── Sidebar ── */}
+      <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ''}`}>
+        <div className={s.logo}>
+          <LogoMark />
+          {!collapsed && <span className={s.wordmark}>MediCosts</span>}
+        </div>
+
+        <nav className={s.nav}>
+          {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
+            <NavLink
+              key={path}
+              to={path}
+              className={({ isActive }) =>
+                `${s.navItem} ${isActive ? s.active : ''}`
+              }
+              title={collapsed ? label : undefined}
+            >
+              <Icon />
+              {!collapsed && <span className={s.navLabel}>{label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className={s.sidebarFooter}>
+          {onLogout && (
+            <button className={s.logoutBtn} onClick={onLogout} title="Sign Out">
+              <LogOutIcon />
+              {!collapsed && <span>Sign Out</span>}
+            </button>
+          )}
+          <button
+            className={s.collapseBtn}
+            onClick={() => setCollapsed(c => !c)}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <ChevronRight /> : <ChevronLeft />}
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <main className={s.main}>
+        {/* Top bar */}
+        <header className={s.topbar}>
+          <div className={s.breadcrumb}>
+            <span className={s.viewName}>{current?.label || 'Dashboard'}</span>
+            <span className={s.dataYear}>Data Year 2023</span>
+          </div>
+          <div className={s.topbarRight}>
+            <span className={s.dataBadge}>9M+ Records</span>
+          </div>
+        </header>
+
+        <div className={s.content}>
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}

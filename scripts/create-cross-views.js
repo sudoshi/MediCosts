@@ -107,12 +107,110 @@ CREATE INDEX idx_mv_ze_drg   ON medicosts.mv_zip_enriched (drg_cd);
 CREATE INDEX idx_mv_ze_state ON medicosts.mv_zip_enriched (state_abbr);
 `;
 
+/* ── Phase 2: Quality Command Center views ── */
+const PHASE2_VIEWS = `
+-- View 4: Hospital quality composite (all quality metrics joined)
+DROP MATERIALIZED VIEW IF EXISTS medicosts.mv_hospital_quality_composite CASCADE;
+CREATE MATERIALIZED VIEW medicosts.mv_hospital_quality_composite AS
+SELECT
+  hi.facility_id,
+  hi.facility_name,
+  hi.city,
+  hi.state,
+  hi.zip_code,
+  hi.hospital_type,
+  hi.hospital_ownership,
+  hi.hospital_overall_rating AS star_rating,
+  -- HAI scores (SIR values, lower = better)
+  MAX(CASE WHEN hai.measure_id = 'HAI_1_SIR' THEN hai.score END) AS clabsi_sir,
+  MAX(CASE WHEN hai.measure_id = 'HAI_2_SIR' THEN hai.score END) AS cauti_sir,
+  MAX(CASE WHEN hai.measure_id = 'HAI_3_SIR' THEN hai.score END) AS ssi_colon_sir,
+  MAX(CASE WHEN hai.measure_id = 'HAI_5_SIR' THEN hai.score END) AS mrsa_sir,
+  MAX(CASE WHEN hai.measure_id = 'HAI_6_SIR' THEN hai.score END) AS cdi_sir,
+  -- HAI national comparison
+  MAX(CASE WHEN hai.measure_id = 'HAI_1_SIR' THEN hai.compared_to_national END) AS clabsi_vs_national,
+  MAX(CASE WHEN hai.measure_id = 'HAI_2_SIR' THEN hai.compared_to_national END) AS cauti_vs_national,
+  MAX(CASE WHEN hai.measure_id = 'HAI_6_SIR' THEN hai.compared_to_national END) AS cdi_vs_national,
+  -- PSI-90 (wide-format table — one row per hospital)
+  psi.psi_90_value AS psi_90_score,
+  psi.total_hac_score,
+  psi.payment_reduction AS hac_payment_reduction,
+  -- Readmission rates (HRRP: excess_readmission_ratio)
+  AVG(readm.excess_readmission_ratio)::numeric(6,4) AS avg_excess_readm_ratio,
+  COUNT(readm.measure_name) FILTER (WHERE readm.excess_readmission_ratio > 1)::int AS readm_penalized_count,
+  -- Mortality rates
+  AVG(cd.score) FILTER (WHERE cd.measure_id LIKE 'MORT_%')::numeric(6,3) AS avg_mortality_rate,
+  COUNT(cd.measure_id) FILTER (WHERE cd.measure_id LIKE 'MORT_%' AND cd.compared_to_national ILIKE '%worse%')::int AS mortality_worse_count,
+  -- ED wait times (cast text score to numeric where possible)
+  MAX(CASE WHEN tec.measure_id = 'ED_1b' THEN tec.score END) AS ed_time_admit,
+  MAX(CASE WHEN tec.measure_id = 'ED_2b' THEN tec.score END) AS ed_time_decision,
+  MAX(CASE WHEN tec.measure_id = 'OP_18b' THEN tec.score END) AS ed_time_outpatient,
+  -- Cost (from existing view)
+  hcq.weighted_avg_payment::numeric(14,2),
+  hcq.total_discharges
+FROM medicosts.hospital_info hi
+LEFT JOIN medicosts.nhsn_hai hai ON hi.facility_id = hai.facility_id
+LEFT JOIN medicosts.patient_safety_indicators psi ON hi.facility_id = psi.facility_id
+LEFT JOIN medicosts.hospital_readmissions readm ON hi.facility_id = readm.facility_id
+LEFT JOIN medicosts.complications_deaths cd ON hi.facility_id = cd.facility_id
+LEFT JOIN medicosts.timely_effective_care tec ON hi.facility_id = tec.facility_id
+LEFT JOIN medicosts.mv_hospital_cost_quality hcq ON hi.facility_id = hcq.provider_ccn
+GROUP BY
+  hi.facility_id, hi.facility_name, hi.city, hi.state, hi.zip_code,
+  hi.hospital_type, hi.hospital_ownership, hi.hospital_overall_rating,
+  psi.psi_90_value, psi.total_hac_score, psi.payment_reduction,
+  hcq.weighted_avg_payment, hcq.total_discharges;
+
+CREATE UNIQUE INDEX idx_mv_hqc_facility ON medicosts.mv_hospital_quality_composite (facility_id);
+CREATE INDEX idx_mv_hqc_state    ON medicosts.mv_hospital_quality_composite (state);
+CREATE INDEX idx_mv_hqc_rating   ON medicosts.mv_hospital_quality_composite (star_rating);
+
+-- View 5: State-level quality summary
+DROP MATERIALIZED VIEW IF EXISTS medicosts.mv_state_quality_summary CASCADE;
+CREATE MATERIALIZED VIEW medicosts.mv_state_quality_summary AS
+SELECT
+  state,
+  COUNT(*)::int AS num_hospitals,
+  AVG(star_rating)::numeric(3,1) AS avg_star_rating,
+  AVG(clabsi_sir)::numeric(6,3) AS avg_clabsi_sir,
+  AVG(cauti_sir)::numeric(6,3) AS avg_cauti_sir,
+  AVG(psi_90_score)::numeric(6,4) AS avg_psi_90,
+  AVG(avg_excess_readm_ratio)::numeric(6,4) AS avg_excess_readm_ratio,
+  AVG(avg_mortality_rate)::numeric(6,3) AS avg_mortality_rate,
+  AVG(weighted_avg_payment)::numeric(14,0) AS avg_payment,
+  SUM(total_discharges)::int AS total_discharges
+FROM medicosts.mv_hospital_quality_composite
+WHERE state IS NOT NULL
+GROUP BY state
+ORDER BY state;
+
+CREATE UNIQUE INDEX idx_mv_sqs_state ON medicosts.mv_state_quality_summary (state);
+`;
+
 async function main() {
   console.log('Creating cross-dataset materialized views …');
   const client = await pool.connect();
 
   try {
     await client.query(VIEWS);
+
+    // Phase 2 quality views (only if tables exist)
+    const phase2Tables = await client.query(`
+      SELECT tablename FROM pg_tables
+      WHERE schemaname = 'medicosts' AND tablename = 'nhsn_hai'
+    `);
+    if (phase2Tables.rows.length > 0) {
+      console.log('Creating Phase 2 quality composite views …');
+      await client.query(PHASE2_VIEWS);
+
+      const hqc = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_quality_composite');
+      console.log(`✓ mv_hospital_quality_composite: ${parseInt(hqc.rows[0].n).toLocaleString()} hospitals`);
+
+      const sqs = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_state_quality_summary');
+      console.log(`✓ mv_state_quality_summary: ${parseInt(sqs.rows[0].n).toLocaleString()} states`);
+    } else {
+      console.log('⊘ Phase 2 quality tables not loaded yet — skipping composite views.');
+    }
 
     // Verify
     const hcq = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_cost_quality');

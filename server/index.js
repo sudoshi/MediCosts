@@ -3,6 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import apiRouter from './routes/api.js';
+import qualityRouter from './routes/quality.js';
+import connectorRouter from './routes/connectors.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -12,6 +14,8 @@ const isProd = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 app.use('/api', apiRouter);
+app.use('/api/quality', qualityRouter);
+app.use('/api/connectors', connectorRouter);
 
 if (isProd) {
   const clientBuild = path.join(__dirname, '../client/dist');

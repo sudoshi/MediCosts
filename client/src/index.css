@@ -40,6 +40,39 @@
   /* Spacing */
   --panel-radius: 8px;
   --gap:          24px;
+
+  /* Phase 2: Layout */
+  --sidebar-width:     240px;
+  --sidebar-collapsed: 64px;
+  --topbar-height:     56px;
+
+  /* Phase 2: Glass morphism */
+  --glass-bg:     rgba(20, 20, 22, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur:   12px;
+
+  /* Phase 2: Additional colors */
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245, 158, 11, 0.12);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167, 139, 250, 0.12);
+  --teal:       #14b8a6;
+  --teal-dim:   rgba(20, 184, 166, 0.12);
+  --orange:     #f97316;
+  --orange-dim: rgba(249, 115, 22, 0.12);
+
+  /* Phase 2: KPI domain colors */
+  --domain-clinical:    #3b82f6;
+  --domain-safety:      #ef4444;
+  --domain-operational: #22c55e;
+  --domain-quality:     #a78bfa;
+  --domain-financial:   #f59e0b;
+
+  /* Phase 2: Elevated shadows */
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
 *, *::before, *::after {
@@ -64,4 +97,20 @@ body {
 #root {
   position: relative;
   z-index: 1;
+}
+
+/* ── Phase 2f: Global entrance animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }

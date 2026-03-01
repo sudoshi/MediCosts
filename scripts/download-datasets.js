@@ -37,6 +37,37 @@ const DATASETS = [
     filename: 'MUP_PHY_RY25_DY23_PrvSvc.csv',
     url: 'https://data.cms.gov/sites/default/files/2025-04/e3f823f8-db5b-4cc7-ba04-e7ae92b99757/MUP_PHY_R25_P05_V20_D23_Prov_Svc.csv',
   },
+  /* ── Phase 2: Quality Command Center datasets ── */
+  {
+    name: 'Healthcare-Associated Infections (NHSN HAI)',
+    filename: 'healthcare_associated_infections.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/77hc-ibv8/0/download?format=csv',
+  },
+  {
+    name: 'Hospital Readmissions Reduction Program (HRRP)',
+    filename: 'hospital_readmissions.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/9n3s-kdb3/0/download?format=csv',
+  },
+  {
+    name: 'Patient Safety Indicators (PSI)',
+    filename: 'patient_safety_indicators.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/yq43-i98g/0/download?format=csv',
+  },
+  {
+    name: 'Timely and Effective Care — Hospital',
+    filename: 'timely_effective_care.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/yv7e-xc69/0/download?format=csv',
+  },
+  {
+    name: 'Complications and Deaths — Hospital',
+    filename: 'complications_deaths.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/ynj2-r877/0/download?format=csv',
+  },
+  {
+    name: 'Payment and Value of Care — Hospital',
+    filename: 'payment_value_of_care.csv',
+    url: 'https://data.cms.gov/provider-data/api/1/datastore/query/c7us-v4mf/0/download?format=csv',
+  },
 ];
 
 const CENSUS_URL =
