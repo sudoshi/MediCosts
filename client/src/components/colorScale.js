@@ -11,6 +11,10 @@ const STOPS = [
   [244,  63,   94],  // rose (high)
 ];
 
+export function interpolateReimbursement(t) {
+  return interpolateYlOrRd(1 - t);
+}
+
 export function interpolateYlOrRd(t) {
   const clamped = Math.max(0, Math.min(1, t));
   const idx = clamped * (STOPS.length - 1);

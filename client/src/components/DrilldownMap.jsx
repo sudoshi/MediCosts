@@ -3,9 +3,9 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { feature } from 'topojson-client';
 import { scaleLinear } from 'd3-scale';
-import { interpolateYlOrRd } from './colorScale';
+import { interpolateYlOrRd, interpolateReimbursement } from './colorScale';
 import { useApi } from '../hooks/useApi';
-import { fmtCurrency, fmtNumber } from '../utils/format';
+import { fmtCurrency, fmtNumber, fmtPercent } from '../utils/format';
 import Panel from './Panel';
 import styles from './DrilldownMap.module.css';
 import zipCentroids from '../data/zipCentroids.json';
@@ -42,18 +42,24 @@ const METRIC_KEY = {
   payment:  'avg_total_payment',
   charges:  'avg_covered_charge',
   medicare: 'avg_medicare_payment',
+  reimbursement: 'reimbursement_rate',
 };
 
 const METRIC_LABEL = {
   payment:  'Avg Total Payment',
   charges:  'Avg Covered Charges',
   medicare: 'Avg Medicare Payment',
+  reimbursement: 'Reimbursement Rate',
 };
 
 const STATES_TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 const API_BASE        = import.meta.env.VITE_API_URL || '/api';
 
-const LEGEND_STOPS = [0, 0.25, 0.5, 0.75, 1].map((t) => interpolateYlOrRd(t));
+const fmtIncome = (n) =>
+  n == null ? null : `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+
+const LEGEND_STOPS_DEFAULT = [0, 0.25, 0.5, 0.75, 1].map((t) => interpolateYlOrRd(t));
+const LEGEND_STOPS_REIMB   = [0, 0.25, 0.5, 0.75, 1].map((t) => interpolateReimbursement(t));
 
 /* ── Component ─────────────────────────────────────────────────────── */
 
@@ -76,24 +82,34 @@ export default function DrilldownMap({ drg, metric }) {
 
   const { data: stateData } = useApi(`/states/summary?drg=${drg}`, [drg]);
 
+  const isReimb     = metric === 'reimbursement';
   const metricKey   = METRIC_KEY[metric]   || 'avg_total_payment';
   const metricLabel = METRIC_LABEL[metric] || 'Avg Cost';
+  const fmtVal      = isReimb ? fmtPercent : fmtCurrency;
+  const colorFn     = isReimb ? interpolateReimbursement : interpolateYlOrRd;
+  const legendStops = isReimb ? LEGEND_STOPS_REIMB : LEGEND_STOPS_DEFAULT;
 
   /* Compute per-state colors */
   const stateColors = useMemo(() => {
     if (!stateData) return {};
-    const values = stateData.map((d) => Number(d[metricKey])).filter((v) => v > 0);
+    const enriched = stateData.map((d) => ({
+      ...d,
+      reimbursement_rate: d.avg_covered_charge > 0
+        ? Number(d.avg_total_payment) / Number(d.avg_covered_charge)
+        : null,
+    }));
+    const values = enriched.map((d) => Number(d[metricKey])).filter((v) => v > 0);
     if (!values.length) return {};
     const min = Math.min(...values);
     const max = Math.max(...values);
     const scale = scaleLinear().domain([min, max]).range([0.1, 1]);
     const out = {};
-    for (const d of stateData) {
+    for (const d of enriched) {
       const val = Number(d[metricKey]);
-      out[d.state_abbr] = { color: val > 0 ? interpolateYlOrRd(scale(val)) : '#1e1e21', ...d };
+      out[d.state_abbr] = { color: val > 0 ? colorFn(scale(val)) : '#1e1e21', ...d };
     }
     return out;
-  }, [stateData, metricKey]);
+  }, [stateData, metricKey, colorFn]);
 
   /* Sorted state list for selector */
   const sortedStateAbbrs = useMemo(
@@ -224,9 +240,26 @@ export default function DrilldownMap({ drg, metric }) {
     setHoveredItem(null);
 
     try {
-      const zipCosts = await fetch(`${API_BASE}/states/${abbr}/zips?drg=${drg}`).then((r) => r.json());
+      const [zipCosts, censusData] = await Promise.all([
+        fetch(`${API_BASE}/states/${abbr}/zips?drg=${drg}`).then((r) => r.json()),
+        fetch(`${API_BASE}/zips/enriched?drg=${drg}`).then((r) => r.json()).catch(() => []),
+      ]);
 
-      const vals = zipCosts.map((d) => Number(d[metricKey])).filter((v) => v > 0);
+      // Build income lookup from enriched data
+      const incomeLookup = {};
+      for (const d of censusData) {
+        if (d.median_household_income != null) incomeLookup[d.zip5] = d.median_household_income;
+      }
+
+      const enrichedZips = zipCosts.map((d) => ({
+        ...d,
+        reimbursement_rate: d.avg_covered_charge > 0
+          ? Number(d.avg_total_payment) / Number(d.avg_covered_charge)
+          : null,
+        median_income: incomeLookup[d.zip5] || null,
+      }));
+
+      const vals = enrichedZips.map((d) => Number(d[metricKey])).filter((v) => v > 0);
       const [min, max] = vals.length ? [Math.min(...vals), Math.max(...vals)] : [0, 1];
       const zipScale = scaleLinear().domain([min, max]).range([0.1, 1]);
       setColorDomain([min, max]);
@@ -235,14 +268,14 @@ export default function DrilldownMap({ drg, metric }) {
       const bounds = new maplibregl.LngLatBounds();
       const features = [];
 
-      for (const d of zipCosts) {
+      for (const d of enrichedZips) {
         const zip = String(d.zip5).padStart(5, '0');
         const coords = zipCentroids[zip];
         if (!coords) continue; // skip zips without centroid data
 
         const [lat, lng] = coords;
         const val = Number(d[metricKey]);
-        const color = val > 0 ? interpolateYlOrRd(zipScale(val)) : '#1e3a6e';
+        const color = val > 0 ? colorFn(zipScale(val)) : '#1e3a6e';
 
         features.push({
           type: 'Feature',
@@ -257,6 +290,8 @@ export default function DrilldownMap({ drg, metric }) {
             avg_total_payment: d.avg_total_payment || 0,
             avg_covered_charge: d.avg_covered_charge || 0,
             avg_medicare_payment: d.avg_medicare_payment || 0,
+            reimbursement_rate: d.reimbursement_rate || 0,
+            median_income: d.median_income || '',
           },
         });
 
@@ -345,6 +380,10 @@ export default function DrilldownMap({ drg, metric }) {
 
           if (popupRef.current) popupRef.current.remove();
 
+          const incomeHtml = p.median_income
+            ? `<div style="display:flex;justify-content:space-between"><span style="color:#7a8a9e">Med. Income:</span><span style="color:#a78bfa">${fmtIncome(p.median_income)}</span></div>`
+            : '';
+
           popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
             .setLngLat(coords)
             .setHTML(`
@@ -353,9 +392,10 @@ export default function DrilldownMap({ drg, metric }) {
                 ${p.city ? `<span style="color:#7a8a9e;font-size:12px"> · ${p.city}</span>` : ''}
                 <hr style="border:none;border-top:1px solid #1a2845;margin:6px 0"/>
                 <div style="font-family:'JetBrains Mono',monospace;font-size:12px">
-                  <div style="display:flex;justify-content:space-between"><span style="color:#7a8a9e">${metricLabel}:</span><span style="color:#f0a500">${fmtCurrency(p.value || p[metricKey])}</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="color:#7a8a9e">${metricLabel}:</span><span style="color:#f0a500">${fmtVal(p.value || p[metricKey])}</span></div>
                   <div style="display:flex;justify-content:space-between"><span style="color:#7a8a9e">Discharges:</span><span>${fmtNumber(p.total_discharges)}</span></div>
                   <div style="display:flex;justify-content:space-between"><span style="color:#7a8a9e">Providers:</span><span>${fmtNumber(p.num_providers)}</span></div>
+                  ${incomeHtml}
                 </div>
               </div>
             `)
@@ -416,17 +456,21 @@ export default function DrilldownMap({ drg, metric }) {
       );
     }
 
-    const stats = hoveredItem.type === 'state'
+    const baseStats = hoveredItem.type === 'state'
       ? [
-          { label: metricLabel,  val: fmtCurrency(hoveredItem[metricKey]) },
+          { label: metricLabel,  val: fmtVal(hoveredItem[metricKey]) },
           { label: 'Discharges', val: fmtNumber(hoveredItem.total_discharges) },
           { label: 'Providers',  val: fmtNumber(hoveredItem.num_providers) },
         ]
       : [
-          { label: metricLabel,  val: fmtCurrency(hoveredItem.value || hoveredItem[metricKey]) },
+          { label: metricLabel,  val: fmtVal(hoveredItem.value || hoveredItem[metricKey]) },
           { label: 'Discharges', val: fmtNumber(hoveredItem.total_discharges) },
           { label: 'Providers',  val: fmtNumber(hoveredItem.num_providers) },
         ];
+
+    const stats = hoveredItem.type === 'zip' && hoveredItem.median_income
+      ? [...baseStats, { label: 'Med. Income', val: fmtIncome(hoveredItem.median_income) }]
+      : baseStats;
 
     const title = hoveredItem.type === 'state'
       ? hoveredItem.fullName
@@ -496,12 +540,12 @@ export default function DrilldownMap({ drg, metric }) {
 
       {/* Legend */}
       <div className={styles.legend}>
-        <span className={styles.legendLabel}>{fmtCurrency(colorDomain[0])}</span>
+        <span className={styles.legendLabel}>{fmtVal(colorDomain[0])}</span>
         <div
           className={styles.legendBar}
-          style={{ background: `linear-gradient(to right, ${LEGEND_STOPS.join(', ')})` }}
+          style={{ background: `linear-gradient(to right, ${legendStops.join(', ')})` }}
         />
-        <span className={styles.legendLabel}>{fmtCurrency(colorDomain[1])}</span>
+        <span className={styles.legendLabel}>{fmtVal(colorDomain[1])}</span>
       </div>
     </Panel>
   );

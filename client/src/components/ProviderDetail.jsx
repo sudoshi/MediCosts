@@ -1,5 +1,9 @@
+import { useState, Fragment } from 'react';
 import { useApi } from '../hooks/useApi';
-import { fmtCurrency, fmtNumber } from '../utils/format';
+import { fmtCurrency, fmtNumber, fmtPercent, fmtStars } from '../utils/format';
+import HospitalQualityCard from './HospitalQualityCard';
+
+const STAR_COLORS = { 1: '#ef4444', 2: '#f97316', 3: '#fbbf24', 4: '#22c55e', 5: '#3b82f6' };
 
 const tableStyle = {
   width: '100%',
@@ -47,6 +51,7 @@ export default function ProviderDetail({ zip, city, state, drg }) {
     `/providers?zip=${zip}&drg=${drg}`,
     [zip, drg]
   );
+  const [expandedCcn, setExpandedCcn] = useState(null);
 
   if (loading || !data) {
     return (
@@ -82,28 +87,77 @@ export default function ProviderDetail({ zip, city, state, drg }) {
           <thead>
             <tr>
               <th style={thStyle}>Provider</th>
+              <th style={thStyle}>Stars</th>
               <th style={thStyle}>DRG</th>
               <th style={thStyle}>Charges</th>
               <th style={thStyle}>Payment</th>
+              <th style={thStyle}>Reimb. Rate</th>
               <th style={thStyle}>Medicare</th>
               <th style={thStyle}>Disch.</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((r, i) => (
-              <tr key={i} style={i % 2 ? { background: 'rgba(28, 28, 31, 0.5)' } : {}}>
-                <td style={{ ...tdStyle, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.provider_name}>
-                  {r.provider_name}
-                </td>
-                <td style={{ ...tdStyle, fontSize: 11, color: '#71717a', whiteSpace: 'nowrap' }} title={r.drg_desc}>
-                  {r.drg_cd}
-                </td>
-                <td style={tdMonoStyle}>{fmtCurrency(r.avg_covered_charges)}</td>
-                <td style={tdMonoStyle}>{fmtCurrency(r.avg_total_payments)}</td>
-                <td style={tdMutedStyle}>{fmtCurrency(r.avg_medicare_payments)}</td>
-                <td style={tdMutedStyle}>{fmtNumber(r.total_discharges)}</td>
-              </tr>
-            ))}
+            {data.map((r, i) => {
+              const isExpanded = expandedCcn === `${r.provider_ccn}-${i}`;
+              return (
+                <Fragment key={i}>
+                  <tr
+                    style={{
+                      ...(i % 2 ? { background: 'rgba(28, 28, 31, 0.5)' } : {}),
+                      cursor: r.provider_ccn ? 'pointer' : 'default',
+                    }}
+                    onClick={() => {
+                      if (!r.provider_ccn) return;
+                      setExpandedCcn(isExpanded ? null : `${r.provider_ccn}-${i}`);
+                    }}
+                  >
+                    <td style={{ ...tdStyle, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.provider_name}>
+                      {r.provider_ccn && (
+                        <span style={{ color: '#3f3f46', fontSize: 10, marginRight: 6 }}>
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                      )}
+                      {r.provider_name}
+                    </td>
+                    <td style={{ ...tdStyle, whiteSpace: 'nowrap', fontSize: 13, letterSpacing: 1 }}>
+                      {r.star_rating != null ? (
+                        <span style={{ color: STAR_COLORS[Number(r.star_rating)] || '#71717a' }}>
+                          {fmtStars(r.star_rating)}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#3f3f46', fontSize: 11 }}>—</span>
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, fontSize: 11, color: '#71717a', whiteSpace: 'nowrap' }} title={r.drg_desc}>
+                      {r.drg_cd}
+                    </td>
+                    <td style={tdMonoStyle}>{fmtCurrency(r.avg_covered_charges)}</td>
+                    <td style={tdMonoStyle}>{fmtCurrency(r.avg_total_payments)}</td>
+                    <td style={{
+                      ...tdMonoStyle,
+                      color: (() => {
+                        const rate = r.avg_covered_charges > 0 ? r.avg_total_payments / r.avg_covered_charges : null;
+                        if (rate == null) return '#71717a';
+                        if (rate < 0.15) return '#ef4444';
+                        if (rate < 0.30) return '#f59e0b';
+                        return '#22c55e';
+                      })(),
+                    }}>
+                      {r.avg_covered_charges > 0 ? fmtPercent(r.avg_total_payments / r.avg_covered_charges) : '—'}
+                    </td>
+                    <td style={tdMutedStyle}>{fmtCurrency(r.avg_medicare_payments)}</td>
+                    <td style={tdMutedStyle}>{fmtNumber(r.total_discharges)}</td>
+                  </tr>
+                  {isExpanded && (
+                    <tr key={`${i}-detail`}>
+                      <td colSpan={8} style={{ padding: '20px 16px', background: '#111113', borderBottom: '1px solid #1e1e21' }}>
+                        <HospitalQualityCard ccn={r.provider_ccn} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

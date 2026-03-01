@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ZAxis, Cell } from 'recharts';
 import { useApi } from '../hooks/useApi';
-import { fmtCurrency, fmtNumber } from '../utils/format';
+import { fmtCurrency, fmtNumber, fmtPercent } from '../utils/format';
 import Panel from './Panel';
 import ProviderDetail from './ProviderDetail';
 
@@ -93,6 +93,27 @@ export default function ScatterPlot({ drg }) {
               stroke="#2a2a2d"
               strokeDasharray="5 4"
             />
+            <ReferenceLine
+              segment={[{ x: 0, y: 0 }, { x: maxVal, y: maxVal * 0.1 }]}
+              stroke="#ef4444"
+              strokeDasharray="4 4"
+              strokeOpacity={0.5}
+              label={{ value: '10%', position: 'insideTopLeft', fill: '#ef4444', fontSize: 10 }}
+            />
+            <ReferenceLine
+              segment={[{ x: 0, y: 0 }, { x: maxVal, y: maxVal * 0.25 }]}
+              stroke="#f59e0b"
+              strokeDasharray="4 4"
+              strokeOpacity={0.5}
+              label={{ value: '25%', position: 'insideTopLeft', fill: '#f59e0b', fontSize: 10 }}
+            />
+            <ReferenceLine
+              segment={[{ x: 0, y: 0 }, { x: maxVal, y: maxVal * 0.5 }]}
+              stroke="#22c55e"
+              strokeDasharray="4 4"
+              strokeOpacity={0.5}
+              label={{ value: '50%', position: 'insideTopLeft', fill: '#22c55e', fontSize: 10 }}
+            />
             <Tooltip
               cursor={{ strokeDasharray: '3 3', stroke: '#2a2a2d' }}
               content={({ active, payload }) => {
@@ -103,6 +124,7 @@ export default function ScatterPlot({ drg }) {
                     <div style={{ fontWeight: 600, color: '#e4e4e7', marginBottom: 6, fontFamily: 'Inter, sans-serif', fontSize: 14 }}>{d.zip5} — {d.provider_city}, {d.state_abbr}</div>
                     <div style={{ color: '#71717a', marginBottom: 2 }}>Charges: <span style={{ color: '#e4e4e7' }}>{fmtCurrency(d.avg_charges)}</span></div>
                     <div style={{ color: '#71717a', marginBottom: 2 }}>Payment: <span style={{ color: '#e4e4e7' }}>{fmtCurrency(d.avg_payment)}</span></div>
+                    <div style={{ color: '#71717a', marginBottom: 2 }}>Reimb. Rate: <span style={{ color: d.avg_charges > 0 && (d.avg_payment / d.avg_charges) < 0.15 ? '#ef4444' : '#e4e4e7' }}>{d.avg_charges > 0 ? fmtPercent(d.avg_payment / d.avg_charges) : '—'}</span></div>
                     <div style={{ color: '#71717a' }}>Discharges: <span style={{ color: '#e4e4e7' }}>{fmtNumber(d.total_discharges)}</span></div>
                   </div>
                 );

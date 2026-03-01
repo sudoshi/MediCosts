@@ -4,6 +4,7 @@ const METRICS = [
   { value: 'payment',  label: 'Avg Total Payment' },
   { value: 'charges',  label: 'Avg Covered Charges (billed)' },
   { value: 'medicare', label: 'Avg Medicare Payment' },
+  { value: 'reimbursement', label: 'Reimbursement Rate (payment ÷ charges)' },
 ];
 
 export default function DRGSelector({ drgs, selectedDrg, onDrgChange, metric, onMetricChange }) {

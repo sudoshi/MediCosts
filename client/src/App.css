@@ -146,6 +146,19 @@
   line-height: 2;
 }
 
+.footer .powered-by {
+  margin-top: 12px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.footer .powered-by span {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .app { padding: 24px 20px 48px; }
