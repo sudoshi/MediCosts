@@ -414,12 +414,12 @@ router.get('/physician/zip-summary', async (req, res, next) => {
 
     const { rows } = await pool.query(`
       SELECT
-        hcpcs_cd,
-        hcpcs_desc,
-        num_physicians,
+        hcpcs_cd                             AS hcpcs_code,
+        hcpcs_desc                           AS hcpcs_description,
+        num_physicians                       AS num_providers,
         total_services::int,
         weighted_avg_charge::numeric(14,0)   AS avg_charge,
-        weighted_avg_medicare::numeric(14,0) AS avg_medicare
+        weighted_avg_medicare::numeric(14,0) AS avg_payment
       FROM medicosts.mv_physician_zip_summary
       WHERE zip5 = $1
       ORDER BY weighted_avg_charge DESC
@@ -440,17 +440,17 @@ router.get('/physician/top-hcpcs', async (req, res, next) => {
 
     const { rows } = await pool.query(`
       SELECT
-        hcpcs_cd,
-        MAX(hcpcs_desc)                               AS hcpcs_desc,
-        SUM(num_physicians)::int                      AS num_physicians,
+        hcpcs_cd                                      AS hcpcs_code,
+        MAX(hcpcs_desc)                               AS hcpcs_description,
+        SUM(num_physicians)::int                      AS total_providers,
         SUM(total_services)::int                      AS total_services,
         SUM(total_services * weighted_avg_charge) / NULLIF(SUM(total_services), 0)
-          AS weighted_avg_charge,
+          AS avg_charge,
         SUM(total_services * weighted_avg_medicare) / NULLIF(SUM(total_services), 0)
-          AS weighted_avg_medicare
+          AS avg_payment
       FROM medicosts.mv_physician_zip_summary
       GROUP BY hcpcs_cd
-      ORDER BY weighted_avg_charge DESC
+      ORDER BY SUM(total_services * weighted_avg_charge) / NULLIF(SUM(total_services), 0) DESC
       LIMIT $1
     `, [limit]);
 
@@ -509,6 +509,24 @@ router.get('/zips/enriched', async (req, res, next) => {
     `, params);
 
     res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  POST /api/admin/refresh-views                                       */
+/*  Refresh all materialized views concurrently                         */
+/* ------------------------------------------------------------------ */
+router.post('/admin/refresh-views', async (_req, res, next) => {
+  try {
+    const views = [
+      'mv_top50_drg', 'mv_zip_summary', 'mv_zip_enriched',
+      'mv_hospital_cost_quality', 'mv_hcahps_summary', 'mv_physician_zip_summary',
+      'mv_hospital_quality_composite', 'mv_state_quality_summary',
+    ];
+    for (const v of views) {
+      await pool.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY medicosts.${v}`);
+    }
+    res.json({ message: `Refreshed ${views.length} materialized views` });
   } catch (err) { next(err); }
 });
 

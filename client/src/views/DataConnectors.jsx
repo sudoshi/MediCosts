@@ -60,13 +60,21 @@ export default function DataConnectors() {
     }
   }
 
-  async function handleSync(id) {
+  async function handleSync(id, file) {
     setMessage(null);
     try {
       await fetchConnectors(); // Refresh to show "syncing"
-      const res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST' });
+      let res;
+      if (file) {
+        const form = new FormData();
+        form.append('file', file);
+        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST', body: form });
+      } else {
+        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST' });
+      }
       const json = await res.json();
-      setMessage({ type: 'success', text: json.message });
+      if (!res.ok) throw new Error(json.error || 'Sync failed');
+      setMessage({ type: 'success', text: json.message || `Imported ${json.records} records` });
       await fetchConnectors();
     } catch (err) {
       setMessage({ type: 'error', text: err.message });

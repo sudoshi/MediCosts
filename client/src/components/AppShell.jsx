@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboardIcon, ShieldCheckIcon, BuildingIcon,
-  MapIcon, StethoscopeIcon, PlugIcon, GearIcon,
+  MapIcon, StethoscopeIcon, SparklesIcon, PlugIcon, GearIcon,
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
 } from './icons/NavIcons';
 import s from './AppShell.module.css';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { path: '/hospitals',  label: 'Hospital Explorer',    icon: BuildingIcon },
   { path: '/geography',  label: 'Geographic Analysis',  icon: MapIcon },
   { path: '/physicians', label: 'Physician Analytics',  icon: StethoscopeIcon },
+  { path: '/abby',       label: 'Abby Analytics',        icon: SparklesIcon },
   { path: '/connectors', label: 'Data Connectors',      icon: PlugIcon },
   { path: '/settings',   label: 'Settings',             icon: GearIcon },
 ];

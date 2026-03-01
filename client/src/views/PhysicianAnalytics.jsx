@@ -67,18 +67,18 @@ export default function PhysicianAnalytics() {
                   <th>Providers</th>
                   <th>Avg Charge</th>
                   <th>Avg Payment</th>
-                  <th>Beneficiaries</th>
+                  <th>Services</th>
                 </tr>
               </thead>
               <tbody>
-                {topHcpcs.map((r) => (
-                  <tr key={r.hcpcs_code}>
+                {topHcpcs.map((r, i) => (
+                  <tr key={`${r.hcpcs_code}-${i}`}>
                     <td className={s.code}>{r.hcpcs_code}</td>
                     <td className={s.desc}>{r.hcpcs_description}</td>
                     <td className={s.mono}>{fmtNumber(r.total_providers)}</td>
                     <td className={s.mono}>{fmtCurrency(r.avg_charge)}</td>
                     <td className={s.mono}>{fmtCurrency(r.avg_payment)}</td>
-                    <td className={s.mono}>{fmtNumber(r.total_beneficiaries)}</td>
+                    <td className={s.mono}>{fmtNumber(r.total_services)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -106,8 +106,8 @@ export default function PhysicianAnalytics() {
                 </tr>
               </thead>
               <tbody>
-                {zipData.map((r) => (
-                  <tr key={r.hcpcs_code}>
+                {zipData.map((r, i) => (
+                  <tr key={`zip-${r.hcpcs_code}-${i}`}>
                     <td className={s.code}>{r.hcpcs_code}</td>
                     <td className={s.desc}>{r.hcpcs_description || '—'}</td>
                     <td className={s.mono}>{fmtNumber(r.num_providers)}</td>

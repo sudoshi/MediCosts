@@ -122,9 +122,10 @@ router.post('/:id/test', async (req, res, next) => {
 
 /* ------------------------------------------------------------------ */
 /*  POST /api/connectors/:id/sync                                      */
-/*  Trigger data sync                                                  */
+/*  Trigger data sync (accepts optional file upload for CSV connectors) */
 /* ------------------------------------------------------------------ */
-router.post('/:id/sync', async (req, res, next) => {
+router.post('/:id/sync', upload.single('file'), async (req, res, next) => {
+  let filePath = req.file?.path;
   try {
     const { rows } = await pool.query(
       'SELECT * FROM medicosts.connectors WHERE id = $1', [req.params.id]
@@ -137,7 +138,8 @@ router.post('/:id/sync', async (req, res, next) => {
     );
 
     const connector = createConnector(rows[0].type, rows[0].config, pool);
-    const result = await connector.sync(req.params.id);
+    const isCsvType = ['csv', 'definitive', 'vizient', 'premier'].includes(rows[0].type);
+    const result = await connector.sync(req.params.id, isCsvType ? filePath : undefined);
 
     await pool.query(
       `UPDATE medicosts.connectors SET status = 'active', last_sync_at = NOW(), last_error = NULL, updated_at = NOW() WHERE id = $1`,
@@ -151,6 +153,8 @@ router.post('/:id/sync', async (req, res, next) => {
       [err.message, req.params.id]
     ).catch(() => {});
     next(err);
+  } finally {
+    if (filePath) unlink(filePath).catch(() => {});
   }
 });
 

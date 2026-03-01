@@ -99,18 +99,5 @@ body {
   z-index: 1;
 }
 
-/* ── Phase 2f: Global entrance animations ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
+/* Entrance animations (fadeUp, fadeIn, scaleIn) are defined locally in
+   each .module.css file so CSS Modules scoping matches correctly. */

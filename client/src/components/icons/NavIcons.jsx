@@ -73,6 +73,13 @@ export const LogoMark = () => (
 
 export const ChevronLeft = icon('M15 18l-6-6 6-6');
 export const ChevronRight = icon('M9 18l6-6-6-6');
+export const SparklesIcon = icon(
+  <>
+    <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+    <path d="M18 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z" />
+  </>
+);
+
 export const LogOutIcon = icon(
   <>
     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

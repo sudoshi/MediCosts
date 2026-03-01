@@ -68,6 +68,8 @@ const DATASETS = [
     filename: 'payment_value_of_care.csv',
     url: 'https://data.cms.gov/provider-data/api/1/datastore/query/c7us-v4mf/0/download?format=csv',
   },
+  // NOTE: HCRIS Hospital Cost Reports are published via CMS HCRIS repository
+  // (not Provider Data API). Import via CSV connector if needed.
 ];
 
 const CENSUS_URL =
