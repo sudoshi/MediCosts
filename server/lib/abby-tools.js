@@ -248,6 +248,220 @@ export const TOOLS = [
     endpoint: '/api/outpatient/provider/:ccn',
     pathParams: ['ccn'],
   },
+
+  /* ── Historical Cost Trends (2013-2023) ──────────────────────── */
+  {
+    name: 'get_drg_trend',
+    description: 'Yearly cost trend for a specific DRG from 2013-2023. Returns weighted average payment, charges, Medicare payment, discharge count, and provider count per year.',
+    parameters: {
+      drg: { type: 'string', required: true, description: 'DRG code, e.g. "470"' },
+    },
+    endpoint: '/api/trends/drg',
+  },
+  {
+    name: 'get_provider_trend',
+    description: 'Hospital-level yearly cost trend from 2013-2023. Returns aggregate payment, charges, discharges, and DRG count per year for one hospital.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Hospital facility ID (CCN)' },
+    },
+    endpoint: '/api/trends/provider',
+  },
+  {
+    name: 'get_state_drg_trend',
+    description: 'State-level yearly cost trend for a DRG from 2013-2023.',
+    parameters: {
+      state: { type: 'string', required: true, description: 'Two-letter state code' },
+      drg: { type: 'string', required: true, description: 'DRG code' },
+    },
+    endpoint: '/api/trends/state',
+  },
+  {
+    name: 'get_national_trend',
+    description: 'National top-line cost summary per year (2013-2023). Weighted average payment and charges across all DRGs, total discharges.',
+    parameters: {},
+    endpoint: '/api/trends/national',
+  },
+
+  /* ── Episode Spending & Value ────────────────────────────────── */
+  {
+    name: 'get_episode_spending',
+    description: 'Spending breakdown by claim type and time period (pre-admission, during, post-discharge, complete episode) for a hospital. Compares hospital vs state vs national average.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Hospital facility ID (CCN)' },
+    },
+    endpoint: '/api/spending/episode/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'get_spending_per_beneficiary',
+    description: 'Medicare Spending Per Beneficiary (MSPB-1) scores. 1.0 = national average; < 1.0 = cheaper than average. Filterable by state.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default all)' },
+    },
+    endpoint: '/api/spending/per-beneficiary',
+  },
+  {
+    name: 'get_vbp_hospital',
+    description: 'Value-Based Purchasing (VBP) scores for a hospital across all 5 domains: clinical outcomes, person/community engagement, safety, efficiency, and total performance score. Also includes MSPB-1 and HCAHPS base/consistency scores.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Hospital facility ID (CCN)' },
+    },
+    endpoint: '/api/vbp/hospital/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'get_vbp_rankings',
+    description: 'VBP total performance score rankings. Higher = better. Filterable by state.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default all)' },
+    },
+    endpoint: '/api/vbp/rankings',
+  },
+  {
+    name: 'get_unplanned_visits',
+    description: 'Unplanned hospital visit measures for a hospital: 30-day readmissions (READM_30), excess days in acute care (EDAC_30), and outpatient ED visit rates. Includes confidence intervals and national comparison.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Hospital facility ID (CCN)' },
+    },
+    endpoint: '/api/unplanned-visits/hospital/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'get_value_composite',
+    description: 'Comprehensive hospital value composite: quality metrics (star rating, PSI-90, HAC, infections, readmissions, mortality) + VBP scores + MSPB + unplanned visits + episode cost. The most complete single-hospital value assessment.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default all)' },
+    },
+    endpoint: '/api/value-composite',
+  },
+
+  /* ── Post-Acute Care ─────────────────────────────────────────── */
+  {
+    name: 'get_nursing_homes',
+    description: 'List nursing homes with star ratings (overall, health inspection, quality measures, staffing), bed count, fines, and penalties. Filterable by state.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results' },
+    },
+    endpoint: '/api/post-acute/nursing-homes',
+  },
+  {
+    name: 'get_nursing_home_profile',
+    description: 'Detailed nursing home profile including ratings, staffing hours, turnover rates, fines, and all MDS quality measure scores.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Nursing home CCN' },
+    },
+    endpoint: '/api/post-acute/nursing-home/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'get_home_health_agencies',
+    description: 'Home health agencies with quality star rating, discharge-to-community rate (DTC), potentially preventable readmission rate (PPR), potentially preventable hospitalization rate (PPH), and Medicare spend per episode.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results' },
+    },
+    endpoint: '/api/post-acute/home-health',
+  },
+  {
+    name: 'get_hospice_providers',
+    description: 'Hospice providers with quality measure scores (emotional support, symptom management, communication, etc.).',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results' },
+    },
+    endpoint: '/api/post-acute/hospice',
+  },
+  {
+    name: 'get_dialysis_facilities',
+    description: 'Dialysis facilities with 5-star rating, mortality/hospitalization/readmission/transfusion/ED visit rates, and chain organization info.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results' },
+    },
+    endpoint: '/api/post-acute/dialysis',
+  },
+  {
+    name: 'get_post_acute_landscape',
+    description: 'State-level post-acute care overview: counts and average ratings for nursing homes, home health agencies, and dialysis facilities. Useful for comparing post-acute care quality across states.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code (omit for all states)' },
+    },
+    endpoint: '/api/post-acute/landscape',
+  },
+
+  /* ── Specialized Facilities (IRF, LTCH, Suppliers) ──────────── */
+  {
+    name: 'get_irf_facilities',
+    description: 'List Inpatient Rehabilitation Facilities (IRFs). Filterable by state. Returns CCN, name, city, state, ownership type, phone.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default 200)' },
+    },
+    endpoint: '/api/facilities/irf',
+  },
+  {
+    name: 'get_irf_detail',
+    description: 'Get IRF detail including quality measures (functional outcomes, discharge to community, etc.).',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'IRF facility CCN' },
+    },
+    endpoint: '/api/facilities/irf/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'get_ltch_facilities',
+    description: 'List Long-Term Care Hospitals (LTCHs). Filterable by state. Returns CCN, name, city, state, ownership type, phone.',
+    parameters: {
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default 200)' },
+    },
+    endpoint: '/api/facilities/ltch',
+  },
+  {
+    name: 'get_ltch_detail',
+    description: 'Get LTCH detail including quality measures (discharge to community, pressure ulcers, infections, etc.).',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'LTCH facility CCN' },
+    },
+    endpoint: '/api/facilities/ltch/:ccn',
+    pathParams: ['ccn'],
+  },
+  {
+    name: 'search_medical_equipment_suppliers',
+    description: 'Search Medicare-enrolled medical equipment suppliers (DMEPOS). Search by name or supplies keyword. Filterable by state. Returns 58K+ suppliers with address, phone, specialties, and supply types.',
+    parameters: {
+      q: { type: 'string', description: 'Search by business name, practice name, or supplies keyword' },
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default 200)' },
+    },
+    endpoint: '/api/facilities/suppliers',
+  },
+
+  /* ── Clinician Directory ─────────────────────────────────────── */
+  {
+    name: 'search_clinicians',
+    description: 'Search the Medicare clinician directory (2.7M providers) by name, specialty, and state. Returns NPI, credentials, specialty, location, telehealth availability.',
+    parameters: {
+      q: { type: 'string', description: 'Name search term (searches first and last name)' },
+      specialty: { type: 'string', description: 'Primary specialty, e.g. "Internal Medicine", "Cardiology"' },
+      state: { type: 'string', description: 'Two-letter state code' },
+      limit: { type: 'number', description: 'Max results (default 50)' },
+    },
+    endpoint: '/api/clinicians/search',
+  },
+  {
+    name: 'get_clinician_profile',
+    description: 'Get clinician details by NPI: name, credentials, medical school, graduation year, specialties, facility, telehealth, and assignment status.',
+    parameters: {
+      npi: { type: 'string', required: true, description: 'National Provider Identifier (10-digit NPI)' },
+    },
+    endpoint: '/api/clinicians/:npi',
+    pathParams: ['npi'],
+  },
 ];
 
 /**

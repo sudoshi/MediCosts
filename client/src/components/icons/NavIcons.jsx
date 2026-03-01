@@ -87,3 +87,33 @@ export const LogOutIcon = icon(
     <line x1="21" y1="12" x2="9" y2="12" />
   </>
 );
+
+export const TrendingUpIcon = icon(
+  <>
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+    <polyline points="16 7 22 7 22 13" />
+  </>
+);
+
+export const HeartPulseIcon = icon(
+  <>
+    <path d="M19.5 12.572l-7.5 7.428-7.5-7.428A5 5 0 0112 5.006a5 5 0 017.5 7.566z" />
+    <path d="M5 12h4l2-3 2 6 2-3h4" />
+  </>
+);
+
+export const DollarIcon = icon(
+  <>
+    <line x1="12" y1="1" x2="12" y2="23" />
+    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+  </>
+);
+
+export const UsersIcon = icon(
+  <>
+    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 00-3-3.87" />
+    <path d="M16 3.13a4 4 0 010 7.75" />
+  </>
+);

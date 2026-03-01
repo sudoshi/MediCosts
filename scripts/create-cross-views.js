@@ -187,6 +187,147 @@ ORDER BY state;
 CREATE UNIQUE INDEX idx_mv_sqs_state ON medicosts.mv_state_quality_summary (state);
 `;
 
+/* ── Phase 3: Enrichment views (historical + new datasets) ── */
+const PHASE3_VIEWS = `
+-- View 6: Hospital episode cost profile (spending by claim type, summarized per hospital)
+DROP MATERIALIZED VIEW IF EXISTS medicosts.mv_hospital_episode_cost CASCADE;
+CREATE MATERIALIZED VIEW medicosts.mv_hospital_episode_cost AS
+SELECT
+  sbc.facility_id,
+  hi.facility_name,
+  hi.state,
+  hi.zip_code,
+  hi.hospital_overall_rating AS star_rating,
+  -- Pre-admission spending
+  SUM(CASE WHEN sbc.period LIKE '%Prior%' THEN sbc.avg_spndg_per_ep_hospital ELSE 0 END) AS pre_admission_spend,
+  -- During index admission
+  SUM(CASE WHEN sbc.period LIKE '%During%' THEN sbc.avg_spndg_per_ep_hospital ELSE 0 END) AS during_admission_spend,
+  -- Post-discharge (1-30 days)
+  SUM(CASE WHEN sbc.period LIKE '%After%' THEN sbc.avg_spndg_per_ep_hospital ELSE 0 END) AS post_discharge_spend,
+  -- Complete episode total
+  SUM(CASE WHEN sbc.period LIKE '%Complete%' THEN sbc.avg_spndg_per_ep_hospital ELSE 0 END) AS complete_episode_spend,
+  -- National comparison
+  SUM(CASE WHEN sbc.period LIKE '%Complete%' THEN sbc.avg_spndg_per_ep_national ELSE 0 END) AS national_episode_spend
+FROM medicosts.hospital_spending_by_claim sbc
+JOIN medicosts.hospital_info hi ON sbc.facility_id = hi.facility_id
+GROUP BY sbc.facility_id, hi.facility_name, hi.state, hi.zip_code, hi.hospital_overall_rating;
+
+CREATE UNIQUE INDEX idx_mv_hec_facility ON medicosts.mv_hospital_episode_cost (facility_id);
+CREATE INDEX idx_mv_hec_state ON medicosts.mv_hospital_episode_cost (state);
+
+-- View 7: Enhanced hospital value composite (quality + VBP + MSPB + unplanned visits)
+DROP MATERIALIZED VIEW IF EXISTS medicosts.mv_hospital_value_composite CASCADE;
+CREATE MATERIALIZED VIEW medicosts.mv_hospital_value_composite AS
+SELECT
+  hqc.facility_id,
+  hqc.facility_name,
+  hqc.city,
+  hqc.state,
+  hqc.zip_code,
+  hqc.star_rating,
+  hqc.weighted_avg_payment,
+  hqc.total_discharges,
+  -- Quality metrics from composite
+  hqc.clabsi_sir,
+  hqc.cauti_sir,
+  hqc.psi_90_score,
+  hqc.total_hac_score,
+  hqc.avg_excess_readm_ratio,
+  hqc.avg_mortality_rate,
+  -- VBP scores
+  vbp.total_performance_score AS vbp_total_score,
+  vbp.clinical_outcomes_score_w AS vbp_clinical_score,
+  vbp.safety_score_w AS vbp_safety_score,
+  vbp.efficiency_score_w AS vbp_efficiency_score,
+  vbp.person_engagement_score_w AS vbp_person_score,
+  -- MSPB
+  spb.mspb_score,
+  -- Unplanned visits (pivoted key measures)
+  MAX(CASE WHEN uv.measure_id = 'READM_30_HOSP_WIDE' THEN uv.score END) AS readm_30_all_cause,
+  MAX(CASE WHEN uv.measure_id = 'EDAC_30_AMI' THEN uv.score END) AS edac_30_ami,
+  MAX(CASE WHEN uv.measure_id = 'EDAC_30_HF' THEN uv.score END) AS edac_30_hf,
+  MAX(CASE WHEN uv.measure_id = 'EDAC_30_PN' THEN uv.score END) AS edac_30_pn,
+  -- Episode cost
+  hec.complete_episode_spend,
+  hec.national_episode_spend
+FROM medicosts.mv_hospital_quality_composite hqc
+LEFT JOIN medicosts.hospital_vbp vbp ON hqc.facility_id = vbp.facility_id
+LEFT JOIN medicosts.spending_per_beneficiary spb ON hqc.facility_id = spb.facility_id
+LEFT JOIN medicosts.unplanned_hospital_visits uv ON hqc.facility_id = uv.facility_id
+LEFT JOIN medicosts.mv_hospital_episode_cost hec ON hqc.facility_id = hec.facility_id
+GROUP BY
+  hqc.facility_id, hqc.facility_name, hqc.city, hqc.state, hqc.zip_code,
+  hqc.star_rating, hqc.weighted_avg_payment, hqc.total_discharges,
+  hqc.clabsi_sir, hqc.cauti_sir, hqc.psi_90_score, hqc.total_hac_score,
+  hqc.avg_excess_readm_ratio, hqc.avg_mortality_rate,
+  vbp.total_performance_score, vbp.clinical_outcomes_score_w, vbp.safety_score_w,
+  vbp.efficiency_score_w, vbp.person_engagement_score_w,
+  spb.mspb_score, hec.complete_episode_spend, hec.national_episode_spend;
+
+CREATE UNIQUE INDEX idx_mv_hvc_facility ON medicosts.mv_hospital_value_composite (facility_id);
+CREATE INDEX idx_mv_hvc_state ON medicosts.mv_hospital_value_composite (state);
+CREATE INDEX idx_mv_hvc_vbp ON medicosts.mv_hospital_value_composite (vbp_total_score);
+
+-- View 8: Post-acute care landscape (state-level summary of nursing homes, home health, hospice, dialysis)
+DROP MATERIALIZED VIEW IF EXISTS medicosts.mv_post_acute_landscape CASCADE;
+CREATE MATERIALIZED VIEW medicosts.mv_post_acute_landscape AS
+SELECT
+  s.state,
+  -- Nursing homes
+  nh.num_nursing_homes,
+  nh.avg_nh_overall_rating,
+  nh.avg_nh_health_rating,
+  nh.avg_nh_staffing_rating,
+  -- Home health
+  hh.num_hh_agencies,
+  hh.avg_hh_quality_star,
+  hh.avg_hh_dtc_rate,
+  hh.avg_hh_ppr_rate,
+  hh.avg_hh_spend_per_episode,
+  -- Dialysis
+  dl.num_dialysis_facilities,
+  dl.avg_dl_five_star,
+  dl.avg_dl_mortality_rate,
+  dl.avg_dl_readmission_rate,
+  -- IRF
+  irf.num_irf_facilities,
+  -- LTCH
+  ltch.num_ltch_facilities
+FROM (SELECT DISTINCT state FROM medicosts.hospital_info WHERE state IS NOT NULL) s
+LEFT JOIN (
+  SELECT state, COUNT(*)::int AS num_nursing_homes,
+    AVG(overall_rating)::NUMERIC(3,1) AS avg_nh_overall_rating,
+    AVG(health_inspection_rating)::NUMERIC(3,1) AS avg_nh_health_rating,
+    AVG(staffing_rating)::NUMERIC(3,1) AS avg_nh_staffing_rating
+  FROM medicosts.nursing_home_info GROUP BY state
+) nh ON s.state = nh.state
+LEFT JOIN (
+  SELECT state, COUNT(*)::int AS num_hh_agencies,
+    AVG(quality_star_rating)::NUMERIC(3,1) AS avg_hh_quality_star,
+    AVG(dtc_rate)::NUMERIC(8,4) AS avg_hh_dtc_rate,
+    AVG(ppr_rate)::NUMERIC(8,4) AS avg_hh_ppr_rate,
+    AVG(medicare_spend_per_episode)::NUMERIC(12,2) AS avg_hh_spend_per_episode
+  FROM medicosts.home_health_agencies GROUP BY state
+) hh ON s.state = hh.state
+LEFT JOIN (
+  SELECT state, COUNT(*)::int AS num_dialysis_facilities,
+    AVG(five_star)::NUMERIC(3,1) AS avg_dl_five_star,
+    AVG(mortality_rate)::NUMERIC(8,4) AS avg_dl_mortality_rate,
+    AVG(readmission_rate)::NUMERIC(8,4) AS avg_dl_readmission_rate
+  FROM medicosts.dialysis_facilities GROUP BY state
+) dl ON s.state = dl.state
+LEFT JOIN (
+  SELECT state, COUNT(*)::int AS num_irf_facilities
+  FROM medicosts.irf_info GROUP BY state
+) irf ON s.state = irf.state
+LEFT JOIN (
+  SELECT state, COUNT(*)::int AS num_ltch_facilities
+  FROM medicosts.ltch_info GROUP BY state
+) ltch ON s.state = ltch.state;
+
+CREATE UNIQUE INDEX idx_mv_pal_state ON medicosts.mv_post_acute_landscape (state);
+`;
+
 async function main() {
   console.log('Creating cross-dataset materialized views …');
   const client = await pool.connect();
@@ -204,23 +345,44 @@ async function main() {
       await client.query(PHASE2_VIEWS);
 
       const hqc = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_quality_composite');
-      console.log(`✓ mv_hospital_quality_composite: ${parseInt(hqc.rows[0].n).toLocaleString()} hospitals`);
+      console.log(`  mv_hospital_quality_composite: ${parseInt(hqc.rows[0].n).toLocaleString()} hospitals`);
 
       const sqs = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_state_quality_summary');
-      console.log(`✓ mv_state_quality_summary: ${parseInt(sqs.rows[0].n).toLocaleString()} states`);
+      console.log(`  mv_state_quality_summary: ${parseInt(sqs.rows[0].n).toLocaleString()} states`);
     } else {
-      console.log('⊘ Phase 2 quality tables not loaded yet — skipping composite views.');
+      console.log('Phase 2 quality tables not loaded yet — skipping composite views.');
     }
 
-    // Verify
+    // Phase 3 enrichment views (only if new tables exist)
+    const phase3Tables = await client.query(`
+      SELECT tablename FROM pg_tables
+      WHERE schemaname = 'medicosts' AND tablename = 'hospital_spending_by_claim'
+    `);
+    if (phase3Tables.rows.length > 0) {
+      console.log('Creating Phase 3 enrichment views …');
+      await client.query(PHASE3_VIEWS);
+
+      const hec = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_episode_cost');
+      console.log(`  mv_hospital_episode_cost: ${parseInt(hec.rows[0].n).toLocaleString()} hospitals`);
+
+      const hvc = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_value_composite');
+      console.log(`  mv_hospital_value_composite: ${parseInt(hvc.rows[0].n).toLocaleString()} hospitals`);
+
+      const pal = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_post_acute_landscape');
+      console.log(`  mv_post_acute_landscape: ${parseInt(pal.rows[0].n).toLocaleString()} states`);
+    } else {
+      console.log('Phase 3 enrichment tables not loaded yet — skipping.');
+    }
+
+    // Verify base views
     const hcq = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hospital_cost_quality');
-    console.log(`✓ mv_hospital_cost_quality: ${parseInt(hcq.rows[0].n).toLocaleString()} hospitals`);
+    console.log(`  mv_hospital_cost_quality: ${parseInt(hcq.rows[0].n).toLocaleString()} hospitals`);
 
     const hcahps = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_hcahps_summary');
-    console.log(`✓ mv_hcahps_summary: ${parseInt(hcahps.rows[0].n).toLocaleString()} hospitals`);
+    console.log(`  mv_hcahps_summary: ${parseInt(hcahps.rows[0].n).toLocaleString()} hospitals`);
 
     const ze = await client.query('SELECT COUNT(*) AS n FROM medicosts.mv_zip_enriched');
-    console.log(`✓ mv_zip_enriched: ${parseInt(ze.rows[0].n).toLocaleString()} rows`);
+    console.log(`  mv_zip_enriched: ${parseInt(ze.rows[0].n).toLocaleString()} rows`);
 
     // Sample cost vs quality
     const sample = await client.query(`
@@ -229,10 +391,12 @@ async function main() {
       FROM medicosts.mv_hospital_cost_quality
       GROUP BY star_rating ORDER BY star_rating
     `);
-    console.log('\n✓ Cost vs Quality summary:');
+    console.log('\nCost vs Quality summary:');
     sample.rows.forEach((r) =>
       console.log(`    ${r.star_rating} stars: ${r.hospitals} hospitals, avg payment $${r.avg_payment?.toLocaleString()}`)
     );
+
+    console.log('\nDone.');
   } finally {
     client.release();
     await pool.end();

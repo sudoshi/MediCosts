@@ -2,10 +2,20 @@
  * Abby Analytics — System Prompt Builder
  *
  * Constructs the system prompt including Abby's persona,
- * tool catalog (serialized from abby-tools.js), and formatting rules.
+ * database schema context, tool catalog (serialized from abby-tools.js),
+ * and formatting rules.
  */
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import { TOOLS } from './abby-tools.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SCHEMA_CONTEXT = readFileSync(
+  path.join(__dirname, 'abby-schema-context.md'),
+  'utf-8'
+);
 
 function serializeToolCatalog() {
   return TOOLS.map(t => {
@@ -33,6 +43,8 @@ export function buildSystemPrompt() {
 - Data source: CMS (Centers for Medicare & Medicaid Services) 2023 datasets
 - Coverage: ~4,700 Medicare-certified hospitals across the United States
 - Includes: inpatient costs by DRG, hospital star ratings (1-5), HAI infection rates (SIR), readmissions, mortality, patient safety (PSI-90/HAC), timely & effective care, outpatient services, physician services, and ZIP-level demographics
+
+${SCHEMA_CONTEXT}
 
 ## How to Use Tools
 To request data, output a tool call inside a fenced code block with the language tag \`tool_call\`:

@@ -10,6 +10,10 @@ const QualityCommandCenter = lazy(() => import('./views/QualityCommandCenter'));
 const HospitalExplorer = lazy(() => import('./views/HospitalExplorer'));
 const HospitalDetail = lazy(() => import('./views/HospitalDetail'));
 const GeographicAnalysis = lazy(() => import('./views/GeographicAnalysis'));
+const CostTrends = lazy(() => import('./views/CostTrends'));
+const PostAcuteCare = lazy(() => import('./views/PostAcuteCare'));
+const SpendingValue = lazy(() => import('./views/SpendingValue'));
+const ClinicianDirectory = lazy(() => import('./views/ClinicianDirectory'));
 const PhysicianAnalytics = lazy(() => import('./views/PhysicianAnalytics'));
 const AbbyAnalytics = lazy(() => import('./views/AbbyAnalytics'));
 const DataConnectors = lazy(() => import('./views/DataConnectors'));
@@ -41,6 +45,10 @@ export default function App() {
             <Route path="/hospitals" element={<ErrorBoundary><HospitalExplorer /></ErrorBoundary>} />
             <Route path="/hospitals/:ccn" element={<ErrorBoundary><HospitalDetail /></ErrorBoundary>} />
             <Route path="/geography" element={<ErrorBoundary><GeographicAnalysis /></ErrorBoundary>} />
+            <Route path="/trends" element={<ErrorBoundary><CostTrends /></ErrorBoundary>} />
+            <Route path="/post-acute" element={<ErrorBoundary><PostAcuteCare /></ErrorBoundary>} />
+            <Route path="/spending" element={<ErrorBoundary><SpendingValue /></ErrorBoundary>} />
+            <Route path="/clinicians" element={<ErrorBoundary><ClinicianDirectory /></ErrorBoundary>} />
             <Route path="/physicians" element={<ErrorBoundary><PhysicianAnalytics /></ErrorBoundary>} />
             <Route path="/abby" element={<ErrorBoundary><AbbyAnalytics /></ErrorBoundary>} />
             <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />

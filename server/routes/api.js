@@ -530,6 +530,193 @@ router.post('/admin/refresh-views', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/* ================================================================== */
+/*  Spending & Value Endpoints                                         */
+/* ================================================================== */
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/spending/episode/:ccn                                     */
+/*  Spending breakdown by claim type + period for a hospital           */
+/* ------------------------------------------------------------------ */
+router.get('/spending/episode/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT facility_id, facility_name, state, period, claim_type,
+        avg_spndg_per_ep_hospital, avg_spndg_per_ep_state, avg_spndg_per_ep_national,
+        pct_spndg_hospital, pct_spndg_state, pct_spndg_national
+      FROM medicosts.hospital_spending_by_claim
+      WHERE facility_id = $1
+      ORDER BY period, claim_type
+    `, [req.params.ccn]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/spending/per-beneficiary?state=XX                         */
+/* ------------------------------------------------------------------ */
+router.get('/spending/per-beneficiary', async (req, res, next) => {
+  try {
+    const { state, limit } = req.query;
+    let query = `
+      SELECT facility_id, facility_name, state, zip_code, county, mspb_score
+      FROM medicosts.spending_per_beneficiary
+    `;
+    const params = [];
+    if (state) {
+      params.push(state);
+      query += ` WHERE state = $1`;
+    }
+    query += ` ORDER BY mspb_score NULLS LAST`;
+    if (limit) {
+      params.push(parseInt(limit));
+      query += ` LIMIT $${params.length}`;
+    }
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/vbp/hospital/:ccn                                         */
+/*  VBP scores across all 5 domains                                    */
+/* ------------------------------------------------------------------ */
+router.get('/vbp/hospital/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM medicosts.hospital_vbp WHERE facility_id = $1
+    `, [req.params.ccn]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/vbp/rankings?state=XX                                     */
+/*  VBP performance rankings                                           */
+/* ------------------------------------------------------------------ */
+router.get('/vbp/rankings', async (req, res, next) => {
+  try {
+    const { state, limit } = req.query;
+    let query = `
+      SELECT facility_id, facility_name, state, zip_code,
+        total_performance_score,
+        clinical_outcomes_score_w, safety_score_w,
+        efficiency_score_w, person_engagement_score_w,
+        hcahps_base_score, mspb_1_performance_rate
+      FROM medicosts.hospital_vbp
+    `;
+    const params = [];
+    if (state) {
+      params.push(state);
+      query += ` WHERE state = $1`;
+    }
+    query += ` ORDER BY total_performance_score DESC NULLS LAST`;
+    if (limit) {
+      params.push(parseInt(limit));
+      query += ` LIMIT $${params.length}`;
+    }
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/unplanned-visits/hospital/:ccn                            */
+/* ------------------------------------------------------------------ */
+router.get('/unplanned-visits/hospital/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT facility_id, facility_name, state,
+        measure_id, measure_name, compared_to_national,
+        denominator, score, lower_estimate, higher_estimate,
+        num_patients, num_patients_returned
+      FROM medicosts.unplanned_hospital_visits
+      WHERE facility_id = $1
+      ORDER BY measure_id
+    `, [req.params.ccn]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/value-composite?state=XX                                  */
+/*  Hospital value composite (quality + cost + VBP + MSPB)             */
+/* ------------------------------------------------------------------ */
+router.get('/value-composite', async (req, res, next) => {
+  try {
+    const { state, limit } = req.query;
+    let query = `SELECT * FROM medicosts.mv_hospital_value_composite`;
+    const params = [];
+    if (state) {
+      params.push(state);
+      query += ` WHERE state = $1`;
+    }
+    query += ` ORDER BY vbp_total_score DESC NULLS LAST`;
+    if (limit) {
+      params.push(parseInt(limit));
+      query += ` LIMIT $${params.length}`;
+    }
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ================================================================== */
+/*  Clinician Endpoints                                                */
+/* ================================================================== */
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clinicians/search?q=&specialty=&state=&limit=             */
+/* ------------------------------------------------------------------ */
+router.get('/clinicians/search', async (req, res, next) => {
+  try {
+    const { q, specialty, state, limit } = req.query;
+    const conditions = [];
+    const params = [];
+
+    if (q) {
+      params.push(`%${q}%`);
+      conditions.push(`(last_name ILIKE $${params.length} OR first_name ILIKE $${params.length})`);
+    }
+    if (specialty) {
+      params.push(specialty);
+      conditions.push(`primary_specialty ILIKE $${params.length}`);
+    }
+    if (state) {
+      params.push(state);
+      conditions.push(`state = $${params.length}`);
+    }
+
+    let query = `
+      SELECT npi, last_name, first_name, credential, gender,
+        primary_specialty, city, state, zip_code, telehealth,
+        facility_name
+      FROM medicosts.clinician_directory
+    `;
+    if (conditions.length > 0) query += ` WHERE ${conditions.join(' AND ')}`;
+    query += ` ORDER BY last_name, first_name`;
+    params.push(parseInt(limit) || 50);
+    query += ` LIMIT $${params.length}`;
+
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clinicians/:npi                                           */
+/* ------------------------------------------------------------------ */
+router.get('/clinicians/:npi', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM medicosts.clinician_directory WHERE npi = $1
+    `, [req.params.npi]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(rows.length === 1 ? rows[0] : rows);
+  } catch (err) { next(err); }
+});
+
 /* ------------------------------------------------------------------ */
 /*  Error handler                                                      */
 /* ------------------------------------------------------------------ */

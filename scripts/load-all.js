@@ -31,6 +31,21 @@ const steps = [
   { name: 'Load timely & effective care',   script: 'load-timely-care.js' },
   { name: 'Load complications & deaths',    script: 'load-complications.js' },
   { name: 'Load payment & value of care',   script: 'load-payment-value.js' },
+  /* Phase 3: Historical + Stage promotions */
+  { name: 'Load historical inpatient (2013-2023)', script: 'load-inpatient-historical.js' },
+  { name: 'Promote spending by claim',             script: 'promote-spending-by-claim.js' },
+  { name: 'Promote unplanned visits',              script: 'promote-unplanned-visits.js' },
+  { name: 'Promote VBP scores',                    script: 'promote-vbp.js' },
+  { name: 'Promote spending per beneficiary',      script: 'promote-spending-per-beneficiary.js' },
+  { name: 'Promote nursing homes',                 script: 'promote-nursing-homes.js' },
+  { name: 'Promote home health agencies',          script: 'promote-home-health.js' },
+  { name: 'Promote hospice providers',             script: 'promote-hospice.js' },
+  { name: 'Promote dialysis facilities',           script: 'promote-dialysis.js' },
+  { name: 'Promote clinician directory',           script: 'promote-clinician-directory.js' },
+  /* Phase 4: Additional facility promotions */
+  { name: 'Promote IRF facilities',               script: 'promote-irf.js' },
+  { name: 'Promote LTCH facilities',              script: 'promote-ltch.js' },
+  { name: 'Promote medical equipment suppliers',  script: 'promote-suppliers.js' },
   /* Cross-dataset views (must be last) */
   { name: 'Create cross-dataset views', script: 'create-cross-views.js' },
 ];

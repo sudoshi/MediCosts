@@ -7,5 +7,6 @@ __pycache__/
 medicare-dashboard/medicare-data/
 medicare-dashboard/MUP_INP_RY25_DY23_PrvSvc.csv
 inpatient-qi/*.xls
-data/MUP_PHY_RY25_DY23_PrvSvc.csv
-data/hcahps_patient_survey.csv
+data/
+*.csv
+*.pdf
