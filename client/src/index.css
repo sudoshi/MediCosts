@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg-deep:     #09090b;
+  --bg-base:     #0c0c0e;
+  --bg-surface:  #141416;
+  --bg-elevated: #1c1c1f;
+  --bg-hover:    #232326;
+
+  /* Borders */
+  --border-dim:    #1e1e21;
+  --border-mid:    #2a2a2d;
+  --border-accent: rgba(59, 130, 246, 0.25);
+
+  /* Accent */
+  --accent:       #3b82f6;
+  --accent-light: #60a5fa;
+  --accent-dim:   rgba(59, 130, 246, 0.12);
+  --accent-glow:  rgba(59, 130, 246, 0.06);
+
+  /* Semantic */
+  --red:        #ef4444;
+  --red-dim:    rgba(239, 68, 68, 0.15);
+  --cyan:       #22d3ee;
+  --cyan-dim:   rgba(34, 211, 238, 0.1);
+  --green:      #22c55e;
+
+  /* Typography */
+  --text-primary:   #e4e4e7;
+  --text-secondary: #71717a;
+  --text-tertiary:  #3f3f46;
+  --text-accent:    #3b82f6;
+
+  /* Fonts */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+
+  /* Spacing */
+  --panel-radius: 8px;
+  --gap:          24px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}

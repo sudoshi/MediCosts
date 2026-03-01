@@ -1,0 +1,101 @@
+.wrapper {
+  background: var(--bg-surface);
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--border-dim);
+  padding: 20px 24px;
+  margin-bottom: var(--gap);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px 40px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .wrapper { grid-template-columns: 1fr; }
+}
+
+.field { }
+
+.field > label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.field select {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-mid);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--bg-hover);
+}
+
+.field select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.radios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.radio:hover {
+  color: var(--text-primary);
+}
+
+.radio input[type="radio"] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border-mid);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.radio input[type="radio"]:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.radio:has(input:checked) {
+  color: var(--text-primary);
+  font-weight: 500;
+}

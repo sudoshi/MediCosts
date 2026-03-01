@@ -1,0 +1,9 @@
+node_modules/
+.env
+.DS_Store
+dist/
+__pycache__/
+*.pyc
+medicare-dashboard/medicare-data/
+medicare-dashboard/MUP_INP_RY25_DY23_PrvSvc.csv
+inpatient-qi/*.xls

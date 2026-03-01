@@ -1,0 +1,24 @@
+.panel {
+  background: var(--bg-surface);
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--border-dim);
+  padding: 24px;
+  margin-bottom: var(--gap);
+  position: relative;
+  animation: panelFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  margin: 0 0 20px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}

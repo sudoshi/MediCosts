@@ -1,0 +1,62 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: var(--gap);
+}
+
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--border-dim);
+  border-top: 2px solid var(--accent);
+  padding: 24px 20px 20px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+/* staggered entrance */
+.card:nth-child(1) { animation: cardRise 0.6s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.card:nth-child(2) { animation: cardRise 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.card:nth-child(3) { animation: cardRise 0.6s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.card:nth-child(4) { animation: cardRise 0.6s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes cardRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.skeleton {
+  height: 44px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
