@@ -116,6 +116,14 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.clickableRow {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.clickableRow:hover td {
+  background: rgba(59, 130, 246, 0.06) !important;
+}
+
 .name {
   color: var(--text-primary) !important;
   font-weight: 500;

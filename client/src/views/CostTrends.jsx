@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Bar, ComposedChart, Legend,
@@ -22,6 +23,7 @@ const STATES = [
 ];
 
 export default function CostTrends() {
+  const navigate = useNavigate();
   const [selectedDrg, setSelectedDrg] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [ccn, setCcn] = useState('');
@@ -206,17 +208,22 @@ export default function CostTrends() {
           </div>
         </div>
         {loadingProv ? <Skeleton height={300} /> : provChart.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={provChart} margin={{ top: 16, right: 16, left: 8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" />
-              <XAxis dataKey="year" tick={AXIS_TICK} axisLine={false} tickLine={false} />
-              <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={fmtCompact} />
-              <Tooltip contentStyle={TOOLTIP_STYLE}
-                formatter={(v, name) => [name === 'discharges' ? fmtNumber(v) : fmtCurrency(v), name]} />
-              <Line type="monotone" dataKey="payment" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="charges" stroke="#22d3ee" strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={provChart} margin={{ top: 16, right: 16, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" />
+                <XAxis dataKey="year" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={fmtCompact} />
+                <Tooltip contentStyle={TOOLTIP_STYLE}
+                  formatter={(v, name) => [name === 'discharges' ? fmtNumber(v) : fmtCurrency(v), name]} />
+                <Line type="monotone" dataKey="payment" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="charges" stroke="#22d3ee" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+            <button className={s.detailLink} onClick={() => navigate(`/hospitals/${ccn}`)}>
+              View Hospital Details →
+            </button>
+          </>
         ) : ccn.length === 6 ? (
           <p className={s.emptyMsg}>No trend data found for CCN {ccn}.</p>
         ) : null}

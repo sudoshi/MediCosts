@@ -14,6 +14,12 @@ const CostTrends = lazy(() => import('./views/CostTrends'));
 const PostAcuteCare = lazy(() => import('./views/PostAcuteCare'));
 const SpendingValue = lazy(() => import('./views/SpendingValue'));
 const ClinicianDirectory = lazy(() => import('./views/ClinicianDirectory'));
+const NursingHomeDetail = lazy(() => import('./views/NursingHomeDetail'));
+const DialysisDetail = lazy(() => import('./views/DialysisDetail'));
+const HomeHealthDetail = lazy(() => import('./views/HomeHealthDetail'));
+const HospiceDetail = lazy(() => import('./views/HospiceDetail'));
+const RehabDetail = lazy(() => import('./views/RehabDetail'));
+const ClinicianProfile = lazy(() => import('./views/ClinicianProfile'));
 const PhysicianAnalytics = lazy(() => import('./views/PhysicianAnalytics'));
 const AbbyAnalytics = lazy(() => import('./views/AbbyAnalytics'));
 const DataConnectors = lazy(() => import('./views/DataConnectors'));
@@ -47,8 +53,15 @@ export default function App() {
             <Route path="/geography" element={<ErrorBoundary><GeographicAnalysis /></ErrorBoundary>} />
             <Route path="/trends" element={<ErrorBoundary><CostTrends /></ErrorBoundary>} />
             <Route path="/post-acute" element={<ErrorBoundary><PostAcuteCare /></ErrorBoundary>} />
+            <Route path="/nursing-homes/:ccn" element={<ErrorBoundary><NursingHomeDetail /></ErrorBoundary>} />
+            <Route path="/dialysis/:ccn" element={<ErrorBoundary><DialysisDetail /></ErrorBoundary>} />
+            <Route path="/home-health/:ccn" element={<ErrorBoundary><HomeHealthDetail /></ErrorBoundary>} />
+            <Route path="/hospice/:ccn" element={<ErrorBoundary><HospiceDetail /></ErrorBoundary>} />
+            <Route path="/irf/:ccn" element={<ErrorBoundary><RehabDetail type="irf" /></ErrorBoundary>} />
+            <Route path="/ltch/:ccn" element={<ErrorBoundary><RehabDetail type="ltch" /></ErrorBoundary>} />
             <Route path="/spending" element={<ErrorBoundary><SpendingValue /></ErrorBoundary>} />
             <Route path="/clinicians" element={<ErrorBoundary><ClinicianDirectory /></ErrorBoundary>} />
+            <Route path="/clinicians/:npi" element={<ErrorBoundary><ClinicianProfile /></ErrorBoundary>} />
             <Route path="/physicians" element={<ErrorBoundary><PhysicianAnalytics /></ErrorBoundary>} />
             <Route path="/abby" element={<ErrorBoundary><AbbyAnalytics /></ErrorBoundary>} />
             <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />

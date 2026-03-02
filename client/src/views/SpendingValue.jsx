@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
@@ -27,6 +28,7 @@ const STATES = [
 ];
 
 export default function SpendingValue() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('value');
   const [state, setState] = useState('');
   const [sort, setSort] = useState({ col: '', dir: 'desc' });
@@ -120,7 +122,7 @@ export default function SpendingValue() {
                 </thead>
                 <tbody>
                   {sortData(valueData).map(r => (
-                    <tr key={r.facility_id}>
+                    <tr key={r.facility_id} className={s.clickableRow} onClick={() => navigate(`/hospitals/${r.facility_id}`)}>
                       <td className={s.name}>{r.facility_name}</td>
                       <td className={s.state}>{r.state}</td>
                       <td className={s.stars}>{fmtStars(r.star_rating)}</td>
@@ -171,7 +173,7 @@ export default function SpendingValue() {
                   </thead>
                   <tbody>
                     {sortData(vbpData).map(r => (
-                      <tr key={r.facility_id}>
+                      <tr key={r.facility_id} className={s.clickableRow} onClick={() => navigate(`/hospitals/${r.facility_id}`)}>
                         <td className={s.name}>{r.facility_name}</td>
                         <td className={s.state}>{r.state}</td>
                         <td className={s.mono}>{r.total_performance_score != null ? Number(r.total_performance_score).toFixed(1) : '—'}</td>
@@ -220,7 +222,7 @@ export default function SpendingValue() {
                   </thead>
                   <tbody>
                     {sortData(mspbData).map(r => (
-                      <tr key={r.facility_id}>
+                      <tr key={r.facility_id} className={s.clickableRow} onClick={() => navigate(`/hospitals/${r.facility_id}`)}>
                         <td className={s.name}>{r.facility_name}</td>
                         <td className={s.state}>{r.state}</td>
                         <td className={s.mono}>{r.mspb_score != null ? Number(r.mspb_score).toFixed(4) : '—'}</td>

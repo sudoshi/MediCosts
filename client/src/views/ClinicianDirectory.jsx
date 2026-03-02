@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianDirectory.module.css';
@@ -21,6 +22,7 @@ const TOP_SPECIALTIES = [
 ];
 
 export default function ClinicianDirectory() {
+  const navigate = useNavigate();
   const [nameQuery, setNameQuery] = useState('');
   const [state, setState] = useState('');
   const [specialty, setSpecialty] = useState('');
@@ -124,7 +126,7 @@ export default function ClinicianDirectory() {
                 </thead>
                 <tbody>
                   {results.map((r, i) => (
-                    <tr key={`${r.npi}-${i}`}>
+                    <tr key={`${r.npi}-${i}`} className={s.clickableRow} onClick={() => navigate(`/clinicians/${r.npi}`)}>
                       <td className={s.name}>{r.last_name}, {r.first_name}</td>
                       <td className={s.credential}>{r.credential || '—'}</td>
                       <td className={s.specialty}>{r.primary_specialty}</td>

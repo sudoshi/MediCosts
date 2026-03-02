@@ -83,6 +83,20 @@ router.get('/home-health', async (req, res, next) => {
 });
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/post-acute/home-health/:ccn                               */
+/* ------------------------------------------------------------------ */
+router.get('/home-health/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM medicosts.home_health_agencies WHERE provider_ccn = $1`,
+      [req.params.ccn]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/post-acute/hospice?state=XX                               */
 /* ------------------------------------------------------------------ */
 router.get('/hospice', async (req, res, next) => {
@@ -105,6 +119,29 @@ router.get('/hospice', async (req, res, next) => {
     }
     const { rows } = await pool.query(query, params);
     res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/post-acute/hospice/:ccn                                   */
+/* ------------------------------------------------------------------ */
+router.get('/hospice/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT provider_ccn, facility_name, city, state, zip_code, county,
+              measure_code, measure_name, score
+       FROM medicosts.hospice_providers WHERE provider_ccn = $1
+       ORDER BY measure_code`,
+      [req.params.ccn]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const { provider_ccn, facility_name, city, state, zip_code, county } = rows[0];
+    const measures = rows.map(r => ({
+      measure_code: r.measure_code,
+      measure_name: r.measure_name,
+      score: r.score,
+    }));
+    res.json({ provider_ccn, facility_name, city, state, zip_code, county, measures });
   } catch (err) { next(err); }
 });
 
@@ -136,6 +173,20 @@ router.get('/dialysis', async (req, res, next) => {
     }
     const { rows } = await pool.query(query, params);
     res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/post-acute/dialysis/:ccn                                  */
+/* ------------------------------------------------------------------ */
+router.get('/dialysis/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM medicosts.dialysis_facilities WHERE provider_ccn = $1`,
+      [req.params.ccn]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
   } catch (err) { next(err); }
 });
 

@@ -3,9 +3,16 @@ import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
-import { fmtCurrency, fmtStars, fmtSIR, fmtRatio } from '../utils/format.js';
+import { fmtCurrency, fmtCompact, fmtNumber, fmtStars, fmtSIR, fmtRatio } from '../utils/format.js';
 import { comparisonBadge, sirColor } from '../utils/qualityColors.js';
+import {
+  ResponsiveContainer, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+} from 'recharts';
 import s from './HospitalDetail.module.css';
+
+const TT_STYLE = { background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 };
+const AXIS_TICK = { fill: '#71717a', fontFamily: 'Inter, sans-serif', fontSize: 10 };
 
 export default function HospitalDetail() {
   const { ccn } = useParams();
@@ -16,6 +23,11 @@ export default function HospitalDetail() {
   const { data: psi } = useApi(`/quality/psi/hospital/${ccn}`, [ccn]);
   const { data: mortality } = useApi(`/quality/mortality/hospital/${ccn}`, [ccn]);
   const { data: timelyCare } = useApi(`/quality/timely-care/hospital/${ccn}`, [ccn]);
+  const { data: vbp } = useApi(`/vbp/hospital/${ccn}`, [ccn]);
+  const { data: spending } = useApi(`/spending/episode/${ccn}`, [ccn]);
+  const { data: unplanned } = useApi(`/unplanned-visits/hospital/${ccn}`, [ccn]);
+  const { data: trendRaw } = useApi(`/trends/provider?ccn=${ccn}`, [ccn]);
+  const { data: outpatient } = useApi(`/outpatient/provider/${ccn}`, [ccn]);
 
   if (loadingComposite) {
     return (
@@ -175,7 +187,149 @@ export default function HospitalDetail() {
             </div>
           </Panel>
         )}
+
+        {/* VBP Domain Scores */}
+        {vbp && (
+          <Panel title="Value-Based Purchasing">
+            <div className={s.metricList}>
+              {[
+                { label: 'Total Performance Score', value: vbp.total_performance_score },
+                { label: 'Clinical Outcomes', value: vbp.clinical_outcomes_score_w },
+                { label: 'Safety', value: vbp.safety_score_w },
+                { label: 'Efficiency & Cost Reduction', value: vbp.efficiency_score_w },
+                { label: 'Person & Community Engagement', value: vbp.person_engagement_score_w },
+                { label: 'HCAHPS Base Score', value: vbp.hcahps_base_score },
+                { label: 'MSPB-1 Performance Rate', value: vbp.mspb_1_performance_rate },
+              ].map((m) => (
+                <div key={m.label} className={s.metricRow}>
+                  <span className={s.metricName}>{m.label}</span>
+                  <span className={s.metricValue}>{m.value != null ? Number(m.value).toFixed(2) : '—'}</span>
+                </div>
+              ))}
+            </div>
+            {vbp.total_performance_score != null && (
+              <div className={s.chartWrap}>
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={[
+                    { domain: 'Clinical', score: Number(vbp.clinical_outcomes_score_w) || 0 },
+                    { domain: 'Safety', score: Number(vbp.safety_score_w) || 0 },
+                    { domain: 'Efficiency', score: Number(vbp.efficiency_score_w) || 0 },
+                    { domain: 'Engagement', score: Number(vbp.person_engagement_score_w) || 0 },
+                  ]} layout="vertical" margin={{ left: 80, right: 20, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" horizontal={false} />
+                    <XAxis type="number" tick={AXIS_TICK} />
+                    <YAxis type="category" dataKey="domain" tick={AXIS_TICK} width={75} />
+                    <Tooltip contentStyle={TT_STYLE} />
+                    <Bar dataKey="score" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Panel>
+        )}
+
+        {/* Unplanned Visits */}
+        {unplanned?.length > 0 && (
+          <Panel title="Unplanned Hospital Visits">
+            <div className={s.metricList}>
+              {unplanned.map((r, i) => {
+                const badge = comparisonBadge(r.compared_to_national);
+                return (
+                  <div key={r.measure_id || i} className={s.metricRow}>
+                    <span className={s.metricName}>{r.measure_name}</span>
+                    <span className={s.metricValue}>{r.score != null ? Number(r.score).toFixed(2) : '—'}</span>
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        )}
       </div>
+
+      {/* Episode Spending (full width) */}
+      {spending?.length > 0 && (() => {
+        const complete = spending.filter(r => r.period?.includes('Complete'));
+        return (
+          <Panel title="Episode Spending by Claim Type">
+            <div className={s.tableWrap}>
+              <table className={s.spendTable}>
+                <thead>
+                  <tr>
+                    <th>Claim Type</th>
+                    <th>Hospital</th>
+                    <th>State Avg</th>
+                    <th>National Avg</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complete.map((r, i) => (
+                    <tr key={i}>
+                      <td className={s.metricName}>{r.claim_type}</td>
+                      <td className={s.metricValue}>{fmtCurrency(r.avg_spndg_per_ep_hospital)}</td>
+                      <td className={s.metricValue}>{fmtCurrency(r.avg_spndg_per_ep_state)}</td>
+                      <td className={s.metricValue}>{fmtCurrency(r.avg_spndg_per_ep_national)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        );
+      })()}
+
+      {/* Historical Cost Trend */}
+      {trendRaw?.length > 0 && (() => {
+        const trend = (Array.isArray(trendRaw) ? trendRaw : trendRaw.results || [])
+          .map(r => ({ ...r, year: Number(r.data_year), payment: Number(r.weighted_avg_payment), charges: Number(r.weighted_avg_charges) }))
+          .sort((a, b) => a.year - b.year);
+        return (
+          <Panel title="Historical Cost Trend (2013–2023)">
+            <div className={s.chartWrap}>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={trend} margin={{ left: 10, right: 20, top: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" />
+                  <XAxis dataKey="year" tick={AXIS_TICK} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={fmtCompact} />
+                  <Tooltip contentStyle={TT_STYLE} formatter={(v) => fmtCurrency(v)} />
+                  <Line type="monotone" dataKey="payment" name="Avg Payment" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="charges" name="Avg Charges" stroke="#22d3ee" strokeWidth={2} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
+        );
+      })()}
+
+      {/* Top Outpatient Services */}
+      {outpatient?.length > 0 && (
+        <Panel title="Top Outpatient Services">
+          <div className={s.tableWrap}>
+            <table className={s.spendTable}>
+              <thead>
+                <tr>
+                  <th>APC</th>
+                  <th>Description</th>
+                  <th>Services</th>
+                  <th>Avg Charge</th>
+                  <th>Avg Medicare</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(Array.isArray(outpatient) ? outpatient : outpatient.results || []).slice(0, 20).map((r, i) => (
+                  <tr key={i}>
+                    <td className={s.metricValue}>{r.apc_cd}</td>
+                    <td className={s.metricName}>{r.apc_desc}</td>
+                    <td className={s.metricValue}>{fmtNumber(r.total_services)}</td>
+                    <td className={s.metricValue}>{fmtCurrency(r.avg_charges)}</td>
+                    <td className={s.metricValue}>{fmtCurrency(r.avg_medicare)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
     </div>
   );
 }

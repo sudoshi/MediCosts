@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Tabs from '../components/ui/Tabs.jsx';
@@ -24,6 +25,7 @@ const STATES = [
 ];
 
 export default function PostAcuteCare() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('landscape');
   const [state, setState] = useState('');
   const stateQ = state ? `?state=${state}` : '';
@@ -143,7 +145,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {nursing.map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/nursing-homes/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.provider_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.stars}>{fmtStars(r.overall_rating)}</td>
@@ -178,7 +180,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {hh.map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/home-health/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.provider_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.stars}>{fmtStars(r.quality_star_rating)}</td>
@@ -209,7 +211,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {hospiceFacilities.slice(0, 200).map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/hospice/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.facility_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.mono}>{r.measures.length}</td>
@@ -241,7 +243,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {dialysis.map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/dialysis/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.facility_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.stars}>{fmtStars(r.five_star)}</td>
@@ -275,7 +277,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {irf.map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/irf/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.provider_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.city}>{r.county}</td>
@@ -306,7 +308,7 @@ export default function PostAcuteCare() {
                 </thead>
                 <tbody>
                   {ltch.map(r => (
-                    <tr key={r.provider_ccn}>
+                    <tr key={r.provider_ccn} className={s.clickableRow} onClick={() => navigate(`/ltch/${r.provider_ccn}`)}>
                       <td className={s.name}>{r.provider_name}</td>
                       <td className={s.city}>{r.city}, {r.state}</td>
                       <td className={s.city}>{r.county}</td>

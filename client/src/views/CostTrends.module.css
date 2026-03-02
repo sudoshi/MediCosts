@@ -94,6 +94,22 @@
   vertical-align: middle;
 }
 
+.detailLink {
+  display: inline-block;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: var(--accent-light);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.detailLink:hover {
+  color: var(--accent);
+}
+
 .emptyMsg {
   font-size: 13px;
   color: var(--text-tertiary);
