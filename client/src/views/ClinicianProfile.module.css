@@ -152,3 +152,52 @@
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+/* ── Industry Payments ──────────────────────────────────────────── */
+.paymentSummary {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.paymentStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.paymentStatLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+.paymentStatVal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.paymentsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.paymentsTable th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-mid);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.paymentsTable td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.paymentsTable tr:last-child td { border-bottom: none; }
+.paymentsTable tr:hover td { background: rgba(59,130,246,0.04); }

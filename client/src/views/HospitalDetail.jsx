@@ -29,6 +29,7 @@ export default function HospitalDetail() {
   const { data: trendRaw } = useApi(`/trends/provider?ccn=${ccn}`, [ccn]);
   const { data: outpatient } = useApi(`/outpatient/provider/${ccn}`, [ccn]);
   const { data: hcahps } = useApi(`/quality/hcahps/hospital/${ccn}`, [ccn]);
+  const { data: hospPayments } = useApi(`/payments/hospital/${ccn}`, [ccn]);
 
   if (loadingComposite) {
     return (
@@ -361,6 +362,42 @@ export default function HospitalDetail() {
               </tbody>
             </table>
           </div>
+        </Panel>
+      )}
+
+      {/* Industry Payments (Open Payments / Sunshine Act) */}
+      {hospPayments?.summary?.total_payments > 0 && (
+        <Panel title="Industry Payments — Sunshine Act">
+          <div className={s.kpiRow}>
+            <KpiCard label="Total Payments" value={fmtNumber(hospPayments.summary.total_payments)} />
+            <KpiCard label="Total Amount" value={fmtCurrency(hospPayments.summary.total_amount)} />
+            <KpiCard label="Unique Payers" value={fmtNumber(hospPayments.summary.unique_payers)} />
+          </div>
+          {hospPayments.by_nature?.length > 0 && (
+            <div className={s.tableWrap} style={{ marginTop: '1rem' }}>
+              <p className={s.sectionLabel}>By Payment Nature</p>
+              <table className={s.spendTable}>
+                <thead>
+                  <tr>
+                    <th>Nature</th>
+                    <th>Count</th>
+                    <th>Total Amount</th>
+                    <th>Avg Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hospPayments.by_nature.map((r, i) => (
+                    <tr key={i}>
+                      <td className={s.metricName}>{r.payment_nature || '—'}</td>
+                      <td className={s.metricValue}>{fmtNumber(r.count)}</td>
+                      <td className={s.metricValue}>{fmtCurrency(r.amount)}</td>
+                      <td className={s.metricValue}>{fmtCurrency(r.amount / r.count)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Panel>
       )}
     </div>

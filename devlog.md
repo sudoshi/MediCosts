@@ -1634,3 +1634,130 @@ Total network-provider links: **353,776+** (HCSC still running and actively link
 | Automatable insurers | 1 | **5** |
 | Express admin endpoints | 0 | **7** |
 | Crawl automation | Manual | **Nightly cron at 2 AM** |
+
+---
+
+## MediCosts 1.0 Sprint — Phase 1.1 (Open Payments) + Phase 4.1 (Abby → Claude API) (2026-03-02)
+
+### Overview
+First sprint in the MediCosts 1.0 final sprint track (from plan.md). Completed two high-priority phases:
+- **Phase 1.1**: Promoted 30M Open Payments records, built API + consumer UI
+- **Phase 4.1**: Upgraded Abby from Ollama/MedGemma to Anthropic Claude API with native tool_use
+
+---
+
+### Phase 1.1 — Open Payments Promotion
+
+**Source data:** `stage.cms_open_payments__open_payments_general_py2023` + `stage.cms_open_payments__open_payments_general_py2024`
+
+#### Promote Script: `scripts/promote-open-payments.js`
+- Merges PY2023 + PY2024 into `medicosts.open_payments` (30,085,830 total rows)
+- Schema: `id BIGSERIAL PK`, payment_year, recipient_type, physician_npi, physician names, specialty, hospital_ccn/name, city/state/zip, payer_name/state, payment_amount (NUMERIC 14,2), payment_date, num_payments, payment_form, payment_nature, product_type/name/ndc/category, flags (physician_ownership, charity, dispute_status)
+- Safe date parsing handles both `MM/DD/YYYY` and `ISO 8601` formats
+- Filters out null/zero payment amounts at import
+- Creates 7 indexes: npi, ccn, year, state, payer_name, payment_nature, amount DESC
+- Creates `medicosts.mv_open_payments_summary` materialized view (year × nature × state × payer)
+
+**Results:**
+| Year | Rows | Total Amount |
+|------|------|-------------|
+| PY2023 | 14,700,783 | $3,314,058,093 |
+| PY2024 | 15,385,047 | $3,313,801,737 |
+| **Total** | **30,085,830** | **$6,627,859,830** |
+
+#### API Routes: `server/routes/payments.js`
+5 endpoints mounted at `/api/payments`:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /physician/:npi` | Payments to a specific physician with summary + paginated detail |
+| `GET /hospital/:ccn` | Payments involving a teaching hospital with nature breakdown |
+| `GET /top` | Leaderboard by physician/payer/nature/hospital (filterable by year) |
+| `GET /summary` | National totals, by-year, by-nature, by-state breakdowns |
+| `GET /search` | Keyword search by physician name or company name |
+
+#### Frontend
+- **`client/src/views/PaymentsExplorer.jsx`** — new `/payments` page
+  - National KPI row (total payments, total amount, avg, physicians, payers)
+  - Year summary table + top 12 payment natures
+  - Live search (physician name or company) with results table
+  - Leaderboard with 4 group-by modes (physician/payer/nature/hospital) and year filter
+  - Click-through to `/clinicians/:npi` and `/hospitals/:ccn`
+- **`client/src/views/PaymentsExplorer.module.css`** — full dark-mode styles
+- **`client/src/views/HospitalDetail.jsx`** — added "Industry Payments — Sunshine Act" panel
+  - Shows total payments, total amount, unique payers
+  - Breakdown by payment nature table
+- **`client/src/views/ClinicianProfile.jsx`** — added "Industry Payments — Sunshine Act" section
+  - Summary stats (total received, count, payers, years active)
+  - Paginated payments table (date, payer, nature, product, amount)
+- **`client/src/components/AppShell.jsx`** — added "Industry Payments" nav item
+- **`client/src/App.jsx`** — registered `/payments` route
+
+---
+
+### Phase 4.1 — Abby Upgrade: Ollama → Claude API
+
+**Before:** Ollama/MedGemma1.5:4b, prompt-based tool_call JSON parsing in fenced blocks, fake streaming (chunked text), single model for everything.
+
+**After:** Anthropic Claude API (`claude-haiku-4-5-20251001`), native `tool_use` content blocks, real SSE streaming word-by-word.
+
+#### Changes
+
+**`server/routes/abby.js`** — complete rewrite:
+- Import `Anthropic` from `@anthropic-ai/sdk`
+- `getClient()` — lazy-init singleton with ANTHROPIC_API_KEY guard
+- `toAnthropicMessages()` — converts frontend message format to Anthropic format
+- `orchestrate()` — non-streaming loop (for `/chat` endpoint)
+  - Native `stop_reason === 'tool_use'` check instead of regex fenced-block parsing
+  - Tool results sent as `tool_result` blocks with `tool_use_id` linkage
+- `/chat/stream` — SSE orchestration with native tool_use:
+  - Real token streaming (word-by-word) instead of simulated chunking
+  - `tool`, `status`, `token`, `error` events preserved for frontend compatibility
+- `/health` — tests Anthropic API connectivity with a lightweight ping
+- `/suggestions` — added 2 new Open Payments prompts
+
+**`server/lib/abby-tools.js`** — added:
+- `import jwt from 'jsonwebtoken'`
+- `getServiceToken()` / `serviceToken()` — generates internal service JWT for API calls
+- `buildAnthropicTools()` — converts TOOLS array to Anthropic tool schema format (input_schema with type/description/required)
+- `Authorization: Bearer ${token}` header in `executeTool()` fetch calls
+- 4 new tools: `get_physician_payments`, `get_top_payment_recipients`, `get_payments_summary`, `search_payments`
+
+**`server/lib/abby-prompt.js`** — updated:
+- Removed prompt-based tool_call fenced block instructions (not needed with native API)
+- Updated data context to mention Open Payments
+- Preserved all persona, safety rails, and formatting guidelines
+
+**`.env`** — added placeholder:
+```
+ANTHROPIC_API_KEY=sk-ant-...
+ABBY_MODEL_TOOL=claude-haiku-4-5-20251001  (optional override)
+ABBY_MODEL_SYNTH=claude-sonnet-4-6         (optional override)
+```
+
+**Benefits over Ollama:**
+| Aspect | Before (Ollama) | After (Claude API) |
+|--------|-----------------|-------------------|
+| Model | MedGemma1.5:4b local | claude-haiku-4-5-20251001 |
+| Tool calling | Regex parsed fenced blocks | Native tool_use blocks |
+| Streaming | Simulated (chunked) | Real SSE word-by-word |
+| Reliability | Inconsistent JSON parsing | Guaranteed schema compliance |
+| Context window | 4K tokens | 200K tokens |
+| Multi-tool rounds | Often confused | Precise tool_use_id tracking |
+
+---
+
+### Files Changed
+- `scripts/promote-open-payments.js` (new)
+- `server/routes/payments.js` (new)
+- `server/routes/abby.js` (rewritten)
+- `server/lib/abby-tools.js` (extended)
+- `server/lib/abby-prompt.js` (updated)
+- `server/index.js` (added payments router)
+- `client/src/views/PaymentsExplorer.jsx` (new)
+- `client/src/views/PaymentsExplorer.module.css` (new)
+- `client/src/views/HospitalDetail.jsx` (added payments panel)
+- `client/src/views/ClinicianProfile.jsx` (added payments section)
+- `client/src/components/AppShell.jsx` (added nav item)
+- `client/src/App.jsx` (added route)
+- `.env` (ANTHROPIC_API_KEY placeholder)

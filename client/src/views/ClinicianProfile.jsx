@@ -5,10 +5,15 @@ import Badge from '../components/ui/Badge.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianProfile.module.css';
 
+const fmt$ = (v) =>
+  v == null ? '—' : Number(v).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const fmtN = (v) => v == null ? '—' : Number(v).toLocaleString();
+
 export default function ClinicianProfile() {
   const { npi } = useParams();
   const navigate = useNavigate();
   const { data: raw, loading } = useApi(`/clinicians/${npi}`, [npi]);
+  const { data: payments } = useApi(`/payments/physician/${npi}`, [npi]);
 
   if (loading) {
     return (
@@ -114,6 +119,56 @@ export default function ClinicianProfile() {
           </div>
         </Panel>
       </div>
+
+      {/* Industry Payments */}
+      {payments?.summary?.total_payments > 0 && (
+        <Panel title="Industry Payments — Sunshine Act" style={{ gridColumn: '1 / -1' }}>
+          <div className={s.paymentSummary}>
+            <div className={s.paymentStat}>
+              <span className={s.paymentStatLabel}>Total Received</span>
+              <span className={s.paymentStatVal}>{fmt$(payments.summary.total_amount)}</span>
+            </div>
+            <div className={s.paymentStat}>
+              <span className={s.paymentStatLabel}>Num Payments</span>
+              <span className={s.paymentStatVal}>{fmtN(payments.summary.total_payments)}</span>
+            </div>
+            <div className={s.paymentStat}>
+              <span className={s.paymentStatLabel}>Unique Payers</span>
+              <span className={s.paymentStatVal}>{fmtN(payments.summary.unique_payers)}</span>
+            </div>
+            {payments.summary.years && (
+              <div className={s.paymentStat}>
+                <span className={s.paymentStatLabel}>Years</span>
+                <span className={s.paymentStatVal}>{payments.summary.years.first}–{payments.summary.years.last}</span>
+              </div>
+            )}
+          </div>
+          <div className={s.tableWrap}>
+            <table className={s.paymentsTable}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Payer</th>
+                  <th>Nature</th>
+                  <th>Product</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(payments.payments || []).slice(0, 50).map((p) => (
+                  <tr key={p.id}>
+                    <td className={s.metricValue}>{p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '—'}</td>
+                    <td className={s.metricName}>{p.payer_name || '—'}</td>
+                    <td className={s.metricMeta}>{p.payment_nature || '—'}</td>
+                    <td className={s.metricMeta}>{p.product_name || '—'}</td>
+                    <td className={s.metricValue}>{fmt$(p.payment_amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
 
       {/* Multiple Practice Locations */}
       {Array.isArray(raw) && raw.length > 1 && (

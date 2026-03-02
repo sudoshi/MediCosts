@@ -6,8 +6,28 @@
  * The executor resolves path params, builds query strings, and calls the internal API.
  */
 
+import jwt from 'jsonwebtoken';
+
 const PORT = process.env.PORT || 3090;
 const BASE = `http://localhost:${PORT}`;
+
+// Generate a long-lived service token for internal API calls
+// This avoids needing to pass user tokens through tool execution
+function getServiceToken() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return null;
+  return jwt.sign(
+    { id: 0, email: 'abby@internal', role: 'admin' },
+    secret,
+    { expiresIn: '1d' }
+  );
+}
+
+let _serviceToken = null;
+function serviceToken() {
+  if (!_serviceToken) _serviceToken = getServiceToken();
+  return _serviceToken;
+}
 
 export const TOOLS = [
   /* ── Hospital Search & Profiles ────────────────────────────── */
@@ -498,7 +518,72 @@ export const TOOLS = [
     endpoint: '/api/clinicians/:npi',
     pathParams: ['npi'],
   },
+
+  /* ── Open Payments (Sunshine Act) ──────────────────────────── */
+  {
+    name: 'get_physician_payments',
+    description: 'Get pharmaceutical and medical device industry payments to a specific physician from the CMS Open Payments (Sunshine Act) database. Returns total received, number of payments, top payers, and payment breakdown by nature (consulting fees, food/beverage, travel, research, etc.).',
+    parameters: {
+      npi: { type: 'string', required: true, description: 'Physician NPI (10-digit National Provider Identifier)' },
+      year: { type: 'number', description: 'Payment year (2023 or 2024). Omit for all years.' },
+    },
+    endpoint: '/api/payments/physician/:npi',
+    pathParams: ['npi'],
+  },
+  {
+    name: 'get_top_payment_recipients',
+    description: 'Get the top recipients of industry payments (physicians, companies, hospitals, or by payment type). Shows leaderboard of who received/paid the most money from pharma and device manufacturers.',
+    parameters: {
+      by: { type: 'string', description: 'Group by: "physician" (default), "payer" (companies), "nature" (payment type), or "hospital"' },
+      year: { type: 'number', description: 'Payment year (2023 or 2024). Omit for all years.' },
+      limit: { type: 'number', description: 'Max results (default 25, max 50)' },
+    },
+    endpoint: '/api/payments/top',
+  },
+  {
+    name: 'get_payments_summary',
+    description: 'Get national Open Payments summary statistics: total payments, total amount, breakdown by year, by payment nature, and by state. Useful for context on the scale of industry payments to physicians.',
+    parameters: {},
+    endpoint: '/api/payments/summary',
+  },
+  {
+    name: 'search_payments',
+    description: 'Search Open Payments data by physician name or company/manufacturer name. Returns matching physicians with their total payments received, and matching payers with total payments made.',
+    parameters: {
+      q: { type: 'string', required: true, description: 'Search query — physician name or company name (min 2 chars)' },
+    },
+    endpoint: '/api/payments/search',
+  },
 ];
+
+/**
+ * Convert TOOLS to Anthropic-native tool_use format.
+ * https://docs.anthropic.com/en/docs/tool-use
+ */
+export function buildAnthropicTools() {
+  return TOOLS.map(t => {
+    const properties = {};
+    const required = [];
+
+    for (const [name, p] of Object.entries(t.parameters || {})) {
+      properties[name] = {
+        type: p.type === 'number' ? 'number' : 'string',
+        description: p.description,
+      };
+      if (p.required) required.push(name);
+    }
+
+    return {
+      name: t.name,
+      description: t.description,
+      input_schema: {
+        type: 'object',
+        properties,
+        ...(required.length ? { required } : {}),
+      },
+    };
+  });
+}
 
 /**
  * Execute a tool call against the internal API.
@@ -528,8 +613,12 @@ export async function executeTool(toolName, args = {}) {
 
   const fullUrl = `${BASE}${url}${qs ? '?' + qs : ''}`;
 
+  const headers = { 'Content-Type': 'application/json' };
+  const token = serviceToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   try {
-    const resp = await fetch(fullUrl);
+    const resp = await fetch(fullUrl, { headers });
     if (!resp.ok) {
       const text = await resp.text();
       return { ok: false, data: { error: `API ${resp.status}: ${text}` } };
