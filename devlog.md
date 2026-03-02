@@ -1513,3 +1513,124 @@ Phases 9 and 10 mark the completion of the ClearNetwork foundational sprint. All
 Next sprint: MediCosts 1.0 final phases per `plan.md`.
 
 **Totals:** 14 new files, 4 modified files, 3 new API routers, 9M+ provider records, 241K network links, 14.9K plans
+
+---
+
+## ClearNetwork: Multi-Insurer Crawl, Admin Monitoring & Nightly Automation (2026-03-02)
+
+### Overview
+
+Extended the ClearNetwork crawler from single-insurer proof-of-concept to a production multi-insurer pipeline with admin monitoring UI and automated nightly scheduling. Key outcomes:
+
+- **4 working MRF endpoints** identified and configured (up from 1)
+- **353K+ network-provider links** (and growing — HCSC crawl still running)
+- **Full admin monitoring panel** in the Settings page with real-time crawler status
+- **Nightly cron job** scheduled at 2 AM for continuous data aggregation
+
+### Multi-Insurer MRF URL Discovery
+
+Researched all 21 insurers in `known_insurers.json` to categorize their MRF index accessibility:
+
+| Type | Count | Examples |
+|------|-------|---------|
+| `direct_json` | 1 | BCBS Minnesota |
+| `dated_s3` | 1 | Anthem (date-templated S3 URL) |
+| `dated_azure` | 1 | HCSC/BCBS Illinois (Azure blob) |
+| `dated_cloudfront` | 1 | Cigna (CloudFront, returns 403 currently) |
+| `uhc_blob_api` | 1 | UnitedHealthcare (custom blob API) |
+| `browser_required` | 16 | Aetna, Humana, Kaiser, Centene, etc. |
+
+Updated every entry in `known_insurers.json` with `index_type` and `date_pattern` fields. Added working URLs for Anthem, HCSC, and Cigna.
+
+### Orchestrator Rewrite
+
+Rewrote `clearnetwork/crawler/orchestrator.py` with:
+
+- **`resolve_mrf_url()`** — Resolves dated URL templates (`{date}` → `2026-03-01`) based on `date_pattern` (YYYY-MM-01, YYYY-MM, YYYY-MM-DD)
+- **`try_dated_urls()`** — Probes multiple recent dates via HEAD requests until a working URL is found (tries last 7 days for daily patterns, current + previous month for monthly)
+- **`--automatable-only` flag** — Skips `browser_required` insurers (16 of 21)
+- **`--max-files` flag** — Limits in-network files per insurer (default unlimited, nightly uses 50)
+- **`load_insurer_json_index()`** — Loads JSON config for index_type resolution during crawl
+
+### Batch Upsert Optimization
+
+Replaced row-by-row `INSERT...ON CONFLICT` in `mrf_parser.py` with PostgreSQL batch unnest pattern:
+
+```sql
+INSERT INTO clearnetwork.network_providers (network_id, canonical_provider_id, in_network, last_verified)
+SELECT unnest($1::uuid[]), unnest($2::uuid[]), TRUE, NOW()
+ON CONFLICT (network_id, canonical_provider_id)
+DO UPDATE SET in_network = TRUE, last_verified = NOW()
+```
+
+This reduced upsert time for 221K NPIs from ~60 minutes to seconds.
+
+### Admin Monitoring Panel
+
+**Backend — `server/routes/clearnetwork-admin.js`** (7 endpoints):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/clearnetwork/status` | Aggregate counts (insurers, networks, plans, providers, active crawls, failures, alerts) |
+| `GET /api/clearnetwork/insurers` | All insurers with LATERAL JOIN for latest crawl job status |
+| `GET /api/clearnetwork/crawl-jobs` | Recent jobs with duration calculation |
+| `GET /api/clearnetwork/crawl-jobs/:id` | Single job detail with associated failures |
+| `GET /api/clearnetwork/networks` | Networks with provider counts and plan counts |
+| `GET /api/clearnetwork/failures` | Recent crawl failures for monitoring |
+| `GET /api/clearnetwork/provider-stats` | NPPES coverage statistics |
+
+**Frontend — `client/src/views/SettingsView.jsx`** expanded with:
+
+- **Top-level tab switcher**: "General" (original) and "ClearNetwork Crawler"
+- **ClearNetwork sub-tabs**: Overview, Insurers, Crawl Jobs, Failures
+- **Overview**: Stats grid showing insurers, networks, plans, provider links, active crawls, failures, alerts + provider coverage breakdown (total, individuals, facilities, geocoded, in-network, specialties, states)
+- **Insurers table**: Name, network/plan/provider counts, last crawl status with color-coded badges, files processed, errors
+- **Crawl Jobs table**: Insurer name, status badge (with pulse animation for running), started time, duration, files, providers, errors
+- **Failures table**: Insurer, URL (truncated monospace), error message, retry count, relative time
+- **Auto-refresh toggle**: 10-second polling interval for live monitoring
+
+Status badges use color-coded styling: running (blue + pulse), completed (green), completed_with_errors (amber), failed (red).
+
+### Nightly Cron Automation
+
+**`clearnetwork/scripts/nightly-crawl.sh`**:
+- Activates Python virtualenv
+- Loads `.env` for database credentials
+- Runs `crawler.orchestrator --automatable-only --max-files=50`
+- Logs to timestamped files in `clearnetwork/logs/`
+- Cleans up logs older than 30 days
+
+**Crontab**: `0 2 * * *` — runs nightly at 2 AM
+
+### Current Crawl Results
+
+| Insurer | Status | Files | Providers | Errors |
+|---------|--------|-------|-----------|--------|
+| BCBS Minnesota | completed | 5 | 463,160 | 0 |
+| HCSC (BCBS Illinois) | running | — | — | 0 |
+| Aetna | failed (browser_required) | 0 | 0 | 1 |
+
+Total network-provider links: **353,776+** (HCSC still running and actively linking providers).
+
+### Files Changed
+
+| File | Status | Description |
+|------|--------|-------------|
+| `clearnetwork/crawler/known_insurers.json` | Modified | Added `index_type` and `date_pattern` for all 21 insurers |
+| `clearnetwork/crawler/orchestrator.py` | Modified | Multi-insurer support, dated URL resolution, CLI flags |
+| `clearnetwork/crawler/mrf_parser.py` | Modified | Batch unnest upsert optimization |
+| `clearnetwork/scripts/nightly-crawl.sh` | New | Cron wrapper for nightly automated crawl |
+| `server/routes/clearnetwork-admin.js` | New | 7 Express admin API endpoints |
+| `server/index.js` | Modified | Mounted clearnetwork-admin router |
+| `client/src/views/SettingsView.jsx` | Modified | ClearNetwork Crawler monitoring tab |
+| `client/src/views/SettingsView.module.css` | Modified | Tabs, stats grid, tables, badges, pulse animation |
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Working MRF endpoints | 1 | **4** (+ 1 returning 403) |
+| Network-provider links | 241,734 | **353,776+** (growing) |
+| Automatable insurers | 1 | **5** |
+| Express admin endpoints | 0 | **7** |
+| Crawl automation | Manual | **Nightly cron at 2 AM** |

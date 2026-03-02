@@ -5,7 +5,8 @@
     "naic_code": "79413",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "EPO", "POS", "HDHP"],
-    "mrf_index_url": "https://transparency-in-coverage.uhc.com/api/v1/uhc/blobs/"
+    "mrf_index_url": "https://transparency-in-coverage.uhc.com/api/v1/uhc/blobs/",
+    "index_type": "uhc_blob_api"
   },
   {
     "legal_name": "Anthem Inc",
@@ -13,7 +14,9 @@
     "naic_code": "54763",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "EPO", "POS"],
-    "mrf_index_url": "https://antm-pt-prod-dataz-nogbd-nophi-us-east1.s3.amazonaws.com/anthem/2024-12-01_anthem_index.json.gz"
+    "mrf_index_url": "https://antm-pt-prod-dataz-nogbd-nophi-us-east1.s3.amazonaws.com/anthem/{date}_anthem_index.json.gz",
+    "index_type": "dated_s3",
+    "date_pattern": "YYYY-MM-01"
   },
   {
     "legal_name": "Aetna Life Insurance Company",
@@ -21,7 +24,8 @@
     "naic_code": "60054",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "EPO", "POS", "HDHP"],
-    "mrf_index_url": "https://health1.aetna.com/app/public/#/one/insurerCode498702/insurerDivisionCodeXXXX"
+    "mrf_index_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Cigna Health and Life Insurance Company",
@@ -29,7 +33,9 @@
     "naic_code": "67369",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "EPO", "POS", "HDHP"],
-    "mrf_index_url": "https://www.cigna.com/legal/compliance/machine-readable-files"
+    "mrf_index_url": "https://d25kgz5rikkq4n.cloudfront.net/cost_transparency/mrf/table-of-contents/reporting_month={date}/{date}_cigna-health-life-insurance-company_index.json",
+    "index_type": "dated_cloudfront",
+    "date_pattern": "YYYY-MM"
   },
   {
     "legal_name": "Humana Insurance Company",
@@ -37,7 +43,8 @@
     "naic_code": "73288",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "PFFS", "HDHP"],
-    "mrf_index_url": "https://developers.humana.com/syntheticdata/Resource/PCTTransparencyInCoverage"
+    "mrf_index_url": "https://developers.humana.com/syntheticdata/healthplan-price-transparency",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Kaiser Foundation Health Plan",
@@ -45,7 +52,8 @@
     "naic_code": "91340",
     "states_licensed": ["CA", "CO", "GA", "HI", "MD", "OR", "VA", "WA", "DC"],
     "plan_types": ["HMO"],
-    "mrf_index_url": "https://healthy.kaiserpermanente.org/front-door/machine-readable"
+    "mrf_index_url": "https://healthy.kaiserpermanente.org/front-door/machine-readable",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Centene Corporation",
@@ -53,7 +61,8 @@
     "naic_code": "80985",
     "states_licensed": ["ALL"],
     "plan_types": ["HMO", "PPO", "EPO"],
-    "mrf_index_url": "https://www.centene.com/price-transparency-files.html"
+    "mrf_index_url": "https://www.centene.com/price-transparency-files.html",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Molina Healthcare",
@@ -61,7 +70,8 @@
     "naic_code": "36544",
     "states_licensed": ["CA", "FL", "IL", "MI", "NM", "NY", "OH", "SC", "TX", "UT", "WA", "WI"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.molinahealthcare.com/members/common/en-us/Pages/machine-readable-files.aspx"
+    "mrf_index_url": "https://www.molinahealthcare.com/members/common/en-us/Pages/machine-readable-files.aspx",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "HCSC (Health Care Service Corporation)",
@@ -69,7 +79,9 @@
     "naic_code": "70110",
     "states_licensed": ["IL", "TX", "MT", "OK", "NM"],
     "plan_types": ["HMO", "PPO", "EPO", "POS"],
-    "mrf_index_url": "https://www.bcbsil.com/member/policy-forms/machine-readable-file"
+    "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-Illinois_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD"
   },
   {
     "legal_name": "Highmark Inc",
@@ -77,7 +89,8 @@
     "naic_code": "54828",
     "states_licensed": ["PA", "WV", "DE"],
     "plan_types": ["HMO", "PPO", "EPO"],
-    "mrf_index_url": "https://mrfstorageprod.blob.core.windows.net/public-mrf/index.json"
+    "mrf_index_url": "https://mrfdata.hmhs.com/",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Blue Cross Blue Shield of Michigan",
@@ -85,7 +98,8 @@
     "naic_code": "60131",
     "states_licensed": ["MI"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.bcbsm.com/content/dam/microsites/price-transparency/machine-readable-files/"
+    "mrf_index_url": "https://www.bcbsm.com/content/dam/microsites/price-transparency/machine-readable-files/",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Independence Blue Cross",
@@ -93,7 +107,8 @@
     "naic_code": "61476",
     "states_licensed": ["PA"],
     "plan_types": ["HMO", "PPO", "EPO", "POS"],
-    "mrf_index_url": "https://www.ibx.com/transparency-in-coverage"
+    "mrf_index_url": "https://www.ibx.com/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Blue Cross and Blue Shield of North Carolina",
@@ -101,7 +116,8 @@
     "naic_code": "54941",
     "states_licensed": ["NC"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.bluecrossnc.com/about-us/policies-and-best-practices/transparency-in-coverage"
+    "mrf_index_url": "https://www.bluecrossnc.com/about-us/policies-and-best-practices/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "CareFirst BlueCross BlueShield",
@@ -109,7 +125,8 @@
     "naic_code": "52145",
     "states_licensed": ["MD", "DC", "VA"],
     "plan_types": ["HMO", "PPO", "POS"],
-    "mrf_index_url": "https://individual.carefirst.com/individuals-families/mandates-background/machine-readable-files.page"
+    "mrf_index_url": "https://individual.carefirst.com/individuals-families/mandates-background/machine-readable-files.page",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Oscar Health",
@@ -117,7 +134,8 @@
     "naic_code": "10366",
     "states_licensed": ["AZ", "CA", "CO", "CT", "FL", "GA", "KS", "MI", "MO", "NJ", "NY", "OH", "OK", "PA", "TN", "TX", "VA"],
     "plan_types": ["HMO", "EPO"],
-    "mrf_index_url": "https://www.hioscar.com/transparency-in-coverage"
+    "mrf_index_url": "https://www.hioscar.com/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Bright Health",
@@ -125,7 +143,8 @@
     "naic_code": "16936",
     "states_licensed": ["AL", "AZ", "CA", "CO", "FL", "GA", "IL", "NC", "OK", "SC", "TN", "TX", "VA"],
     "plan_types": ["HMO", "EPO"],
-    "mrf_index_url": "https://www.brighthealthplan.com/transparency-in-coverage"
+    "mrf_index_url": "https://www.brighthealthplan.com/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Blue Cross and Blue Shield of Minnesota",
@@ -133,7 +152,8 @@
     "naic_code": "60210",
     "states_licensed": ["MN"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://mktg.bluecrossmn.com/mrf/2026/2026-03-01_Blue_Cross_and_Blue_Shield_of_Minnesota_index.json"
+    "mrf_index_url": "https://mktg.bluecrossmn.com/mrf/2026/2026-03-01_Blue_Cross_and_Blue_Shield_of_Minnesota_index.json",
+    "index_type": "direct_json"
   },
   {
     "legal_name": "Medica",
@@ -141,7 +161,8 @@
     "naic_code": "69140",
     "states_licensed": ["MN", "WI", "ND", "SD", "NE", "IA", "KS", "MO", "OK"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.medica.com/transparency-in-coverage"
+    "mrf_index_url": "https://www.medica.com/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Blue Cross and Blue Shield of Massachusetts",
@@ -149,7 +170,8 @@
     "naic_code": "54356",
     "states_licensed": ["MA"],
     "plan_types": ["HMO", "PPO", "POS"],
-    "mrf_index_url": "https://www.bluecrossma.org/about-us/machine-readable-files"
+    "mrf_index_url": "https://www.bluecrossma.org/about-us/machine-readable-files",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Premera Blue Cross",
@@ -157,7 +179,8 @@
     "naic_code": "67814",
     "states_licensed": ["WA", "AK"],
     "plan_types": ["HMO", "PPO", "EPO"],
-    "mrf_index_url": "https://www.premera.com/visitor/transparency-in-coverage"
+    "mrf_index_url": "https://www.premera.com/visitor/transparency-in-coverage",
+    "index_type": "browser_required"
   },
   {
     "legal_name": "Florida Blue (Blue Cross and Blue Shield of Florida)",
@@ -165,6 +188,7 @@
     "naic_code": "59295",
     "states_licensed": ["FL"],
     "plan_types": ["HMO", "PPO", "EPO"],
-    "mrf_index_url": "https://www.floridablue.com/members/tools-resources/transparency-in-coverage"
+    "mrf_index_url": "https://www.floridablue.com/members/tools-resources/transparency-in-coverage",
+    "index_type": "browser_required"
   }
 ]

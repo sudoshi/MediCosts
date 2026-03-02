@@ -137,7 +137,217 @@
   color: var(--text-secondary) !important;
 }
 
+/* ---------- Top Tabs ---------- */
+.topTabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.topTab {
+  padding: 8px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topTab:hover { color: var(--text-primary); background: var(--bg-base); }
+.topTabActive { color: var(--text-primary); background: var(--bg-base); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+/* ---------- Sub Tabs ---------- */
+.subTabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.subTab {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subTab:hover { border-color: var(--border-mid); color: var(--text-primary); }
+.subTabActive { border-color: var(--accent); color: var(--accent-light); background: var(--accent-dim); }
+.subTabSpacer { flex: 1; }
+
+.autoRefreshLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.autoRefreshLabel input { accent-color: var(--accent); }
+
+/* ---------- Stats Grid ---------- */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.statCard {
+  padding: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  text-align: center;
+  transition: border-color 0.15s ease;
+}
+
+.statCard:hover { border-color: var(--border-mid); }
+.statHighlight { border-color: #3b82f6; background: #3b82f608; }
+.statWarn { border-color: #ef4444; background: #ef444408; }
+
+.statValue {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Provider Section ---------- */
+.providerSection { margin-top: 8px; }
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+/* ---------- Tables ---------- */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th {
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-dim);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 10px 12px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-dim);
+  vertical-align: top;
+}
+
+.table tbody tr:hover { background: var(--bg-elevated); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.insurerName { font-weight: 500; font-size: 13px; }
+.insurerMeta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+.urlCell {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.errorText { color: #ef4444; font-size: 11px; max-width: 250px; }
+.errorCount { color: #ef4444; font-weight: 600; }
+.emptyRow { text-align: center; color: var(--text-tertiary); padding: 24px 12px !important; }
+
+/* ---------- Badge ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulseAnim 1.5s ease-in-out infinite;
+}
+
+/* ---------- Loading / Error ---------- */
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.errorBox {
+  padding: 16px;
+  background: #ef444412;
+  border: 1px solid #ef444444;
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 13px;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseAnim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
 }

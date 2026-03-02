@@ -1,0 +1,174 @@
+import express from 'express';
+import pool from '../db.js';
+
+const router = express.Router();
+const SCHEMA = 'clearnetwork';
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/status                                       */
+/*  Overall ClearNetwork system status                                 */
+/* ------------------------------------------------------------------ */
+router.get('/status', async (_req, res, next) => {
+  try {
+    const counts = await pool.query(`
+      SELECT
+        (SELECT count(*) FROM ${SCHEMA}.insurers)::int AS insurers,
+        (SELECT count(*) FROM ${SCHEMA}.networks)::int AS networks,
+        (SELECT count(*) FROM ${SCHEMA}.plans)::int AS plans,
+        (SELECT count(*) FROM ${SCHEMA}.canonical_providers)::int AS providers,
+        (SELECT count(*) FROM ${SCHEMA}.network_providers)::int AS network_links,
+        (SELECT count(*) FROM ${SCHEMA}.crawl_jobs)::int AS total_crawls,
+        (SELECT count(*) FROM ${SCHEMA}.crawl_jobs WHERE status = 'running')::int AS active_crawls,
+        (SELECT count(*) FROM ${SCHEMA}.crawl_failures)::int AS total_failures,
+        (SELECT count(*) FROM ${SCHEMA}.alert_subscriptions WHERE active = true)::int AS active_alerts
+    `);
+    res.json(counts.rows[0]);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/insurers                                     */
+/*  List all insurers with crawl status                                */
+/* ------------------------------------------------------------------ */
+router.get('/insurers', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        i.id, i.legal_name, i.trade_names, i.naic_code,
+        i.states_licensed, i.plan_types, i.mrf_index_url,
+        i.last_crawled,
+        (SELECT count(*) FROM ${SCHEMA}.networks n WHERE n.insurer_id = i.id)::int AS network_count,
+        (SELECT count(*) FROM ${SCHEMA}.plans p WHERE p.insurer_id = i.id)::int AS plan_count,
+        (SELECT coalesce(sum(n.provider_count), 0) FROM ${SCHEMA}.networks n WHERE n.insurer_id = i.id)::int AS provider_count,
+        cj.status AS last_crawl_status,
+        cj.files_processed AS last_crawl_files,
+        cj.providers_found AS last_crawl_providers,
+        cj.errors AS last_crawl_errors,
+        cj.started_at AS last_crawl_started,
+        cj.completed_at AS last_crawl_completed
+      FROM ${SCHEMA}.insurers i
+      LEFT JOIN LATERAL (
+        SELECT * FROM ${SCHEMA}.crawl_jobs cj
+        WHERE cj.insurer_id = i.id
+        ORDER BY cj.started_at DESC
+        LIMIT 1
+      ) cj ON true
+      ORDER BY i.legal_name
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/crawl-jobs                                   */
+/*  List recent crawl jobs with details                                */
+/* ------------------------------------------------------------------ */
+router.get('/crawl-jobs', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const { rows } = await pool.query(`
+      SELECT
+        cj.id, cj.insurer_id, cj.status,
+        cj.started_at, cj.completed_at,
+        cj.files_processed, cj.providers_found, cj.errors,
+        cj.error_log,
+        i.legal_name AS insurer_name,
+        EXTRACT(EPOCH FROM (coalesce(cj.completed_at, NOW()) - cj.started_at))::int AS duration_seconds
+      FROM ${SCHEMA}.crawl_jobs cj
+      JOIN ${SCHEMA}.insurers i ON i.id = cj.insurer_id
+      ORDER BY cj.started_at DESC
+      LIMIT $1
+    `, [limit]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/crawl-jobs/:id                               */
+/*  Single crawl job detail with failures                              */
+/* ------------------------------------------------------------------ */
+router.get('/crawl-jobs/:id', async (req, res, next) => {
+  try {
+    const job = await pool.query(`
+      SELECT
+        cj.*, i.legal_name AS insurer_name
+      FROM ${SCHEMA}.crawl_jobs cj
+      JOIN ${SCHEMA}.insurers i ON i.id = cj.insurer_id
+      WHERE cj.id = $1
+    `, [req.params.id]);
+
+    if (!job.rows.length) return res.status(404).json({ error: 'Job not found' });
+
+    const failures = await pool.query(`
+      SELECT id, url, error_message, retry_count, last_attempt
+      FROM ${SCHEMA}.crawl_failures
+      WHERE crawl_job_id = $1
+      ORDER BY last_attempt DESC
+    `, [req.params.id]);
+
+    res.json({ ...job.rows[0], failures: failures.rows });
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/networks                                     */
+/*  List networks with provider counts                                 */
+/* ------------------------------------------------------------------ */
+router.get('/networks', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        n.id, n.network_name, n.insurer_id, n.provider_count,
+        n.mrf_source_url, n.last_updated,
+        i.legal_name AS insurer_name,
+        (SELECT count(*) FROM ${SCHEMA}.plans p WHERE p.network_id = n.id)::int AS plan_count
+      FROM ${SCHEMA}.networks n
+      JOIN ${SCHEMA}.insurers i ON i.id = n.insurer_id
+      ORDER BY n.provider_count DESC NULLS LAST
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/failures                                     */
+/*  Recent crawl failures for monitoring                               */
+/* ------------------------------------------------------------------ */
+router.get('/failures', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const { rows } = await pool.query(`
+      SELECT
+        cf.id, cf.url, cf.error_message, cf.retry_count, cf.last_attempt,
+        cj.insurer_id, i.legal_name AS insurer_name
+      FROM ${SCHEMA}.crawl_failures cf
+      JOIN ${SCHEMA}.crawl_jobs cj ON cj.id = cf.crawl_job_id
+      JOIN ${SCHEMA}.insurers i ON i.id = cj.insurer_id
+      ORDER BY cf.last_attempt DESC
+      LIMIT $1
+    `, [limit]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/provider-stats                               */
+/*  Provider coverage statistics                                       */
+/* ------------------------------------------------------------------ */
+router.get('/provider-stats', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        (SELECT count(*) FROM ${SCHEMA}.canonical_providers)::int AS total_providers,
+        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE entity_type = 'individual')::int AS individuals,
+        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE entity_type = 'facility')::int AS facilities,
+        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE lat IS NOT NULL)::int AS geocoded,
+        (SELECT count(DISTINCT canonical_provider_id) FROM ${SCHEMA}.network_providers)::int AS in_any_network,
+        (SELECT count(DISTINCT specialty_primary) FROM ${SCHEMA}.canonical_providers WHERE specialty_primary IS NOT NULL)::int AS unique_specialties,
+        (SELECT count(DISTINCT address_state) FROM ${SCHEMA}.canonical_providers WHERE address_state IS NOT NULL)::int AS states_covered
+    `);
+    res.json(rows[0]);
+  } catch (err) { next(err); }
+});
+
+export default router;

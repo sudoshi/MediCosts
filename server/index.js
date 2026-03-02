@@ -9,6 +9,7 @@ import abbyRouter from './routes/abby.js';
 import trendsRouter from './routes/trends.js';
 import postAcuteRouter from './routes/post-acute.js';
 import facilitiesRouter from './routes/facilities.js';
+import clearnetworkAdminRouter from './routes/clearnetwork-admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/abby', abbyRouter);
 app.use('/api/trends', trendsRouter);
 app.use('/api/post-acute', postAcuteRouter);
 app.use('/api/facilities', facilitiesRouter);
+app.use('/api/clearnetwork', clearnetworkAdminRouter);
 
 if (isProd) {
   const clientBuild = path.join(__dirname, '../client/dist');
