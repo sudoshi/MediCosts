@@ -1142,3 +1142,82 @@ Created `scripts/load-stage.js` (~200 lines) — a high-performance bulk CSV loa
 **Trailing commas in government CSVs:** Some federal agency CSV exports include trailing commas on header lines but not consistently on data rows. This creates phantom empty columns that cause COPY column-count mismatches. Solution: strip trailing empty columns from parsed headers before creating the table.
 
 **CloudFront WAF vs. automation:** AHRQ's website uses a JavaScript challenge-response WAF that defeats all non-browser HTTP clients, including curl with full browser headers. The only viable automated approach would be headless browser (Puppeteer/Playwright).
+
+---
+
+## "Know Before You Go" — Personalized Care Intelligence (2026-03-01)
+
+Transforms MediCosts from a data browser into a personalized care decision tool. The #1 consumer question — "I need [procedure] near [location] — what's my best option and what will it cost?" — now has an answer.
+
+### New Page
+
+**Cost Estimator (`/estimate`)** — "The Kayak.com for hospital procedures"
+- DRG autocomplete search across all ~750 DRGs (250ms debounce)
+- Location toggle: "By State" dropdown or "Near ZIP" with radius (25/50/100/200 mi)
+- Sort by payment, distance, star rating, or markup ratio
+- National summary cards (avg/min/max/median payment, hospital count)
+- Results table with hospital name, location, distance, avg payment, markup, CMS stars, patient rating, discharges
+- "Ask Abby to help me choose" CTA builds context and hands off to Abby AI
+
+### New API Endpoints (5)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/drgs/search?q=knee&limit=20` | Full-text DRG search across all DRGs with provider counts and avg payments |
+| `GET /api/drgs/:code/summary` | National stats (min/max/avg/median) + state-by-state breakdown for one DRG |
+| `GET /api/estimate?drg=&zip=&radius=&state=&sort=&order=&limit=` | Hospitals by DRG + location with haversine distance, star rating, HCAHPS |
+| `GET /api/hospitals/nearby?zip=&radius=&sort=&limit=` | Quality composite + distance from ZIP (no DRG filter) |
+| `GET /api/quality/psi/list?state=&sort=&limit=` | Hospital-level HAC scores, PSI-90, payment reduction, infection SIRs |
+
+### New Data Table
+
+**`medicosts.zip_centroids`** — ~33K rows, loaded from `client/src/data/zipCentroids.json`
+- Schema: `zip5 VARCHAR(5) PK, lat NUMERIC(10,6), lon NUMERIC(10,6)`
+- Used for haversine distance calculations in `/api/estimate` and `/api/hospitals/nearby`
+- Loader: `scripts/load-zip-centroids.js`
+
+### Enhanced Existing Pages
+
+| Page | Enhancement |
+|------|-------------|
+| **Geographic Analysis** | Metric toggle (payment/charges/medicare/reimbursement rate) + "Find Care Near Me" panel with ZIP input and hospital cards |
+| **Hospital Detail** | "Print Report Card" button (`window.print()`) + "+ Compare" button + `@media print` stylesheet hiding sidebar/charts |
+| **Hospital Compare** | Shareable URL params (`?h=CCN1&h=CCN2&h=CCN3`), radar chart (5 dimensions normalized 0-100), "Copy Shareable Link" button |
+| **Abby Analytics** | localStorage persistence (last 50 messages), "New Conversation" button, estimator context handoff via `location.state` |
+| **Cost Trends** | Hospital name autocomplete replacing raw CCN input (debounced search via `/quality/search`) |
+| **Accountability** | HAC hospital drilldown table with per-hospital HAC scores, PSI-90, infection SIRs, penalty status |
+| **For Patients** | Removed .doc/.docx from file accept (no extraction logic existed for those formats) |
+| **Settings** | Version bump v0.2 → v0.4 |
+
+### Abby AI Enhancements
+
+3 new tools added to `server/lib/abby-tools.js`:
+- `search_drgs` — keyword search across all DRGs
+- `estimate_procedure_cost` — hospital pricing by DRG + location with distance
+- `find_nearby_hospitals` — proximity-based hospital search with quality scores
+
+Updated `server/lib/abby-schema-context.md` with new query patterns for procedure cost and proximity questions.
+
+### Files Changed
+
+| File | Status | Description |
+|------|--------|-------------|
+| `client/src/views/CostEstimator.jsx` + `.module.css` | New | Cost Estimator page |
+| `scripts/load-zip-centroids.js` | New | ZIP centroid data loader |
+| `server/routes/api.js` | Modified | 4 new endpoints (DRG search, DRG summary, estimate, nearby) |
+| `server/routes/quality.js` | Modified | 1 new endpoint (PSI list) |
+| `client/src/views/GeographicAnalysis.jsx` + `.module.css` | Modified | Metric toggle, nearby panel |
+| `client/src/views/HospitalDetail.jsx` + `.module.css` | Modified | Print button, compare button, @media print |
+| `client/src/views/HospitalCompare.jsx` + `.module.css` | Modified | URL params, radar chart, copy link |
+| `client/src/views/AbbyAnalytics.jsx` + `.module.css` | Modified | localStorage, clear button, estimator handoff |
+| `client/src/views/CostTrends.jsx` + `.module.css` | Modified | Hospital name autocomplete |
+| `client/src/views/AccountabilityDashboard.jsx` | Modified | HAC hospital drilldown table |
+| `client/src/views/ForPatients.jsx` | Modified | Remove .doc/.docx from accept |
+| `client/src/views/SettingsView.jsx` | Modified | Version bump to v0.4 |
+| `client/src/components/AppShell.jsx` + `.module.css` | Modified | Cost Estimator nav item, @media print |
+| `client/src/components/icons/NavIcons.jsx` | Modified | SearchDollarIcon |
+| `client/src/App.jsx` | Modified | Lazy import + route for CostEstimator |
+| `server/lib/abby-tools.js` | Modified | 3 new tools |
+| `server/lib/abby-schema-context.md` | Modified | New query patterns + zip_centroids table |
+
+**Totals:** 3 new files, 24 modified files, 5 new API endpoints, 1 new page, 1 new data table, ~2,200 lines added
