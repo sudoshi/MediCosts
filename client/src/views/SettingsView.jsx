@@ -74,7 +74,7 @@ export default function SettingsView() {
 
       <Panel title="About">
         <div className={s.about}>
-          <p>MediCosts v0.2 — Medicare Hospital Cost & Quality Dashboard</p>
+          <p>MediCosts v0.4 — Medicare Hospital Cost & Quality Dashboard</p>
           <p className={s.aboutSub}>Built with React 19, Express, PostgreSQL, Recharts, MapLibre GL</p>
           <p className={s.aboutSub}>Data: CMS Hospital Compare, Medicare Provider Utilization & Payment, ACS Census ZCTA</p>
         </div>

@@ -29,6 +29,67 @@ router.get('/drgs/top50', async (_req, res, next) => {
 });
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/drgs/search?q=knee&limit=20                               */
+/*  Search all DRGs by keyword                                         */
+/* ------------------------------------------------------------------ */
+router.get('/drgs/search', async (req, res, next) => {
+  try {
+    const { q = '', limit = 20 } = req.query;
+    if (q.length < 2) return res.json([]);
+    const { rows } = await pool.query(`
+      SELECT drg_cd, drg_desc,
+        COUNT(DISTINCT provider_ccn)::int AS num_providers,
+        SUM(total_discharges)::int AS total_discharges,
+        AVG(avg_total_payments)::numeric(14,0) AS avg_payment
+      FROM medicosts.medicare_inpatient
+      WHERE drg_desc ILIKE $1
+      GROUP BY drg_cd, drg_desc
+      ORDER BY SUM(total_discharges) DESC
+      LIMIT $2
+    `, [`%${q}%`, Math.min(Number(limit) || 20, 50)]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/drgs/:code/summary                                        */
+/*  National stats for a single DRG                                    */
+/* ------------------------------------------------------------------ */
+router.get('/drgs/:code/summary', async (req, res, next) => {
+  try {
+    const code = req.params.code;
+    const { rows } = await pool.query(`
+      SELECT drg_cd, MAX(drg_desc) AS drg_desc,
+        COUNT(DISTINCT provider_ccn)::int AS num_providers,
+        SUM(total_discharges)::int AS total_discharges,
+        MIN(avg_total_payments)::numeric(14,0) AS min_payment,
+        MAX(avg_total_payments)::numeric(14,0) AS max_payment,
+        AVG(avg_total_payments)::numeric(14,0) AS avg_payment,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_total_payments)::numeric(14,0) AS median_payment,
+        MIN(avg_covered_charges)::numeric(14,0) AS min_charges,
+        MAX(avg_covered_charges)::numeric(14,0) AS max_charges,
+        AVG(avg_covered_charges)::numeric(14,0) AS avg_charges
+      FROM medicosts.medicare_inpatient
+      WHERE drg_cd = $1
+      GROUP BY drg_cd
+    `, [code]);
+    if (rows.length === 0) return res.status(404).json({ error: 'DRG not found' });
+
+    const { rows: byState } = await pool.query(`
+      SELECT state_abbr,
+        AVG(avg_total_payments)::numeric(14,0) AS avg_payment,
+        SUM(total_discharges)::int AS total_discharges,
+        COUNT(DISTINCT provider_ccn)::int AS num_providers
+      FROM medicosts.medicare_inpatient
+      WHERE drg_cd = $1
+      GROUP BY state_abbr ORDER BY avg_payment DESC
+    `, [code]);
+
+    res.json({ ...rows[0], by_state: byState });
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/stats?drg=ALL|code                                        */
 /*  Summary KPI cards                                                  */
 /* ------------------------------------------------------------------ */
@@ -714,6 +775,115 @@ router.get('/clinicians/:npi', async (req, res, next) => {
     `, [req.params.npi]);
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json(rows.length === 1 ? rows[0] : rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/estimate?drg=&state=&zip=&radius=50&sort=payment&...      */
+/*  Procedure cost estimator — hospitals for a DRG with distance       */
+/* ------------------------------------------------------------------ */
+router.get('/estimate', async (req, res, next) => {
+  try {
+    const { drg, state, zip, radius = 50, sort = 'payment', order = 'asc', limit = 50 } = req.query;
+
+    const conditions = [];
+    const params = [];
+    let idx = 1;
+    if (drg) { conditions.push(`mi.drg_cd = $${idx++}`); params.push(drg); }
+    if (state) { conditions.push(`hi.state = $${idx++}`); params.push(state); }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    let distSelect = 'NULL::numeric AS distance_miles';
+    let distJoin = '';
+    let distFilter = '';
+
+    if (zip && zip.length === 5) {
+      distSelect = `(3958.8 * 2 * asin(sqrt(
+        power(sin(radians(hzc.lat - uzc.lat) / 2), 2) +
+        cos(radians(uzc.lat)) * cos(radians(hzc.lat)) *
+        power(sin(radians(hzc.lon - uzc.lon) / 2), 2)
+      )))::numeric(8,1) AS distance_miles`;
+      distJoin = `JOIN medicosts.zip_centroids hzc ON hi.zip_code = hzc.zip5
+        JOIN medicosts.zip_centroids uzc ON uzc.zip5 = $${idx++}`;
+      params.push(zip);
+      distFilter = `HAVING (3958.8 * 2 * asin(sqrt(
+        power(sin(radians(hzc.lat - uzc.lat) / 2), 2) +
+        cos(radians(uzc.lat)) * cos(radians(hzc.lat)) *
+        power(sin(radians(hzc.lon - uzc.lon) / 2), 2)
+      ))) <= $${idx++}`;
+      params.push(Number(radius));
+    }
+
+    const SORTS = { payment: 'avg_total_payments', distance: 'distance_miles', star: 'star_rating', markup: 'markup_ratio' };
+    const sortCol = SORTS[sort] || 'avg_total_payments';
+    const sortDir = order === 'desc' ? 'DESC' : 'ASC';
+
+    const { rows } = await pool.query(`
+      WITH base AS (
+        SELECT
+          hi.facility_id, hi.facility_name, hi.city, hi.state, hi.zip_code,
+          hi.hospital_type, hi.hospital_overall_rating AS star_rating, hi.phone_number,
+          hs.overall_star AS hcahps_overall_star,
+          AVG(mi.avg_total_payments)::numeric(14,0) AS avg_total_payments,
+          AVG(mi.avg_covered_charges)::numeric(14,0) AS avg_covered_charges,
+          AVG(mi.avg_medicare_payments)::numeric(14,0) AS avg_medicare_payments,
+          SUM(mi.total_discharges)::int AS total_discharges,
+          (AVG(mi.avg_covered_charges) / NULLIF(AVG(mi.avg_total_payments), 0))::numeric(6,2) AS markup_ratio,
+          ${distSelect}
+        FROM medicosts.medicare_inpatient mi
+        JOIN medicosts.hospital_info hi ON mi.provider_ccn = hi.facility_id
+        LEFT JOIN medicosts.mv_hcahps_summary hs ON hi.facility_id = hs.facility_id
+        ${distJoin}
+        ${where}
+        GROUP BY hi.facility_id, hi.facility_name, hi.city, hi.state, hi.zip_code,
+          hi.hospital_type, hi.hospital_overall_rating, hi.phone_number,
+          hs.overall_star${zip ? ', hzc.lat, hzc.lon, uzc.lat, uzc.lon' : ''}
+        ${distFilter}
+      )
+      SELECT * FROM base
+      ORDER BY ${sortCol} ${sortDir} NULLS LAST
+      LIMIT $${idx}
+    `, [...params, Math.min(Number(limit) || 50, 200)]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/hospitals/nearby?zip=&radius=50&sort=star_rating&limit=25 */
+/*  Hospitals near a ZIP with quality composite                        */
+/* ------------------------------------------------------------------ */
+router.get('/hospitals/nearby', async (req, res, next) => {
+  try {
+    const { zip, radius = 50, sort = 'star_rating', limit = 25 } = req.query;
+    if (!zip || zip.length !== 5) return res.status(400).json({ error: 'zip required (5 digits)' });
+
+    const ALLOWED = ['star_rating', 'distance_miles', 'weighted_avg_payment'];
+    const sortCol = ALLOWED.includes(sort) ? sort : 'star_rating';
+
+    const { rows } = await pool.query(`
+      WITH base AS (
+        SELECT
+          q.facility_id, q.facility_name, q.city, q.state, q.zip_code,
+          q.star_rating, q.psi_90_score, q.avg_excess_readm_ratio,
+          q.avg_mortality_rate, q.weighted_avg_payment, q.total_discharges,
+          hi.hospital_type,
+          (3958.8 * 2 * asin(sqrt(
+            power(sin(radians(hzc.lat - uzc.lat) / 2), 2) +
+            cos(radians(uzc.lat)) * cos(radians(hzc.lat)) *
+            power(sin(radians(hzc.lon - uzc.lon) / 2), 2)
+          )))::numeric(8,1) AS distance_miles
+        FROM medicosts.mv_hospital_quality_composite q
+        JOIN medicosts.hospital_info hi ON q.facility_id = hi.facility_id
+        JOIN medicosts.zip_centroids hzc ON hi.zip_code = hzc.zip5
+        JOIN medicosts.zip_centroids uzc ON uzc.zip5 = $1
+      )
+      SELECT * FROM base
+      WHERE distance_miles <= $2
+      ORDER BY ${sortCol} DESC NULLS LAST
+      LIMIT $3
+    `, [zip, Number(radius), Math.min(Number(limit) || 25, 100)]);
+    res.json(rows);
   } catch (err) { next(err); }
 });
 

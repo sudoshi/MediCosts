@@ -80,6 +80,43 @@
 
 .dot { color: var(--text-tertiary); }
 
+.heroActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.printBtn,
+.addCompareBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.printBtn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+}
+.printBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+.addCompareBtn {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+}
+.addCompareBtn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .heroStars {
   display: flex;
   flex-direction: column;
@@ -288,4 +325,73 @@
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* Print Report Card */
+@media print {
+  .page {
+    background: #fff !important;
+    color: #000 !important;
+    gap: 12px;
+  }
+
+  .backLink,
+  .heroActions,
+  .chartWrap {
+    display: none !important;
+  }
+
+  .heroCard {
+    background: #fff !important;
+    border: 1px solid #ccc !important;
+    animation: none !important;
+    page-break-after: avoid;
+  }
+
+  .heroName { color: #000 !important; font-size: 20px; }
+  .heroMeta { color: #444 !important; }
+  .starsValue { color: #c59000 !important; }
+  .starsLabel { color: #666 !important; }
+
+  .kpiRow {
+    page-break-after: avoid;
+  }
+
+  .kpiCard {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+    animation: none !important;
+  }
+
+  .kpiLabel { color: #666 !important; }
+  .kpiValue { color: #000 !important; }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .metricRow {
+    border-color: #ddd !important;
+  }
+
+  .metricName { color: #333 !important; }
+  .metricValue { color: #000 !important; }
+
+  .hcahpsItem {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .hcahpsLabel { color: #666 !important; }
+  .hcahpsStars { color: #c59000 !important; }
+
+  .spendTable th {
+    color: #333 !important;
+    border-color: #999 !important;
+  }
+
+  .spendTable td {
+    color: #000 !important;
+    border-color: #ddd !important;
+  }
 }

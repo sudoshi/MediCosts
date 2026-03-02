@@ -95,8 +95,17 @@ function SendIcon() {
 }
 
 /* ── Main component ─────────────────────────────────── */
+const STORAGE_KEY = 'abby_messages';
+
+function loadSavedMessages() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
 export default function AbbyAnalytics() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(loadSavedMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState('');
@@ -104,10 +113,23 @@ export default function AbbyAnalytics() {
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState('');
   const [patientHandoffDone, setPatientHandoffDone] = useState(false);
+  const [estimatorHandoffDone, setEstimatorHandoffDone] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const location = useLocation();
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-50))); }
+    catch { /* quota exceeded — ignore */ }
+  }, [messages]);
+
+  function clearConversation() {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+    setError('');
+  }
 
   // Scroll to bottom on new messages
   const scrollToBottom = useCallback(() => {
@@ -144,6 +166,20 @@ export default function AbbyAnalytics() {
     }, 500);
     return () => clearTimeout(timer);
   }, [location.state, patientHandoffDone]);
+
+  // Auto-send estimator context from Cost Estimator page
+  useEffect(() => {
+    if (estimatorHandoffDone) return;
+    const ctx = location.state?.estimatorContext;
+    if (!ctx) return;
+    setEstimatorHandoffDone(true);
+    const timer = setTimeout(() => {
+      if (sendMessageRef.current) {
+        sendMessageRef.current(ctx);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [location.state, estimatorHandoffDone]);
 
   // Auto-resize textarea
   const handleInputChange = (e) => {
@@ -280,6 +316,9 @@ export default function AbbyAnalytics() {
               className={`${s.statusDot} ${isOnline ? s.statusOnline : s.statusOffline}`}
               title={isOnline ? 'Ollama connected' : 'Ollama offline'}
             />
+          )}
+          {messages.length > 0 && (
+            <button className={s.newConvoBtn} onClick={clearConversation}>New Conversation</button>
           )}
         </div>
         <p className={s.subtitle}>

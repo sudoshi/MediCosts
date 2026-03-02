@@ -23,6 +23,38 @@
   color: var(--text-secondary);
 }
 
+/* Metric Toggle */
+.metricBar {
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 3px;
+  background: var(--bg-elevated);
+  width: fit-content;
+  animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.04s;
+}
+
+.metricBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.metricBtn:hover { color: var(--text-primary); }
+
+.metricActive {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+}
+
 .mapSection {
   min-height: 500px;
 }
@@ -96,6 +128,130 @@
   padding: 2px 6px;
   border-radius: 3px;
   background: linear-gradient(90deg, var(--amber-dim) var(--pct), transparent var(--pct));
+}
+
+/* Find Care Near Me */
+.nearbyControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.nearbyInput {
+  width: 110px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  box-sizing: border-box;
+}
+.nearbyInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.nearbySelect {
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.nearbyBtn {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nearbyBtn:hover:not(:disabled) { background: var(--accent-light); }
+.nearbyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.nearbyEmpty {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 20px;
+}
+
+.nearbyList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.nearbyCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nearbyCard:hover {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.04);
+}
+
+.nearbyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nearbyName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nearbyMeta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.nearbyStats {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nearbyStat {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.nearbyStars {
+  color: var(--amber);
+  font-size: 12px;
+  letter-spacing: 1px;
 }
 
 @keyframes fadeUp {

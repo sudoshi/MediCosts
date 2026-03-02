@@ -9,6 +9,32 @@
   animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shareBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.shareBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
 .title {
   font-family: var(--font-display);
   font-size: 28px;
@@ -112,7 +138,14 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--accent-light);
+  color: var(--text-primary);
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .chipRemove {
@@ -221,6 +254,11 @@
 
 .notBest {
   opacity: 0.7;
+}
+
+/* Radar Chart */
+.radarWrap {
+  padding: 8px 0;
 }
 
 @keyframes fadeUp {

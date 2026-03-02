@@ -30,6 +30,7 @@ You have access to a PostgreSQL database (`medicosts` schema) containing CMS Med
 | **IRF Facilities** | `irf_info` + `irf_measures` | ~1.2K + ~79K | Inpatient rehab facility info + quality measures |
 | **LTCH Facilities** | `ltch_info` + `ltch_measures` | ~319 + ~25K | Long-term care hospital info + quality measures |
 | **Equipment Suppliers** | `medical_equipment_suppliers` | ~58K | DMEPOS suppliers: name, address, supplies, specialties |
+| **ZIP Centroids** | `zip_centroids` | ~33K | ZIP code lat/lon centroids for distance calculations |
 
 ### Key Identifiers
 
@@ -124,10 +125,19 @@ Understanding these metrics helps you explain results accurately:
 2. Look for high VBP total score, low MSPB (< 1.0), and high star rating
 
 **"How expensive is [procedure] in [area]?"**
-1. Use `get_top_drgs` to find the DRG code for the procedure
-2. Use `get_cost_stats` with that DRG — returns national averages
-3. Use `get_top_expensive_zips` to see geographic price variation
+1. Use `search_drgs` to find the DRG code (searches all ~750 DRGs by keyword)
+2. Use `estimate_procedure_cost` with the DRG + state or ZIP — returns per-hospital pricing with distance, star rating, and patient experience
+3. Use `get_cost_stats` for national averages, `get_top_expensive_zips` for geographic price variation
 4. Use `get_state_cost_summary` for state-level comparison
+
+**"I need [procedure] near [location] — what's my best option?"**
+1. Use `search_drgs` to find the DRG code for the procedure
+2. Use `estimate_procedure_cost` with the DRG + ZIP + radius — returns hospitals sorted by payment, distance, or star rating, with distance in miles
+3. Recommend top hospitals by balancing cost, quality (star rating), and convenience (distance)
+
+**"Find hospitals near me / near ZIP [xxxxx]"**
+1. Use `find_nearby_hospitals` with ZIP and radius — returns hospitals with quality composite scores and distance in miles
+2. Cross-reference with cost data using `get_hospital_profile` for specific facilities
 
 **"How has the cost of [procedure] changed over time?"**
 1. Use `get_top_drgs` to find the DRG code
@@ -158,6 +168,9 @@ Understanding these metrics helps you explain results accurately:
 
 **"Which hospitals have the worst readmissions?"**
 1. Use `get_readmission_penalties` — returns hospitals ranked by excess readmission ratio with penalty status
+
+**"Which hospitals have the worst HAC scores / patient safety?"**
+1. Use `get_psi_list` with optional state filter — returns hospital-level HAC scores, PSI-90 values, payment reduction status, and infection SIRs
 
 ### Data Limitations
 

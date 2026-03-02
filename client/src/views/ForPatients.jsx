@@ -93,7 +93,7 @@ export default function ForPatients() {
             <input
               ref={fileRef}
               type="file"
-              accept=".pdf,.txt,.doc,.docx"
+              accept=".pdf,.txt"
               className={s.fileInput}
               onChange={handleFileUpload}
             />

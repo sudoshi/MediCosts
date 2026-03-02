@@ -72,6 +72,10 @@ export default function HospitalDetail() {
             <span className={s.dot}>·</span>
             <span>{h.hospital_ownership}</span>
           </div>
+          <div className={s.heroActions}>
+            <button className={s.printBtn} onClick={() => window.print()}>Print Report Card</button>
+            <button className={s.addCompareBtn} onClick={() => navigate(`/compare?add=${ccn}`)}>+ Compare</button>
+          </div>
         </div>
         <div className={s.heroStars}>
           <span className={s.starsValue}>{fmtStars(h.star_rating)}</span>

@@ -136,6 +136,15 @@ export const ScaleIcon = icon(
   </>
 );
 
+export const SearchDollarIcon = icon(
+  <>
+    <circle cx="11" cy="11" r="8" />
+    <path d="M21 21l-4.35-4.35" />
+    <line x1="11" y1="7" x2="11" y2="15" />
+    <path d="M13.5 9H10a1.5 1.5 0 000 3h2a1.5 1.5 0 010 3H9.5" />
+  </>
+);
+
 export const ClipboardHeartIcon = icon(
   <>
     <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />

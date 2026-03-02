@@ -1,15 +1,43 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import DrilldownMap from '../components/DrilldownMap.jsx';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
-import { fmtCurrency } from '../utils/format.js';
+import { fmtCurrency, fmtStars } from '../utils/format.js';
 import s from './GeographicAnalysis.module.css';
 
+const API = import.meta.env.VITE_API_URL || '/api';
+const METRICS = [
+  { key: 'payment',       label: 'Total Payment' },
+  { key: 'charges',       label: 'Charges' },
+  { key: 'medicare',      label: 'Medicare Payment' },
+  { key: 'reimbursement', label: 'Reimbursement Rate' },
+];
+
 export default function GeographicAnalysis() {
+  const navigate = useNavigate();
   const [selectedDrg, setSelectedDrg] = useState('');
+  const [selectedMetric, setSelectedMetric] = useState('payment');
   const { data: stateQuality, loading: loadingQuality } = useApi('/quality/state-summary');
   const { data: drgs } = useApi('/drgs/top50');
+
+  // Find Care Near Me
+  const [nearbyZip, setNearbyZip] = useState('');
+  const [nearbyRadius, setNearbyRadius] = useState(50);
+  const [nearbyResults, setNearbyResults] = useState(null);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+
+  async function findNearby() {
+    if (nearbyZip.length !== 5) return;
+    setNearbyLoading(true);
+    try {
+      const res = await fetch(`${API}/hospitals/nearby?zip=${nearbyZip}&radius=${nearbyRadius}&sort=star_rating&limit=20`);
+      const data = await res.json();
+      setNearbyResults(data);
+    } catch { setNearbyResults([]); }
+    setNearbyLoading(false);
+  }
 
   return (
     <div className={s.page}>
@@ -18,8 +46,19 @@ export default function GeographicAnalysis() {
         <p className={s.subtitle}>Cost and quality variation across the United States</p>
       </header>
 
+      {/* Metric Toggle */}
+      <div className={s.metricBar}>
+        {METRICS.map(m => (
+          <button
+            key={m.key}
+            className={`${s.metricBtn} ${selectedMetric === m.key ? s.metricActive : ''}`}
+            onClick={() => setSelectedMetric(m.key)}
+          >{m.label}</button>
+        ))}
+      </div>
+
       <div className={s.mapSection}>
-        <DrilldownMap drg={selectedDrg} metric="avg_total_payments" />
+        <DrilldownMap drg={selectedDrg} metric={selectedMetric} />
       </div>
 
       {drgs && (
@@ -32,6 +71,50 @@ export default function GeographicAnalysis() {
           </select>
         </Panel>
       )}
+
+      {/* Find Care Near Me */}
+      <Panel title="Find Care Near Me">
+        <div className={s.nearbyControls}>
+          <input
+            className={s.nearbyInput}
+            placeholder="Enter ZIP code"
+            maxLength={5}
+            value={nearbyZip}
+            onChange={e => setNearbyZip(e.target.value.replace(/\D/g, ''))}
+          />
+          <select className={s.nearbySelect} value={nearbyRadius} onChange={e => setNearbyRadius(Number(e.target.value))}>
+            <option value={25}>25 mi</option>
+            <option value={50}>50 mi</option>
+            <option value={100}>100 mi</option>
+            <option value={200}>200 mi</option>
+          </select>
+          <button className={s.nearbyBtn} onClick={findNearby} disabled={nearbyZip.length !== 5 || nearbyLoading}>
+            {nearbyLoading ? 'Searching...' : 'Find Hospitals'}
+          </button>
+        </div>
+
+        {nearbyLoading ? <Skeleton height={120} /> : nearbyResults && (
+          nearbyResults.length === 0 ? (
+            <p className={s.nearbyEmpty}>No hospitals found within {nearbyRadius} miles of {nearbyZip}.</p>
+          ) : (
+            <div className={s.nearbyList}>
+              {nearbyResults.map(h => (
+                <div key={h.facility_id} className={s.nearbyCard} onClick={() => navigate(`/hospitals/${h.facility_id}`)}>
+                  <div className={s.nearbyInfo}>
+                    <span className={s.nearbyName}>{h.facility_name}</span>
+                    <span className={s.nearbyMeta}>{h.city}, {h.state} · {h.hospital_type}</span>
+                  </div>
+                  <div className={s.nearbyStats}>
+                    <span className={s.nearbyStat}>{h.distance_miles} mi</span>
+                    <span className={s.nearbyStars}>{fmtStars(h.star_rating)}</span>
+                    <span className={s.nearbyStat}>{fmtCurrency(h.weighted_avg_payment)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </Panel>
 
       {/* State Quality Heatmap Table */}
       {loadingQuality ? <Skeleton height={300} /> : stateQuality?.length > 0 && (

@@ -441,6 +441,42 @@ export const TOOLS = [
     endpoint: '/api/facilities/suppliers',
   },
 
+  /* ── DRG Search & Cost Estimator ────────────────────────────── */
+  {
+    name: 'search_drgs',
+    description: 'Search for DRGs (Diagnosis Related Groups) by keyword. Returns DRG code, description, number of hospitals, total discharges, and average payment. Use this to find the DRG code for a specific procedure or condition.',
+    parameters: {
+      q: { type: 'string', required: true, description: 'Search term (e.g. "knee replacement", "heart failure", "sepsis")' },
+      limit: { type: 'number', description: 'Max results (default 20, max 50)' },
+    },
+    endpoint: '/api/drgs/search',
+  },
+  {
+    name: 'estimate_procedure_cost',
+    description: 'Find hospitals for a specific DRG procedure with cost estimates. Filterable by state or near a ZIP code with radius. Returns hospital name, location, distance (if ZIP), avg payment, markup ratio, star rating, HCAHPS patient rating, and discharge count. Sortable by payment, distance, star, or markup.',
+    parameters: {
+      drg: { type: 'string', required: true, description: 'DRG code (e.g. "470" for knee replacement)' },
+      state: { type: 'string', description: 'Two-letter state code' },
+      zip: { type: 'string', description: '5-digit ZIP code for distance-based search' },
+      radius: { type: 'number', description: 'Search radius in miles (default 50)' },
+      sort: { type: 'string', description: '"payment", "distance", "star", or "markup" (default: payment)' },
+      order: { type: 'string', description: '"asc" or "desc" (default: asc)' },
+      limit: { type: 'number', description: 'Max results (default 50, max 200)' },
+    },
+    endpoint: '/api/estimate',
+  },
+  {
+    name: 'find_nearby_hospitals',
+    description: 'Find hospitals near a ZIP code with quality metrics. Returns hospital name, distance, star rating, PSI-90, readmission ratio, mortality rate, avg payment, and hospital type. Great for location-based hospital discovery.',
+    parameters: {
+      zip: { type: 'string', required: true, description: '5-digit ZIP code' },
+      radius: { type: 'number', description: 'Search radius in miles (default 50)' },
+      sort: { type: 'string', description: '"star_rating", "distance_miles", or "weighted_avg_payment"' },
+      limit: { type: 'number', description: 'Max results (default 25, max 100)' },
+    },
+    endpoint: '/api/hospitals/nearby',
+  },
+
   /* ── Clinician Directory ─────────────────────────────────────── */
   {
     name: 'search_clinicians',

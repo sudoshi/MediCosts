@@ -76,9 +76,9 @@ function deduplicateColumns(cols) {
 
 /** Read the first line of a file and parse as CSV header */
 function readHeader(filePath) {
-  // Read enough bytes to capture the header line (most headers < 8KB)
+  // Read enough bytes to capture the header line (some headers > 25KB)
   const fd = fs.openSync(filePath, 'r');
-  const buf = Buffer.alloc(64 * 1024);
+  const buf = Buffer.alloc(128 * 1024);
   const bytesRead = fs.readSync(fd, buf, 0, buf.length, 0);
   fs.closeSync(fd);
 
@@ -90,7 +90,12 @@ function readHeader(filePath) {
   if (!parsed.length || !parsed[0].length) {
     throw new Error('Empty or unparseable header');
   }
-  return parsed[0];
+  // Strip trailing empty columns (caused by trailing commas in some files)
+  const cols = parsed[0];
+  while (cols.length > 1 && cols[cols.length - 1].trim() === '') {
+    cols.pop();
+  }
+  return cols;
 }
 
 /** Build table name from file path: {theme}__{filename_stem}, truncated to 63 chars */
@@ -110,7 +115,13 @@ async function loadFile(client, filePath, index, total) {
 
   // Read and sanitize headers (truncate to 63 chars, then deduplicate)
   const rawHeaders = readHeader(filePath);
-  const sanitizedCols = deduplicateColumns(rawHeaders.map((h) => truncateIdent(sanitize(h))));
+  const sanitizedCols = deduplicateColumns(
+    rawHeaders.map((h, i) => {
+      const s = truncateIdent(sanitize(h));
+      // Replace empty column names (e.g. from trailing commas or headerless files)
+      return s === '' ? `_col_${i + 1}` : s;
+    })
+  );
 
   if (sanitizedCols.length === 0) {
     throw new Error('No columns detected');

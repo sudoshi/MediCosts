@@ -167,9 +167,11 @@ const SOURCES = [
   {
     name: 'CMS Medicare Part D Spending by Drug (DY2023)',
     dir: 'cms-part-d',
-    method: 'download',
+    method: 'cms_data_api',
     filename: 'part_d_spending_by_drug_dy2023.csv',
-    url: 'https://data.cms.gov/sites/default/files/2025-05-29/56d95a8b-138c-4b60-84a5-613fbab7197f/DSD_PTD_RY25_P04_V10_DY23_BGM.csv',
+    apiUrl: 'https://data.cms.gov/data-api/v1/dataset/7e0b4365-fd63-4a29-8f5e-e0ac9f66a81b/data',
+    pageSize: 5000,
+    note: '~14K drug spending records (2019-2023)',
   },
 
   // ── CMS Part D Prescribers by Provider ──────────────────────────
@@ -579,6 +581,53 @@ async function downloadDkanApi(source) {
   return 'ok';
 }
 
+// ── CMS Data API (JSON paginated → CSV) ──────────────────────────────
+
+async function downloadCmsDataApi(source) {
+  const dest = path.join(DATA_DIR, source.dir, source.filename);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+
+  if (SKIP_EXISTING && fs.existsSync(dest) && fs.statSync(dest).size > 0) {
+    console.log(`    SKIP (exists): ${dest}`);
+    return 'skipped';
+  }
+
+  const PAGE = source.pageSize || 5000;
+  let offset = 0;
+  let allRows = [];
+
+  console.log(`    Fetching from CMS Data API (${PAGE} rows/page)...`);
+
+  while (true) {
+    process.stdout.write(`\r    Rows fetched: ${allRows.length.toLocaleString()}...`);
+    const rows = await fetchJSON(`${source.apiUrl}?size=${PAGE}&offset=${offset}`);
+    if (rows.length === 0) break;
+    allRows.push(...rows);
+    if (rows.length < PAGE) break;
+    offset += PAGE;
+  }
+
+  // Convert JSON rows to CSV
+  const keys = Object.keys(allRows[0]);
+  const ws = fs.createWriteStream(dest);
+  ws.write(keys.join(',') + '\n');
+  for (const row of allRows) {
+    ws.write(keys.map((k) => {
+      const v = (row[k] || '').toString();
+      return (v.includes(',') || v.includes('"') || v.includes('\n'))
+        ? '"' + v.replace(/"/g, '""') + '"'
+        : v;
+    }).join(',') + '\n');
+  }
+  ws.end();
+  await new Promise((resolve) => ws.on('finish', resolve));
+
+  process.stdout.write(`\r    Total: ${allRows.length.toLocaleString()} rows\n`);
+  const size = fs.statSync(dest).size;
+  console.log(`    Saved: ${(size / 1e6).toFixed(1)} MB → ${path.relative(DATA_DIR, dest)}`);
+  return 'ok';
+}
+
 // ── Medicaid Expansion (static data) ─────────────────────────────────
 
 function writeMedicaidExpansion() {
@@ -701,6 +750,9 @@ async function main() {
           break;
         case 'dkan_api':
           result = await downloadDkanApi(source);
+          break;
+        case 'cms_data_api':
+          result = await downloadCmsDataApi(source);
           break;
         default:
           throw new Error(`Unknown method: ${source.method}`);

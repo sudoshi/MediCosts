@@ -936,3 +936,209 @@ All 6 new endpoints tested and returning data:
 | `client/src/App.jsx` | Modified — 3 lazy imports + routes |
 | `server/routes/quality.js` | Modified — 6 new endpoints |
 | `devlog.md` | Modified — this entry |
+
+---
+
+## Data Lake Enrichment — Full Acquisition & Staging (2026-03-01)
+
+### Mission
+
+*"Let's get it ALL. MediCosts is about spreading HOT sunshine on all the data that shows why healthcare costs in the United States are out of control. Exposing the worst and shining light on the best."*
+
+This session transformed MediCosts from a single-source CMS dashboard into a comprehensive healthcare data lake. We researched 19 enrichment sources across federal agencies (CMS, CDC, HRSA, FEMA, USDA, Census Bureau, AHRQ), wrote automated downloaders for each, and bulk-loaded everything into a PostgreSQL staging schema. The result: **36 GB of raw data, 272 CSV files, 271 tables, 117.6 million rows** — spanning hospital financials, drug pricing, physician payments, community health, workforce shortages, natural disaster risk, and insurance coverage.
+
+### Phase 1: Enrichment Strategy Research
+
+Created `dataenrichment.md` — a comprehensive acquisition strategy document cataloging 19 public data sources organized into three tiers:
+
+**Tier 1 (High Value, Easy Integration):**
+1. CDC PLACES — 36 community health measures at ZIP level (diabetes, obesity, smoking, etc.)
+2. AHRQ SDOH — Social determinants of health (poverty, education, food access, housing)
+3. CMS Hospital Cost Reports (HCRIS) — Operating margins, cost structure, staffing, uncompensated care
+4. HRSA HPSAs — Health Professional Shortage Areas (primary care, dental, mental health)
+5. CMS Open Payments — Pharma/device manufacturer payments to physicians and hospitals
+6. CMS Provider of Services — Bed count, ownership type, teaching status, accreditation
+7. USDA RUCA Codes — Rural-urban classification at ZIP level
+8. FEMA Disaster Declarations — Every federal disaster since 1953
+
+**Tier 2 (Moderate Effort):**
+9. County Health Rankings — 300+ county health variables
+10. Census SAHIE — County-level health insurance estimates
+11. CMS MA Penetration — Medicare Advantage vs. FFS enrollment by county
+12. HRSA Area Health Resource File — 6,000+ county-level variables
+13. NADAC Drug Pricing — National average drug acquisition costs
+14. CMS Part D Prescribers — Prescribing patterns by provider
+15. FEMA National Risk Index — Natural hazard risk scores
+
+**Tier 3 (High Effort):**
+16. IRS 990 Tax Filings — Nonprofit hospital financials
+17. Area Deprivation Index — Neighborhood-level deprivation scores
+18. Leapfrog Safety Grades — Consumer-friendly A-F hospital safety grades
+19. Medicaid Expansion Status — State expansion decisions (static reference table)
+
+Each source was documented with exact URLs, API endpoints, data format, key fields, join strategy, size, and update frequency.
+
+### Phase 2: Automated Download Infrastructure
+
+Created `scripts/download-enrichment.js` (~750 lines) — a comprehensive multi-method downloader handling 24 source files across 7 different download methods:
+
+| Method | Sources | How It Works |
+|--------|---------|-------------|
+| `download` | CDC PLACES, HRSA HPSAs, USDA RUCA, County Health Rankings, CMS POS, Part D Prescribers, Open Payments, NPPES | Direct HTTP GET with streaming to disk, progress reporting |
+| `socrata` | CDC PLACES (ZCTA + County) | Socrata Open Data API with `$limit`/`$offset` pagination, CSV endpoint |
+| `zip_download` | CMS Cost Reports (FY2023 + FY2024), FEMA NRI, CMS MA Penetration, NPPES NPI Registry | Download ZIP → `unzip` → extract CSVs |
+| `fema_api` | FEMA Disaster Declarations | JSON REST API with `$top`/`$skip` pagination → CSV conversion |
+| `census_api` | Census SAHIE | Census Bureau API (JSON arrays) → CSV conversion |
+| `dkan_api` | NADAC Drug Pricing | CMS/Medicaid DKAN platform with `limit`/`offset` pagination |
+| `cms_data_api` | CMS Part D Spending by Drug | CMS data-api/v1 JSON endpoint with `size`/`offset` pagination → CSV conversion |
+
+Also writes a static `medicaid_expansion_status.csv` (51 rows, all states + DC with expansion dates from KFF/Medicaid.gov).
+
+**Features:**
+- `--skip-existing` flag to resume interrupted downloads
+- `--skip-large` flag to defer multi-GB files
+- Browser-like User-Agent header (FEMA blocks generic UAs)
+- Error tolerance (continues on failure, reports summary)
+- Progress reporting with MB downloaded / total
+
+### Phase 3: Download Execution & Bug Fixes
+
+**Initial run (24 sources):** 17 completed, 4 skipped (large), 4 failed.
+
+**Failures diagnosed and fixed:**
+
+| Source | Error | Root Cause | Fix |
+|--------|-------|-----------|-----|
+| FEMA NRI | HTTP 403 | FEMA blocks requests with generic User-Agent | Changed UA to Chrome browser string |
+| CMS Part D Spending | HTTP 410 | Static file URL removed from CMS CDN (302 → `/not-found`) | Added `cms_data_api` method — CMS data-api/v1 JSON endpoint with pagination |
+| NADAC | HTTP 400 | Socrata resource ID `a4y5-998d` no longer exists on data.medicaid.gov | Migrated to DKAN API with dataset UUID `f38d0706-...`, page size 8000 (DKAN max) |
+| AHRQ SDOH | HTTP 202 | CloudFront WAF returns JavaScript challenge for all automated requests | **Unsolvable** — WAF blocks even curl with full browser headers. Requires headless browser or manual download. |
+
+**DKAN API discovery:** CMS/Medicaid has been migrating from Socrata to DKAN as their data platform. The DKAN endpoint format is:
+```
+https://data.medicaid.gov/api/1/datastore/query/{datasetId}/0?limit=8000&offset=N&format=csv
+```
+Key constraint: DKAN max page size is 8,000 rows (vs. Socrata's 50,000). Initial attempt with `limit=50000` returned HTTP 400: *"The attribute value must be less than or equal 8000."*
+
+**CMS data-api discovery:** For Part D Spending by Drug, the static CSV file was removed from the CDN. Found the CMS data-api/v1 endpoint via the `data.json` catalog at `data.cms.gov/data.json`. This returns paginated JSON that we convert to CSV client-side:
+```
+https://data.cms.gov/data-api/v1/dataset/{id}/data?size=5000&offset=N
+```
+
+**Large file downloads (background):** Open Payments PY2023 (7.7 GB), Open Payments PY2024 (8.3 GB), Part D Prescribers (556 MB), NPPES NPI Registry (11 GB ZIP → extracted CSVs).
+
+### Phase 4: Stage Schema Bulk Loading
+
+Created `scripts/load-stage.js` (~200 lines) — a high-performance bulk CSV loader using PostgreSQL `COPY FROM STDIN` via `pg-copy-streams`.
+
+**Architecture:**
+1. Recursively scans `data/` for all `.csv` files (sorted)
+2. For each file: auto-detects headers, sanitizes column names, creates a TEXT-column table
+3. Streams the file into PostgreSQL via `COPY FROM STDIN WITH (FORMAT csv, HEADER true)`
+4. Error-tolerant: logs failures and continues to next file
+5. Reports summary with table count, row count, elapsed time
+
+**Table naming convention:** `{theme}__{filename_stem}` where theme is the subdirectory name. E.g., `data/cdc-places/places_zcta.csv` → `stage.cdc_places__places_zcta`.
+
+**Column name sanitization pipeline:**
+1. Lowercase
+2. Replace non-alphanumeric with `_`
+3. Collapse multiple `_`, strip leading/trailing `_`
+4. Prefix with `_` if starts with digit
+5. Truncate to 63 chars (PostgreSQL identifier limit) — uses MD5 hash suffix if truncated
+6. Deduplicate: append `_2`, `_3` for repeats
+7. Replace empty names with `_col_N` (1-based position)
+8. Strip trailing empty columns from headers (caused by trailing commas)
+
+**Bug chronicle — four rounds of fixes:**
+
+**Round 1 (236 CMS files only):** 216/236 loaded, 20 failed.
+- **Root cause:** PostgreSQL silently truncates identifiers to 63 characters. Two long table names that differ only after character 63 collide. Same for column names.
+- **Fix:** Added `truncateIdent()` — if name > 63 chars, keep first 55 + `_` + 7-char MD5 hash of the full name. Applied to both table names and column names.
+- **Result:** 236/236, 0 failures, 24,570,438 rows in 82.6s.
+
+**Round 2 (272 files with enrichment):** 254/265 loaded, 11 failed.
+- Stale download artifacts (empty/HTML files from failed downloads)
+- PostgreSQL `zero-length delimited identifier` — trailing commas in HRSA CSVs created empty column names, which PG rejects
+- CMS Cost Reports have no header row — first data row treated as header, empty values → empty column names → dedup collision
+- County Health Rankings: 796 columns, PostgreSQL `row is too big: size 12896, maximum size 8160`
+
+**Round 3 (after cleanup + empty column fix):** 267/272 loaded, 5 failed.
+- Deleted stale files (`nadac.csv` 0-byte, `part_d_spending_by_drug.csv` 0-byte, `part_d_spending_by_drug_dy2023.csv` HTML)
+- Added empty column name handling: `sanitize("") → "" → replaced with _col_N`
+- HRSA files still failing: `missing data for column "_col_65"` — trailing comma creates phantom column in header but not all data rows have it
+
+**Round 4 (final):** 271/272 loaded, **1 failure**.
+- Added trailing empty column stripping in `readHeader()` — `while last col is empty, pop it`
+- HRSA files (4): all loaded successfully
+- CMS Cost Reports (2): loaded successfully
+- Re-downloaded Part D Spending via CMS data-api/v1 (14,309 rows)
+
+**The one remaining failure:** `county-health-rankings/chr_analytic_data_2025.csv` — 796 columns with small values per row exceeds PostgreSQL's 8,160-byte heap page tuple limit. This is a hard PostgreSQL architectural constraint, not a bug. The file would need to be split into multiple narrower tables to load.
+
+### Final Numbers
+
+| Metric | Before (CMS only) | After (Full Enrichment) |
+|--------|-------------------|------------------------|
+| CSV files | 236 | 272 |
+| Stage tables | 236 | 271 |
+| Total rows | 24,570,438 | **117,614,067** |
+| Data on disk | ~4 GB | **36 GB** |
+| Data sources | 1 (CMS Provider Data) | **15+ federal agencies** |
+| Load time | 82.6s | 617.4s (~10 min) |
+
+### Data Inventory by Theme
+
+| Theme | Files | Notable Row Counts | Size | Key Data |
+|-------|-------|--------------------|------|----------|
+| CMS Open Payments | 2 | 30.1M | 16 GB | Pharma/device payments to physicians PY2023-2024 |
+| CMS Cost Reports | 6 | 45.6M | 1.8 GB | Hospital financial statements FY2023-2024 (RPT + ALPHA + NMRC) |
+| NPPES | 8 | 11.8M | 12 GB | National Provider Identifier registry (9.4M NPIs + endpoints + practice locations) |
+| Hospitals (CMS) | 76 | 11.1M | 3.2 GB | Quality, cost, outcomes, value-based programs, patient surveys |
+| Physician Office Visit Costs | 85 | 3.7M | 348 MB | Office visit costs by specialty (85 specialties × 42,966 ZIPs) |
+| Doctors & Clinicians | 7 | 5.9M | 894 MB | Clinician directory, utilization, MIPS quality reporting |
+| Nursing Homes | 17 | 2.0M | 568 MB | Quality, deficiencies, staffing, ownership, penalties |
+| NADAC | 1 | 1.6M | 137 MB | Drug acquisition costs (weekly pricing, 1.6M NDC records) |
+| CDC PLACES | 2 | 1.4M | 324 MB | Community health measures (ZIP + county level) |
+| CMS Part D | 2 | 1.4M | 561 MB | Drug spending by drug + prescriber-level data |
+| Hospice | 8 | 1.0M | 134 MB | Hospice quality, CAHPS survey, provider/ZIP data |
+| County Health Rankings | 1 | 745K | 71 MB | County health trends (analytic data failed — PG row limit) |
+| Home Health | 11 | 574K | 146 MB | Home health agencies, patient surveys, ZIP-level data |
+| HRSA HPSAs | 4 | 174K | 101 MB | Shortage areas: primary care, dental, mental health, MUA/MUP |
+| FEMA | 4 | 73K | 75 MB | Disaster declarations + National Risk Index (county hazard scores) |
+| CMS Provider of Services | 1 | 78K | 50 MB | Facility characteristics (beds, ownership, accreditation) |
+| Dialysis | 23 | 136K | 34 MB | Dialysis facility quality, ESRD QIP measures |
+| Other | 14 | ~350K | ~30 MB | RUCA, Census SAHIE, MA penetration, Medicaid expansion, supplier directory, IRF |
+
+### Unsolved / Remaining Gaps
+
+1. **AHRQ SDOH** — CloudFront WAF blocks all automated access with HTTP 202 JavaScript challenges. Even curl with full browser headers, Referer, and cookies gets the challenge page. Would require Puppeteer/Playwright headless browser automation or manual download.
+
+2. **County Health Rankings analytic data** — 796 columns exceed PostgreSQL's ~8KB heap tuple size limit. Options: (a) split into multiple tables by column group, (b) pivot to EAV format, (c) load into a column-oriented store. The trends file (fewer columns) loaded fine with 745K rows.
+
+3. **HRSA AHRF** — SAS transport format, not yet downloaded. Would need `pandas.read_sas()` conversion.
+
+4. **IRS 990, ADI, Leapfrog** — Tier 3 sources requiring account registration or data request forms.
+
+### Files Created/Modified
+
+| File | Status | Description |
+|------|--------|-------------|
+| `scripts/download-enrichment.js` | New | Multi-method enrichment downloader (24 sources, 7 methods, ~750 lines) |
+| `scripts/load-stage.js` | New | COPY FROM STDIN bulk CSV loader (~200 lines) |
+| `scripts/package.json` | Modified | Added `pg-copy-streams` dependency |
+| `dataenrichment.md` | New | Comprehensive enrichment strategy (19 sources, 3 tiers, 758 lines) |
+| `.gitignore` | Modified | Added `*.csv` and `*.pdf` patterns |
+| `devlog.md` | Modified | This entry |
+
+### Technical Learnings
+
+**PostgreSQL identifier limit (63 chars):** PG silently truncates identifiers to 63 bytes via `NAMEDATALEN`. When loading hundreds of files with long names, this causes silent collisions. Solution: proactively truncate with hash suffix (`name[0:55] + '_' + md5(name)[0:7]`).
+
+**PostgreSQL row size limit (8,160 bytes):** The heap page size is 8KB. While TOAST handles large individual values, a row with hundreds of small inline TEXT values can exceed the page limit. No workaround without schema changes.
+
+**DKAN vs. Socrata vs. CMS data-api:** Federal data platforms are migrating. The same agency may serve data on Socrata (`data.cdc.gov`), DKAN (`data.medicaid.gov`), or CMS data-api (`data.cms.gov`). Each has different pagination syntax and size limits. Static file URLs on CDNs can be removed without notice — API endpoints are more durable.
+
+**Trailing commas in government CSVs:** Some federal agency CSV exports include trailing commas on header lines but not consistently on data rows. This creates phantom empty columns that cause COPY column-count mismatches. Solution: strip trailing empty columns from parsed headers before creating the table.
+
+**CloudFront WAF vs. automation:** AHRQ's website uses a JavaScript challenge-response WAF that defeats all non-browser HTTP clients, including curl with full browser headers. The only viable automated approach would be headless browser (Puppeteer/Playwright).

@@ -235,3 +235,17 @@
   .topbar { padding: 0 16px; }
   .content { padding: 20px 16px 40px; }
 }
+
+/* Print layout — hide shell chrome */
+@media print {
+  .sidebar { display: none !important; }
+  .topbar { display: none !important; }
+  .main {
+    margin-left: 0 !important;
+    background: #fff !important;
+  }
+  .content {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}

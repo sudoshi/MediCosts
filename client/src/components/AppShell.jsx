@@ -5,7 +5,7 @@ import {
   MapIcon, StethoscopeIcon, SparklesIcon, PlugIcon, GearIcon,
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
-  AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon,
+  AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
 } from './icons/NavIcons';
 import s from './AppShell.module.css';
 
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { path: '/post-acute', label: 'Post-Acute Care',      icon: HeartPulseIcon },
   { path: '/spending',   label: 'Spending & Value',     icon: DollarIcon },
   { path: '/clinicians', label: 'Clinician Directory',  icon: UsersIcon },
+  { path: '/estimate',        label: 'Cost Estimator',       icon: SearchDollarIcon },
   { path: '/for-patients',    label: 'For Patients',         icon: ClipboardHeartIcon },
   { path: '/compare',         label: 'Compare',              icon: ScaleIcon },
   { path: '/accountability',  label: 'Accountability',       icon: AlertTriangleIcon },

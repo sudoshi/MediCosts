@@ -1,17 +1,57 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import { fmtCurrency, fmtStars, fmtNumber, fmtRatio, fmtSIR } from '../utils/format.js';
+import {
+  ResponsiveContainer, RadarChart, Radar, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip,
+} from 'recharts';
 import s from './HospitalCompare.module.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const COLORS = ['#3b82f6', '#22d3ee', '#a855f7'];
 
 export default function HospitalCompare() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState([]);  // [{facility_id, facility_name, city, state}]
   const [search, setSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [copied, setCopied] = useState(false);
   const debounceRef = useRef(null);
+  const initRef = useRef(false);
+
+  // Load hospitals from URL params on mount
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
+    const ids = searchParams.getAll('h');
+    const addId = searchParams.get('add');
+    const allIds = [...new Set([...ids, ...(addId ? [addId] : [])])].slice(0, 3);
+
+    if (allIds.length === 0) return;
+
+    Promise.all(allIds.map(id =>
+      fetch(`${API_BASE}/quality/composite/${id}`)
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null)
+    )).then(results => {
+      const hospitals = results
+        .filter(Boolean)
+        .map(c => ({ facility_id: c.facility_id, facility_name: c.facility_name, city: c.city, state: c.state }));
+      if (hospitals.length) setSelected(hospitals);
+    });
+  }, []);
+
+  // Sync URL params when selection changes
+  useEffect(() => {
+    if (!initRef.current) return;
+    const params = new URLSearchParams();
+    selected.forEach(h => params.append('h', h.facility_id));
+    setSearchParams(params, { replace: true });
+  }, [selected, setSearchParams]);
 
   // Search autocomplete
   useEffect(() => {
@@ -38,11 +78,28 @@ export default function HospitalCompare() {
     setSelected(selected.filter(h => h.facility_id !== id));
   }
 
+  function copyShareLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
     <div className={s.page}>
       <header className={s.header}>
-        <h1 className={s.title}>Compare Hospitals</h1>
-        <p className={s.subtitle}>Side-by-side comparison of up to 3 hospitals</p>
+        <div className={s.headerRow}>
+          <div>
+            <h1 className={s.title}>Compare Hospitals</h1>
+            <p className={s.subtitle}>Side-by-side comparison of up to 3 hospitals</p>
+          </div>
+          {selected.length > 0 && (
+            <button className={s.shareBtn} onClick={copyShareLink}>
+              {copied ? 'Copied!' : 'Copy Shareable Link'}
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Search */}
@@ -67,8 +124,9 @@ export default function HospitalCompare() {
           )}
         </div>
         <div className={s.chips}>
-          {selected.map(h => (
-            <span key={h.facility_id} className={s.chip}>
+          {selected.map((h, i) => (
+            <span key={h.facility_id} className={s.chip} style={{ borderColor: COLORS[i] }}>
+              <span className={s.chipDot} style={{ background: COLORS[i] }} />
               {h.facility_name}
               <button className={s.chipRemove} onClick={() => removeHospital(h.facility_id)}>×</button>
             </span>
@@ -141,48 +199,118 @@ function ComparisonGrid({ hospitals }) {
     );
   }
 
+  // Radar chart data — normalize to 0-100
+  const radarData = count >= 2 ? buildRadarData(cols) : null;
+
   return (
-    <div className={s.compareWrap}>
-      <table className={s.compareTable}>
-        <thead>
-          <tr>
-            <th className={s.cornerCell}></th>
-            {cols.map((c, i) => (
-              <th key={i} className={s.hospitalHeader}>
-                <span className={s.hospitalHeaderName}>{c.name}</span>
-                <span className={s.hospitalHeaderMeta}>{c.composite.city}, {c.composite.state}</span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Quality */}
-          <tr className={s.sectionRow}><td colSpan={count + 1}>Quality & Ratings</td></tr>
-          <Row label="CMS Star Rating" values={cols.map(c => c.composite.star_rating)} fmt={v => fmtStars(v)} />
-          <Row label="Patient Rating (HCAHPS)" values={cols.map(c => c.hcahps.overall_star)} fmt={v => fmtStars(v)} />
-          <Row label="Would Recommend" values={cols.map(c => c.hcahps.recommend_star)} fmt={v => fmtStars(v)} />
+    <>
+      <div className={s.compareWrap}>
+        <table className={s.compareTable}>
+          <thead>
+            <tr>
+              <th className={s.cornerCell}></th>
+              {cols.map((c, i) => (
+                <th key={i} className={s.hospitalHeader}>
+                  <span className={s.hospitalHeaderName}>{c.name}</span>
+                  <span className={s.hospitalHeaderMeta}>{c.composite.city}, {c.composite.state}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Quality */}
+            <tr className={s.sectionRow}><td colSpan={count + 1}>Quality & Ratings</td></tr>
+            <Row label="CMS Star Rating" values={cols.map(c => c.composite.star_rating)} fmt={v => fmtStars(v)} />
+            <Row label="Patient Rating (HCAHPS)" values={cols.map(c => c.hcahps.overall_star)} fmt={v => fmtStars(v)} />
+            <Row label="Would Recommend" values={cols.map(c => c.hcahps.recommend_star)} fmt={v => fmtStars(v)} />
 
-          {/* Cost */}
-          <tr className={s.sectionRow}><td colSpan={count + 1}>Cost</td></tr>
-          <Row label="Avg Payment" values={cols.map(c => c.composite.weighted_avg_payment)} fmt={fmtCurrency} />
-          <Row label="Total Discharges" values={cols.map(c => c.composite.total_discharges)} fmt={fmtNumber} />
+            {/* Cost */}
+            <tr className={s.sectionRow}><td colSpan={count + 1}>Cost</td></tr>
+            <Row label="Avg Payment" values={cols.map(c => c.composite.weighted_avg_payment)} fmt={fmtCurrency} />
+            <Row label="Total Discharges" values={cols.map(c => c.composite.total_discharges)} fmt={fmtNumber} />
 
-          {/* Safety */}
-          <tr className={s.sectionRow}><td colSpan={count + 1}>Safety</td></tr>
-          <Row label="PSI-90" values={cols.map(c => c.composite.psi_90_score)} fmt={v => Number(v).toFixed(3)} lowerIsBetter />
-          <Row label="HAC Penalty" values={cols.map(c => c.composite.hac_payment_reduction)} fmt={v => v} />
-          <Row label="Readm Ratio" values={cols.map(c => c.composite.avg_excess_readm_ratio)} fmt={v => fmtRatio(v)} lowerIsBetter />
-          <Row label="Mortality Rate" values={cols.map(c => c.composite.avg_mortality_rate)} fmt={v => `${Number(v).toFixed(1)}%`} lowerIsBetter />
+            {/* Safety */}
+            <tr className={s.sectionRow}><td colSpan={count + 1}>Safety</td></tr>
+            <Row label="PSI-90" values={cols.map(c => c.composite.psi_90_score)} fmt={v => Number(v).toFixed(3)} lowerIsBetter />
+            <Row label="HAC Penalty" values={cols.map(c => c.composite.hac_payment_reduction)} fmt={v => v} />
+            <Row label="Readm Ratio" values={cols.map(c => c.composite.avg_excess_readm_ratio)} fmt={v => fmtRatio(v)} lowerIsBetter />
+            <Row label="Mortality Rate" values={cols.map(c => c.composite.avg_mortality_rate)} fmt={v => `${Number(v).toFixed(1)}%`} lowerIsBetter />
 
-          {/* VBP */}
-          <tr className={s.sectionRow}><td colSpan={count + 1}>Value-Based Purchasing</td></tr>
-          <Row label="Total Performance" values={cols.map(c => c.vbp.total_performance_score)} fmt={v => Number(v).toFixed(1)} />
-          <Row label="Clinical Outcomes" values={cols.map(c => c.vbp.clinical_outcomes_score_w)} fmt={v => Number(v).toFixed(1)} />
-          <Row label="Safety Score" values={cols.map(c => c.vbp.safety_score_w)} fmt={v => Number(v).toFixed(1)} />
-          <Row label="Efficiency" values={cols.map(c => c.vbp.efficiency_score_w)} fmt={v => Number(v).toFixed(1)} />
-          <Row label="Engagement" values={cols.map(c => c.vbp.person_engagement_score_w)} fmt={v => Number(v).toFixed(1)} />
-        </tbody>
-      </table>
-    </div>
+            {/* VBP */}
+            <tr className={s.sectionRow}><td colSpan={count + 1}>Value-Based Purchasing</td></tr>
+            <Row label="Total Performance" values={cols.map(c => c.vbp.total_performance_score)} fmt={v => Number(v).toFixed(1)} />
+            <Row label="Clinical Outcomes" values={cols.map(c => c.vbp.clinical_outcomes_score_w)} fmt={v => Number(v).toFixed(1)} />
+            <Row label="Safety Score" values={cols.map(c => c.vbp.safety_score_w)} fmt={v => Number(v).toFixed(1)} />
+            <Row label="Efficiency" values={cols.map(c => c.vbp.efficiency_score_w)} fmt={v => Number(v).toFixed(1)} />
+            <Row label="Engagement" values={cols.map(c => c.vbp.person_engagement_score_w)} fmt={v => Number(v).toFixed(1)} />
+          </tbody>
+        </table>
+      </div>
+
+      {/* Radar Chart */}
+      {radarData && (
+        <Panel title="Performance Radar">
+          <div className={s.radarWrap}>
+            <ResponsiveContainer width="100%" height={340}>
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+                <PolarGrid stroke="var(--border-dim)" />
+                <PolarAngleAxis dataKey="dimension" tick={{ fill: '#71717a', fontSize: 11, fontFamily: 'Inter' }} />
+                <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                {cols.map((c, i) => (
+                  <Radar
+                    key={i}
+                    name={c.name}
+                    dataKey={`h${i}`}
+                    stroke={COLORS[i]}
+                    fill={COLORS[i]}
+                    fillOpacity={0.12}
+                    strokeWidth={2}
+                  />
+                ))}
+                <Legend
+                  wrapperStyle={{ fontSize: 11, fontFamily: 'Inter', color: '#71717a' }}
+                />
+                <Tooltip
+                  contentStyle={{ background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 }}
+                  formatter={v => `${v}/100`}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      )}
+    </>
   );
+}
+
+function buildRadarData(cols) {
+  // Normalize each dimension to 0-100
+  function norm(val, max) {
+    if (val == null) return 0;
+    return Math.round(Math.min(100, Math.max(0, (Number(val) / max) * 100)));
+  }
+
+  function invNorm(val, max) {
+    // Lower is better — invert
+    if (val == null) return 0;
+    const v = Number(val);
+    return Math.round(Math.min(100, Math.max(0, (1 - v / max) * 100)));
+  }
+
+  const dimensions = [
+    { dimension: 'CMS Stars', key: c => c.composite.star_rating, max: 5 },
+    { dimension: 'Patient Experience', key: c => c.hcahps.overall_star, max: 5 },
+    { dimension: 'VBP Performance', key: c => c.vbp.total_performance_score, max: 100 },
+    { dimension: 'Safety', key: c => c.composite.psi_90_score, max: 2, invert: true },
+    { dimension: 'Efficiency', key: c => c.vbp.efficiency_score_w, max: 25 },
+  ];
+
+  return dimensions.map(d => {
+    const row = { dimension: d.dimension };
+    cols.forEach((c, i) => {
+      const val = d.key(c);
+      row[`h${i}`] = d.invert ? invNorm(val, d.max) : norm(val, d.max);
+    });
+    return row;
+  });
 }

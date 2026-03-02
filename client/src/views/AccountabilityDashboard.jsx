@@ -37,6 +37,9 @@ export default function AccountabilityDashboard() {
   const { data: hacRaw, loading: loadHac } = useApi(
     tab === 'hac' ? '/quality/psi/summary' : null, [tab]
   );
+  const { data: hacList, loading: loadHacList } = useApi(
+    tab === 'hac' ? `/quality/psi/list${stateQ}&limit=100`.replace('?&', '?') : null, [tab, state]
+  );
   const { data: stateRanks, loading: loadStates } = useApi(
     tab === 'states' ? '/quality/accountability/state-rankings' : null, [tab]
   );
@@ -86,7 +89,7 @@ export default function AccountabilityDashboard() {
 
       <div className={s.controls}>
         <Tabs tabs={TABS} activeTab={tab} onTabChange={setTab} />
-        {(tab === 'markups' || tab === 'penalties') && (
+        {(tab === 'markups' || tab === 'penalties' || tab === 'hac') && (
           <div className={s.fieldGroup}>
             <span className={s.fieldLabel}>State</span>
             <select className={s.select} value={state} onChange={e => setState(e.target.value)}>
@@ -221,6 +224,50 @@ export default function AccountabilityDashboard() {
               </div>
             </div>
           ) : <p className={s.emptyMsg}>No HAC data available.</p>}
+        </Panel>
+      )}
+      {tab === 'hac' && (
+        <Panel title="Hospital HAC Scores">
+          {loadHacList ? <Skeleton height={400} /> : hacList?.length > 0 ? (
+            <div className={s.tableWrap}>
+              <table className={s.table}>
+                <thead>
+                  <tr>
+                    <th className={s.thLeft}>Hospital</th>
+                    <th>State</th>
+                    <th>HAC Score</th>
+                    <th>PSI-90</th>
+                    <th>Penalized</th>
+                    <th>CLABSI</th>
+                    <th>CAUTI</th>
+                    <th>Stars</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hacList.map(r => (
+                    <tr key={r.facility_id} className={s.clickableRow} onClick={() => navigate(`/hospitals/${r.facility_id}`)}>
+                      <td className={s.name}>{r.facility_name}</td>
+                      <td className={s.center}>{r.state}</td>
+                      <td className={s.mono}>{r.total_hac_score ? Number(r.total_hac_score).toFixed(3) : '—'}</td>
+                      <td className={s.mono}>{r.psi_90_value ? Number(r.psi_90_value).toFixed(4) : '—'}</td>
+                      <td className={s.center}>
+                        <span style={{ color: r.payment_reduction === 'Yes' ? '#ef4444' : '#22c55e' }}>
+                          {r.payment_reduction || '—'}
+                        </span>
+                      </td>
+                      <td className={s.mono} style={{ color: sirColor(r.clabsi_sir) }}>
+                        {r.clabsi_sir ? Number(r.clabsi_sir).toFixed(3) : '—'}
+                      </td>
+                      <td className={s.mono} style={{ color: sirColor(r.cauti_sir) }}>
+                        {r.cauti_sir ? Number(r.cauti_sir).toFixed(3) : '—'}
+                      </td>
+                      <td className={s.center}>{fmtStars(r.star_rating)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : <p className={s.emptyMsg}>No hospital HAC data available.</p>}
         </Panel>
       )}
 

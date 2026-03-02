@@ -525,4 +525,38 @@ router.get('/accountability/summary', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/psi/list?state=&sort=total_hac_score&order=desc   */
+/*  Hospital-level HAC/PSI list for Accountability drilldown           */
+/* ------------------------------------------------------------------ */
+router.get('/psi/list', async (req, res, next) => {
+  try {
+    const { state, sort = 'total_hac_score', order = 'desc', limit = 100 } = req.query;
+    const conditions = [];
+    const params = [];
+    let idx = 1;
+    if (state) { conditions.push(`p.state = $${idx++}`); params.push(state); }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const ALLOWED = ['total_hac_score', 'psi_90_value', 'clabsi_sir', 'cauti_sir', 'facility_name'];
+    const sortCol = ALLOWED.includes(sort) ? sort : 'total_hac_score';
+    const sortDir = order === 'asc' ? 'ASC' : 'DESC';
+
+    const { rows } = await pool.query(`
+      SELECT
+        p.facility_id, p.facility_name, p.state,
+        p.total_hac_score, p.psi_90_value,
+        p.payment_reduction,
+        p.clabsi_sir, p.cauti_sir, p.ssi_sir, p.cdi_sir, p.mrsa_sir,
+        hi.hospital_overall_rating AS star_rating
+      FROM medicosts.patient_safety_indicators p
+      LEFT JOIN medicosts.hospital_info hi ON p.facility_id = hi.facility_id
+      ${where}
+      ORDER BY ${sortCol} ${sortDir} NULLS LAST
+      LIMIT $${idx}
+    `, [...params, Math.min(Number(limit) || 100, 500)]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
 export default router;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -27,6 +27,9 @@ export default function CostTrends() {
   const [selectedDrg, setSelectedDrg] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [ccn, setCcn] = useState('');
+  const [hospitalQuery, setHospitalQuery] = useState('');
+  const [hospitalSuggestions, setHospitalSuggestions] = useState([]);
+  const hospitalDebounceRef = useRef(null);
 
   const { data: drgs, loading: loadingDrgs } = useApi('/drgs/top50');
   const { data: national, loading: loadingNat } = useApi('/trends/national');
@@ -90,6 +93,26 @@ export default function CostTrends() {
   const provLabel = provTrend?.[0]
     ? `${provTrend[0].provider_name} (${provTrend[0].state_abbr})`
     : '';
+
+  // Hospital name autocomplete
+  const API = import.meta.env.VITE_API_URL || '/api';
+  useEffect(() => {
+    clearTimeout(hospitalDebounceRef.current);
+    if (!hospitalQuery || hospitalQuery.length < 2) { setHospitalSuggestions([]); return; }
+    hospitalDebounceRef.current = setTimeout(() => {
+      fetch(`${API}/quality/search?q=${encodeURIComponent(hospitalQuery)}&limit=8`)
+        .then(r => r.json())
+        .then(setHospitalSuggestions)
+        .catch(() => setHospitalSuggestions([]));
+    }, 250);
+    return () => clearTimeout(hospitalDebounceRef.current);
+  }, [hospitalQuery]);
+
+  function selectHospital(h) {
+    setCcn(h.facility_id);
+    setHospitalQuery('');
+    setHospitalSuggestions([]);
+  }
 
   return (
     <div className={s.page}>
@@ -202,9 +225,32 @@ export default function CostTrends() {
       <Panel title={provLabel || 'Hospital Cost Trend'}>
         <div className={s.controls}>
           <div className={s.fieldGroup}>
-            <span className={s.fieldLabel}>Hospital CCN</span>
-            <input className={s.ccnInput} placeholder="e.g. 050454"
-              value={ccn} onChange={e => setCcn(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+            <span className={s.fieldLabel}>Hospital</span>
+            <div className={s.searchWrap}>
+              <input className={s.ccnInput} placeholder="Search by name or enter CCN..."
+                value={hospitalQuery || ccn}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (/^\d+$/.test(val)) {
+                    setCcn(val.slice(0, 6));
+                    setHospitalQuery('');
+                  } else {
+                    setHospitalQuery(val);
+                    setCcn('');
+                  }
+                }}
+              />
+              {hospitalSuggestions.length > 0 && (
+                <div className={s.dropdown}>
+                  {hospitalSuggestions.map(h => (
+                    <button key={h.facility_id} className={s.dropdownItem} onClick={() => selectHospital(h)}>
+                      <span className={s.dropdownName}>{h.facility_name}</span>
+                      <span className={s.dropdownMeta}>{h.city}, {h.state} — {h.facility_id}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {loadingProv ? <Skeleton height={300} /> : provChart.length > 0 ? (
