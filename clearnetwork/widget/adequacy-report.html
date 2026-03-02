@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClearNetwork — Network Adequacy Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0c0c0e;
+      --surface:  #141416;
+      --border:   #2a2a2d;
+      --accent:   #3b82f6;
+      --cyan:     #22d3ee;
+      --green:    #22c55e;
+      --amber:    #fbbf24;
+      --red:      #f87171;
+      --text:     #e4e4e7;
+      --muted:    #71717a;
+      --mono:     'JetBrains Mono', 'Fira Mono', monospace;
+      --radius:   10px;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .header-title { font-size: 18px; font-weight: 600; }
+    .header-sub   { font-size: 13px; color: var(--muted); margin-left: auto; }
+
+    /* ── Layout ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 32px 20px; }
+
+    .hero { text-align: center; margin-bottom: 36px; }
+    .hero h1 { font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: 10px; }
+    .hero h1 span { color: var(--cyan); }
+    .hero p  { color: var(--muted); font-size: 14px; max-width: 480px; margin: 0 auto; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── Inputs ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; color: var(--muted); }
+    .form-group input, .form-group select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--accent); }
+    .form-group input::placeholder { color: var(--muted); }
+    .form-group select option { background: var(--surface); }
+    .full-span { grid-column: 1 / -1; }
+
+    .btn-run {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px;
+      margin-top: 4px;
+      transition: opacity .15s;
+    }
+    .btn-run:hover:not(:disabled) { opacity: .85; }
+    .btn-run:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Status ── */
+    .status-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px 0;
+    }
+    .status-bar.visible { display: flex; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      display: none;
+      background: #450a0a;
+      border: 1px solid #991b1b;
+      border-radius: 8px;
+      color: var(--red);
+      font-size: 13px;
+      padding: 12px 16px;
+      margin-top: 12px;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Report ── */
+    #report { display: none; }
+    #report.visible { display: block; }
+
+    .report-network {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .report-network h2 { font-size: 20px; font-weight: 700; }
+    .report-network-id { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+    /* ── Overall score gauge ── */
+    .gauge-section {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .gauge-wrap { flex-shrink: 0; }
+    svg.gauge { display: block; }
+    .gauge-label { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+    .score-overall-value {
+      font-size: 56px;
+      font-weight: 700;
+      line-height: 1;
+      font-family: var(--mono);
+    }
+    .score-overall-unit { font-size: 20px; color: var(--muted); }
+    .score-overall-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .score-grade {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .grade-A { background: #052e16; color: var(--green);  border: 1px solid #166534; }
+    .grade-B { background: #082f49; color: var(--cyan);   border: 1px solid #0e7490; }
+    .grade-C { background: #451a03; color: var(--amber);  border: 1px solid #92400e; }
+    .grade-D { background: #450a0a; color: var(--red);    border: 1px solid #991b1b; }
+
+    /* ── Component scores ── */
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .component-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .component-name { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .component-score {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: var(--mono);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .component-bar-bg {
+      background: rgba(255,255,255,.06);
+      border-radius: 3px;
+      height: 5px;
+      overflow: hidden;
+    }
+    .component-bar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+
+    /* ── Provider counts ── */
+    .counts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .count-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .count-value {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: var(--mono);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .count-label { font-size: 11px; color: var(--muted); }
+
+    /* ── ZIP adequacy ── */
+    .zip-section { margin-top: 8px; }
+    .zip-header {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .zip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .zip-metric {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .zip-metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--mono);
+      margin-bottom: 3px;
+    }
+    .zip-metric-label { font-size: 11px; color: var(--muted); }
+    .pcp-ok   { color: var(--green); }
+    .pcp-none { color: var(--red); }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      margin-top: 28px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .disclaimer strong { color: rgba(255,255,255,.45); }
+
+    @media (max-width: 600px) {
+      .form-grid     { grid-template-columns: 1fr; }
+      .components-grid { grid-template-columns: 1fr; }
+      .counts-grid   { grid-template-columns: repeat(2, 1fr); }
+      .zip-grid      { grid-template-columns: 1fr; }
+      .gauge-section { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">CN</div>
+  <div class="header-title">ClearNetwork</div>
+  <div class="header-sub">Network Adequacy Report</div>
+</div>
+
+<div class="container">
+
+  <div class="hero">
+    <h1>Network <span>Adequacy</span> Score</h1>
+    <p>Evaluate how well an insurance network covers providers in a region. Score 0–100 across primary care, specialists, facilities, and total coverage.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Query Parameters</div>
+    <div class="form-grid">
+      <div class="form-group full-span">
+        <label>Network ID (UUID)</label>
+        <input type="text" id="networkId"
+          placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" />
+      </div>
+      <div class="form-group">
+        <label>ZIP Code (optional — local adequacy)</label>
+        <input type="text" id="zipCode" maxlength="5" placeholder="e.g. 90210" />
+      </div>
+      <div class="form-group">
+        <label>Radius (miles)</label>
+        <select id="radius">
+          <option value="15">15 miles</option>
+          <option value="30" selected>30 miles (CMS default)</option>
+          <option value="50">50 miles</option>
+          <option value="100">100 miles</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>State filter (optional)</label>
+        <select id="stateFilter">
+          <option value="">All states</option>
+          <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+          <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+          <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+          <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+          <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+          <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+          <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+          <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+          <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+          <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+          <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
+          <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
+          <option>WI</option><option>WY</option>
+        </select>
+      </div>
+      <div class="form-group full-span">
+        <label>API Base URL</label>
+        <input type="url" id="apiBase" placeholder="http://localhost:8001/v1" />
+      </div>
+    </div>
+    <button class="btn-run" id="runBtn" disabled>Generate Adequacy Report</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span>Computing adequacy scores…</span>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Report output -->
+  <div id="report">
+    <div class="card">
+      <div class="report-network">
+        <h2 id="reportNetworkName">—</h2>
+        <span class="report-network-id" id="reportNetworkId"></span>
+      </div>
+
+      <!-- Overall score -->
+      <div class="gauge-section">
+        <div class="gauge-wrap">
+          <svg class="gauge" width="140" height="80" viewBox="0 0 140 80">
+            <path id="gaugeTrack" d="" stroke="#2a2a2d" stroke-width="12"
+              fill="none" stroke-linecap="round"/>
+            <path id="gaugeFill"  d="" stroke="#3b82f6" stroke-width="12"
+              fill="none" stroke-linecap="round"/>
+          </svg>
+          <div class="gauge-label">Overall Score (0–100)</div>
+        </div>
+        <div>
+          <div class="score-overall-value" id="overallScore">—</div>
+          <div class="score-overall-label">out of 100</div>
+          <div id="gradeChip" class="score-grade">—</div>
+        </div>
+      </div>
+
+      <!-- Component scores -->
+      <div class="card-title">Component Scores (weighted)</div>
+      <div class="components-grid" id="componentGrid"></div>
+
+      <!-- Provider counts -->
+      <div class="card-title" style="margin-top:20px">Provider Counts</div>
+      <div class="counts-grid" id="countsGrid"></div>
+
+      <!-- ZIP adequacy -->
+      <div class="zip-section" id="zipSection" style="display:none">
+        <div class="card-title" style="margin-top:20px">Local Adequacy</div>
+        <div class="zip-header" id="zipHeader"></div>
+        <div class="zip-grid" id="zipGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>About adequacy scoring:</strong> Scores are computed from provider counts
+    in insurer Machine-Readable Files per <strong>45 CFR §147.211</strong>.
+    Adequacy thresholds reflect CMS guidance (≥50 PCPs → full PCP score, ≥200 specialists → full specialist score,
+    ≥20 facilities → full facility score). Scores do not constitute CMS network adequacy certification.
+    <strong>Always verify with your insurer before receiving care.</strong>
+  </div>
+
+</div>
+
+<script>
+  const API_BASE_DEFAULT = 'http://localhost:8001/v1';
+
+  function getApiBase() {
+    return (document.getElementById('apiBase').value.trim() || API_BASE_DEFAULT);
+  }
+
+  // Enable run button when network ID is filled
+  document.getElementById('networkId').addEventListener('input', function () {
+    document.getElementById('runBtn').disabled = !this.value.trim();
+  });
+
+  document.getElementById('runBtn').addEventListener('click', runReport);
+
+  async function runReport() {
+    const networkId = document.getElementById('networkId').value.trim();
+    if (!networkId) return;
+
+    const zip    = document.getElementById('zipCode').value.trim();
+    const radius = document.getElementById('radius').value;
+    const state  = document.getElementById('stateFilter').value;
+
+    const params = new URLSearchParams({ radius_miles: radius });
+    if (zip)   params.set('zip', zip);
+    if (state) params.set('state', state);
+
+    setStatus(true);
+    hideError();
+    document.getElementById('report').classList.remove('visible');
+
+    try {
+      const resp = await fetch(
+        `${getApiBase()}/networks/${encodeURIComponent(networkId)}/adequacy?${params}`
+      );
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${resp.status}`);
+      }
+      const json = await resp.json();
+      setStatus(false);
+      renderReport(json.data, networkId);
+    } catch (err) {
+      setStatus(false);
+      showError(err.message);
+    }
+  }
+
+  function renderReport(data, networkId) {
+    document.getElementById('reportNetworkName').textContent = data.network_name || 'Unknown Network';
+    document.getElementById('reportNetworkId').textContent   = networkId;
+
+    // Overall score + gauge
+    const score = data.overall_score || 0;
+    document.getElementById('overallScore').textContent = score;
+
+    // SVG arc gauge
+    drawGauge(score);
+
+    // Grade chip
+    const grade = score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : 'D';
+    const gradeEl = document.getElementById('gradeChip');
+    gradeEl.textContent = `Grade ${grade}`;
+    gradeEl.className = `score-grade grade-${grade}`;
+
+    // Component scores
+    const components = [
+      { key: 'pcp_access',              label: 'PCP Access',               weight: '30%', color: '#22c55e' },
+      { key: 'specialist_coverage',     label: 'Specialist Coverage',      weight: '25%', color: '#3b82f6' },
+      { key: 'facility_access',         label: 'Facility Access',          weight: '25%', color: '#22d3ee' },
+      { key: 'total_provider_coverage', label: 'Total Provider Coverage',  weight: '20%', color: '#a78bfa' },
+    ];
+    const scores = data.scores || {};
+    const grid = document.getElementById('componentGrid');
+    grid.innerHTML = components.map(c => {
+      const val = scores[c.key] || 0;
+      return `
+        <div class="component-card">
+          <div class="component-name">${c.label} <span style="color:var(--muted);font-size:10px">(${c.weight})</span></div>
+          <div class="component-score" style="color:${c.color}">${val}</div>
+          <div class="component-bar-bg">
+            <div class="component-bar-fill" style="width:${val}%;background:${c.color}"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Counts
+    const counts = data.counts || {};
+    const countItems = [
+      { label: 'Total Providers', value: counts.total_providers || 0, color: 'var(--text)' },
+      { label: 'PCPs',            value: counts.pcps || 0,            color: '#22c55e' },
+      { label: 'Specialists',     value: counts.specialists || 0,     color: '#3b82f6' },
+      { label: 'Facilities',      value: counts.facilities || 0,      color: '#22d3ee' },
+    ];
+    document.getElementById('countsGrid').innerHTML = countItems.map(c =>
+      `<div class="count-card">
+        <div class="count-value" style="color:${c.color}">${fmt(c.value)}</div>
+        <div class="count-label">${c.label}</div>
+      </div>`
+    ).join('');
+
+    // ZIP-level adequacy
+    const zipEl  = document.getElementById('zipSection');
+    const zipData = data.zip_adequacy;
+    if (zipData) {
+      document.getElementById('zipHeader').textContent =
+        `Within ${zipData.radius_miles} miles of ZIP ${zipData.zip}`;
+
+      const pcpOk = zipData.has_pcp_access;
+      document.getElementById('zipGrid').innerHTML = `
+        <div class="zip-metric">
+          <div class="zip-metric-value">${fmt(zipData.providers_within_radius)}</div>
+          <div class="zip-metric-label">Providers in radius</div>
+        </div>
+        <div class="zip-metric">
+          <div class="zip-metric-value">${fmt(zipData.pcps_within_radius)}</div>
+          <div class="zip-metric-label">PCPs in radius</div>
+        </div>
+        <div class="zip-metric">
+          <div class="zip-metric-value ${pcpOk ? 'pcp-ok' : 'pcp-none'}">
+            ${pcpOk ? '✓ Yes' : '✗ No'}
+          </div>
+          <div class="zip-metric-label">PCP access within ${zipData.radius_miles} mi</div>
+        </div>
+      `;
+      zipEl.style.display = '';
+    } else {
+      zipEl.style.display = 'none';
+    }
+
+    document.getElementById('report').classList.add('visible');
+  }
+
+  // ── SVG gauge (semi-circle) ────────────────────────────────────────────────
+
+  function drawGauge(score) {
+    // Semi-circle arc: center (70,75), radius 55, from 180° to 0°
+    const cx = 70, cy = 75, r = 55;
+    const startAngle = Math.PI;      // left (180°)
+    const endAngle   = 0;            // right (0°)
+
+    function polarToXY(angle) {
+      return [
+        cx + r * Math.cos(angle),
+        cy - r * Math.sin(angle),
+      ];
+    }
+
+    const [sx, sy] = polarToXY(startAngle);
+    const [ex, ey] = polarToXY(endAngle);
+    const trackPath = `M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`;
+
+    const pct   = Math.min(Math.max(score / 100, 0), 1);
+    const angle = startAngle + (endAngle - startAngle) * pct;  // endAngle < startAngle here
+    // Actually endAngle=0 > startAngle=π going clockwise, let's fix:
+    const fillAngle = Math.PI - (Math.PI * pct); // goes from π (left) to 0 (right)
+    const [fx, fy] = polarToXY(fillAngle);
+    const largeArc = pct > 0.5 ? 1 : 0;
+    const fillPath = pct <= 0
+      ? ''
+      : pct >= 1
+        ? trackPath
+        : `M ${sx} ${sy} A ${r} ${r} 0 ${largeArc} 1 ${fx} ${fy}`;
+
+    document.getElementById('gaugeTrack').setAttribute('d', trackPath);
+    document.getElementById('gaugeFill').setAttribute('d', fillPath);
+
+    const color = score >= 80 ? '#22c55e' : score >= 65 ? '#3b82f6' : score >= 50 ? '#fbbf24' : '#f87171';
+    document.getElementById('gaugeFill').setAttribute('stroke', color);
+    document.getElementById('overallScore').style.color = color;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function fmt(n) { return Number(n).toLocaleString(); }
+
+  function setStatus(visible) {
+    document.getElementById('statusBar').classList.toggle('visible', visible);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').classList.remove('visible');
+  }
+</script>
+</body>
+</html>

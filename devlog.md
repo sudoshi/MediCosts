@@ -1372,4 +1372,144 @@ All endpoints tested with real production data:
 | `clearnetwork/app/main.py` | Modified | Mount alerts + adequacy routers |
 | `clearnetwork/pyproject.toml` | Modified | Added ijson, aiohttp, aiofiles |
 
+---
+
+## ClearNetwork Phase 9 & 10 — Consumer UI + Data Quality (2026-03-02)
+
+Completed the final two phases of the ClearNetwork foundational sprint: consumer-facing tools (Phase 9) and automated data quality monitoring (Phase 10). With these complete, ClearNetwork transitions from infrastructure to a usable product.
+
+---
+
+### Phase 9: Consumer-Facing Features
+
+**9.1 Widget** — Already complete from prior session (`clearnetwork/widget/index.js`). No changes needed — the embeddable `<clear-network-check>` Web Component was production-ready.
+
+**9.2 Network Adequacy Report** — `clearnetwork/widget/adequacy-report.html`
+
+New standalone HTML page for visualizing network adequacy scores. No React dependency — pure vanilla JS with the same dark design system used across the project.
+
+Features:
+- Network ID input + optional ZIP code + radius selector (15/30/50/100 mi) + state filter + configurable API base URL
+- SVG semi-circle gauge rendering the 0–100 overall adequacy score with dynamic color (green → blue → amber → red)
+- Letter grade chip (A/B/C/D) computed from score thresholds (≥80=A, ≥65=B, ≥50=C, else D)
+- 4 component score cards with colored fill bars: PCP Access (30%), Specialist Coverage (25%), Facility Access (25%), Total Provider Coverage (20%)
+- Provider count grid: total providers / PCPs / specialists / facilities
+- ZIP-level adequacy block (conditional on ZIP input): providers within radius, PCPs within radius, PCP access flag (green ✓ / red ✗)
+- Full error handling, loading spinner, responsive layout at 600px
+
+**9.3 Plan Finder** — `clearnetwork/widget/plan-finder.html`
+
+Consumer tool answering: *"I want to keep my 5 doctors — which plans cover all of them?"*
+
+Features:
+- Up to 5 NPI inputs, each with live provider name resolution via `GET /v1/providers/{npi}` (600ms debounce, green/red border feedback)
+- State / plan type (HMO, PPO, EPO, POS, HDHP) / year filters + configurable API base
+- Two-step query: first fetches all matching plans via `/v1/plans/search`, then runs `/v1/plans/compare` with all plan IDs and all NPIs in one call
+- Provider legend showing resolved names for P1–P5
+- Coverage matrix table sorted by coverage %:
+  - Color-coded coverage bars (green 100%, blue ≥75%, amber ≥50%, red <50%)
+  - Per-provider in/out-of-network cells with tier label badges
+  - Insurer name sub-label under plan name
+- Full error handling for unreachable API, no plans found, comparison failures
+
+---
+
+### Phase 10: Monitoring & Data Quality
+
+**10.2 Quality Checks Module** — `clearnetwork/app/quality/__init__.py` + `clearnetwork/app/quality/checks.py`
+
+Six async quality check functions, each returning a `QualityCheckResult` dataclass:
+
+| Check | Threshold | Severity if Fail |
+|-------|-----------|-----------------|
+| `check_npi_validity_rate` | ≥90% valid 10-digit NPIs | critical |
+| `check_address_completeness` | ≥85% with geocoded address (street + lat + lng) | warning |
+| `check_no_duplicate_canonical_providers` | 0 duplicate NPIs | critical |
+| `check_network_size_regression` | No network drops >20% between snapshots | critical |
+| `check_geographic_distribution_sanity` | Providers span ≥40 US states | warning |
+| `check_specialty_code_validity` | ≥95% of taxonomy codes are ≥10 chars (valid CMS format) | warning |
+
+`run_all_checks(db)` runs all six, catches individual failures gracefully, and returns results sorted by severity (critical → warning → info) with failures before passes.
+
+**10.1 Quality API Routes** — `clearnetwork/app/routes/quality.py`
+
+Five new endpoints mounted at `/v1/quality/`:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /v1/quality/checks` | Run all 6 checks live, return summary + per-check detail |
+| `GET /v1/quality/crawl-stats` | Per-insurer crawl history: status, success rate, files, providers found, errors |
+| `GET /v1/quality/network-staleness` | All networks with days since last snapshot (current / stale / critical / never_crawled) |
+| `GET /v1/quality/provider-deltas` | Provider count changes between the two most recent snapshots, flagging >20% drops |
+| `GET /v1/quality/npi-stats` | NPI validity breakdown by entity type + 20-row invalid sample for inspection |
+
+Registered in `clearnetwork/app/main.py`.
+
+**10.1 Admin Dashboard** — `clearnetwork/dashboard/index.html`
+
+Self-contained dark-themed admin dashboard fetching all data from `/v1/quality/*` via fetch(). Auto-loads on page open, with a ↻ Refresh button and configurable API base URL in the sticky header.
+
+Five sections:
+
+1. **Crawl Overview** — 4 KPI cards: total jobs, success rate (color-coded), total providers found, last crawl timestamp
+2. **Quality Checks Grid** — 6 cards with left-border color (green/amber/red), PASS/CRITICAL/WARNING pills, value + threshold + fill bar + detail text
+3. **Network Staleness Table** — all networks with last snapshot date, days stale, status pills, snapshot vs. reported provider counts
+4. **Crawl History by Insurer** — per-insurer table with last status, all-time success rate, last run, files processed, providers found, error count
+5. **Provider Count Deltas** — top 20 networks by absolute change, with ⚠ DROP flag on regressions >20%
+
+All sections degrade gracefully when no data exists yet (loading states, empty state messages).
+
+---
+
+### New Endpoints Summary (this session)
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/quality/checks` | Run all quality checks |
+| GET | `/v1/quality/crawl-stats` | Crawl job statistics by insurer |
+| GET | `/v1/quality/network-staleness` | Network freshness status |
+| GET | `/v1/quality/provider-deltas` | Provider count changes between snapshots |
+| GET | `/v1/quality/npi-stats` | NPI validity breakdown + invalid samples |
+
+### New/Modified Files
+
+| File | Status | Description |
+|------|--------|-------------|
+| `clearnetwork/app/quality/__init__.py` | New | Quality module package + exports |
+| `clearnetwork/app/quality/checks.py` | New | 6 quality check functions + QualityCheckResult dataclass |
+| `clearnetwork/app/routes/quality.py` | New | 5 quality monitoring API endpoints |
+| `clearnetwork/dashboard/index.html` | New | Admin data quality dashboard |
+| `clearnetwork/widget/adequacy-report.html` | New | Network adequacy score visualizer (Phase 9.2) |
+| `clearnetwork/widget/plan-finder.html` | New | "Which plans cover my doctors?" consumer tool (Phase 9.3) |
+| `clearnetwork/app/main.py` | Modified | Registered quality router |
+| `plan.md` | New | MediCosts 1.0 final version implementation plan |
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| ClearNetwork API endpoints | 13 | **18** |
+| Consumer-facing HTML tools | 1 (demo.html) | **4** (demo, plan-finder, adequacy-report, dashboard) |
+| Quality checks | 0 | **6** |
+| Directories | crawler/, app/, widget/ | + **dashboard/**, + **app/quality/** |
+
+### ClearNetwork Foundational Sprint — Complete
+
+Phases 9 and 10 mark the completion of the ClearNetwork foundational sprint. All 10 phases from `clearnetwork.md` are now either built or have their core infrastructure in place:
+
+| Phase | Status | Key Deliverable |
+|-------|--------|----------------|
+| 1 — Discovery Engine | ✅ | `known_insurers.json`, MRF index crawler |
+| 2 — Data Ingestion | ✅ | Streaming NPI extractor, download manager |
+| 3 — Database | ✅ | Full PostgreSQL schema, PostGIS, 5 migrations |
+| 4 — Data Enrichment | ✅ | NPPES loader, geocoding scripts |
+| 5 — Change Detection | ✅ | Snapshot + diff system |
+| 6 — API Layer | ✅ | 18 FastAPI endpoints across 6 routers |
+| 7 — Infrastructure | ✅ (design) | Scalability specs documented |
+| 8 — Compliance | ✅ | 45 CFR §147.211 disclaimer in all responses |
+| 9 — Consumer Features | ✅ | Widget, plan finder, adequacy report |
+| 10 — Monitoring & Quality | ✅ | 6 quality checks, 5 monitoring endpoints, admin dashboard |
+
+Next sprint: MediCosts 1.0 final phases per `plan.md`.
+
 **Totals:** 14 new files, 4 modified files, 3 new API routers, 9M+ provider records, 241K network links, 14.9K plans

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClearNetwork — Data Quality Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0c0c0e;
+      --surface:  #141416;
+      --surface2: #1a1a1d;
+      --border:   #2a2a2d;
+      --accent:   #3b82f6;
+      --cyan:     #22d3ee;
+      --green:    #22c55e;
+      --green-bg: #052e16;
+      --green-bd: #166534;
+      --amber:    #fbbf24;
+      --amber-bg: #451a03;
+      --amber-bd: #92400e;
+      --red:      #f87171;
+      --red-bg:   #450a0a;
+      --red-bd:   #991b1b;
+      --text:     #e4e4e7;
+      --muted:    #71717a;
+      --mono:     'JetBrains Mono', 'Fira Mono', monospace;
+      --radius:   10px;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-logo {
+      width: 30px; height: 30px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-tag {
+      font-size: 11px;
+      background: rgba(255,255,255,.07);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--muted);
+    }
+    .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .header-api {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 5px 10px;
+      outline: none;
+      width: 220px;
+    }
+    .header-api:focus { border-color: var(--accent); }
+    .btn-refresh {
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      transition: opacity .15s;
+    }
+    .btn-refresh:hover  { opacity: .85; }
+    .btn-refresh:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Layout ── */
+    .main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 32px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .badge-ok      { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+    .badge-warn    { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+    .badge-crit    { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-bd); }
+    .badge-neutral { background: rgba(255,255,255,.06); color: var(--muted); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Summary row ── */
+    .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .summary-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+    .summary-value { font-size: 32px; font-weight: 700; font-family: var(--mono); line-height: 1; }
+    .summary-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Quality checks grid ── */
+    .checks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .check-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      border-left: 3px solid transparent;
+    }
+    .check-card.passed   { border-left-color: var(--green); }
+    .check-card.critical { border-left-color: var(--red); }
+    .check-card.warning  { border-left-color: var(--amber); }
+
+    .check-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .check-name { font-size: 13px; font-weight: 500; }
+    .check-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .status-pass { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+    .status-fail-crit { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+    .status-fail-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+
+    .check-value { font-size: 22px; font-weight: 700; font-family: var(--mono); margin-bottom: 2px; }
+    .check-threshold { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .check-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Bar for check value ── */
+    .check-bar-bg {
+      background: rgba(255,255,255,.06);
+      border-radius: 3px;
+      height: 4px;
+      margin: 6px 0;
+      overflow: hidden;
+    }
+    .check-bar-fill { height: 100%; border-radius: 3px; }
+
+    /* ── Crawl table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .mono { font-family: var(--mono); font-size: 12px; }
+
+    .status-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .pill-completed { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+    .pill-failed    { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+    .pill-running   { background: #082f49; color: var(--cyan); border: 1px solid #0e7490; }
+    .pill-stale     { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+    .pill-never     { background: rgba(255,255,255,.06); color: var(--muted); }
+    .pill-current   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+    .pill-critical  { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+
+    /* ── Delta bar ── */
+    .delta-cell { display: flex; align-items: center; gap: 8px; }
+    .delta-pos { color: var(--green); }
+    .delta-neg { color: var(--red); }
+    .delta-flag { font-size: 10px; background: var(--red-bg); color: var(--red); padding: 1px 6px; border-radius: 3px; }
+
+    /* ── Error / loading ── */
+    .loading-state {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .error-banner {
+      background: var(--red-bg);
+      border: 1px solid var(--red-bd);
+      border-radius: 8px;
+      color: var(--red);
+      font-size: 13px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-banner.visible { display: block; }
+
+    /* ── Last refresh ── */
+    .refresh-note { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 8px; }
+
+    @media (max-width: 700px) {
+      .summary-row { grid-template-columns: 1fr 1fr; }
+      .checks-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">CN</div>
+  <div class="header-title">ClearNetwork</div>
+  <span class="header-tag">Admin Dashboard</span>
+  <div class="header-actions">
+    <input type="url" class="header-api" id="apiBase"
+      placeholder="http://localhost:8001/v1" />
+    <button class="btn-refresh" id="refreshBtn">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="error-banner" id="globalError"></div>
+  <div class="refresh-note" id="refreshNote"></div>
+
+  <!-- Section 1: Crawl Summary -->
+  <div class="section">
+    <div class="section-title">
+      Crawl Overview
+      <span class="section-badge badge-neutral" id="crawlBadge">—</span>
+    </div>
+    <div class="summary-row" id="crawlSummary">
+      <div class="summary-card"><div class="summary-label">Total Jobs</div><div class="skeleton" style="height:36px;width:80px"></div></div>
+      <div class="summary-card"><div class="summary-label">Success Rate</div><div class="skeleton" style="height:36px;width:80px"></div></div>
+      <div class="summary-card"><div class="summary-label">Providers Found</div><div class="skeleton" style="height:36px;width:80px"></div></div>
+      <div class="summary-card"><div class="summary-label">Last Crawl</div><div class="skeleton" style="height:36px;width:160px"></div></div>
+    </div>
+  </div>
+
+  <!-- Section 2: Quality Checks -->
+  <div class="section">
+    <div class="section-title">
+      Automated Quality Checks
+      <span class="section-badge badge-neutral" id="checkBadge">—</span>
+    </div>
+    <div class="checks-grid" id="checksGrid">
+      <div class="card loading-state" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        <span>Running quality checks…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Network Staleness -->
+  <div class="section">
+    <div class="section-title">
+      Network Staleness
+      <span class="section-badge badge-neutral" id="stalenessBadge">—</span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table id="stalenessTable">
+          <thead>
+            <tr>
+              <th>Network</th>
+              <th>Insurer</th>
+              <th>Last Snapshot</th>
+              <th>Days Stale</th>
+              <th>Provider Count</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="stalenessBody">
+            <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Per-Insurer Crawl History -->
+  <div class="section">
+    <div class="section-title">Crawl History by Insurer</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table id="crawlTable">
+          <thead>
+            <tr>
+              <th>Insurer</th>
+              <th>Last Status</th>
+              <th>Success Rate</th>
+              <th>Last Run</th>
+              <th>Files</th>
+              <th>Providers</th>
+              <th>Errors</th>
+            </tr>
+          </thead>
+          <tbody id="crawlBody">
+            <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Provider Count Deltas -->
+  <div class="section">
+    <div class="section-title">
+      Provider Count Deltas
+      <span class="section-badge badge-neutral" id="deltaBadge">—</span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table id="deltaTable">
+          <thead>
+            <tr>
+              <th>Network</th>
+              <th>Insurer</th>
+              <th>Prior Count</th>
+              <th>Current Count</th>
+              <th>Change</th>
+              <th>Prior Date</th>
+            </tr>
+          </thead>
+          <tbody id="deltaBody">
+            <tr><td colspan="6" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_DEFAULT = 'http://localhost:8001/v1';
+  function api() {
+    return (document.getElementById('apiBase').value.trim() || API_DEFAULT);
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadAll);
+
+  async function loadAll() {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    btn.textContent = '…';
+    document.getElementById('globalError').classList.remove('visible');
+
+    try {
+      await Promise.all([
+        loadCrawlStats(),
+        loadQualityChecks(),
+        loadStaleness(),
+        loadDeltas(),
+      ]);
+      document.getElementById('refreshNote').textContent =
+        'Last refreshed: ' + new Date().toLocaleTimeString();
+    } catch (err) {
+      showGlobalError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↻ Refresh';
+    }
+  }
+
+  // ── Crawl Stats ────────────────────────────────────────────────────────────
+
+  async function loadCrawlStats() {
+    const data = await fetchJson('/quality/crawl-stats');
+    const s = data.summary;
+
+    document.getElementById('crawlSummary').innerHTML = `
+      <div class="summary-card">
+        <div class="summary-label">Total Jobs</div>
+        <div class="summary-value">${fmt(s.total_jobs)}</div>
+        <div class="summary-sub">${s.failed_jobs} failed, ${s.running_jobs} running</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Success Rate</div>
+        <div class="summary-value" style="color:${rateColor(s.overall_success_rate)}">${s.overall_success_rate}%</div>
+        <div class="summary-sub">${s.successful_jobs} of ${s.total_jobs} jobs</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Providers Found</div>
+        <div class="summary-value">${fmtBig(s.total_providers_found)}</div>
+        <div class="summary-sub">${fmtBig(s.total_files_processed)} files</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Last Crawl</div>
+        <div class="summary-value" style="font-size:16px;line-height:1.3">
+          ${s.last_completed ? fmtDate(s.last_completed) : '—'}
+        </div>
+        <div class="summary-sub">${s.total_errors} total errors</div>
+      </div>
+    `;
+
+    const rate = s.overall_success_rate;
+    const badge = document.getElementById('crawlBadge');
+    badge.textContent = rate >= 95 ? '✓ Healthy' : rate >= 80 ? '⚠ Degraded' : '✗ Failing';
+    badge.className = 'section-badge ' + (rate >= 95 ? 'badge-ok' : rate >= 80 ? 'badge-warn' : 'badge-crit');
+
+    // Per-insurer table
+    const tbody = document.getElementById('crawlBody');
+    if (!data.insurers?.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No crawl jobs recorded yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.insurers.map(ins => `
+      <tr>
+        <td>${escHtml(ins.insurer_name)}</td>
+        <td><span class="status-pill ${ins.last_status === 'completed' ? 'pill-completed' : ins.last_status === 'running' ? 'pill-running' : 'pill-failed'}">${escHtml(ins.last_status || '—')}</span></td>
+        <td>
+          <span style="color:${rateColor(ins.success_rate)}">${ins.success_rate ?? '—'}%</span>
+          <span class="mono" style="color:var(--muted);margin-left:4px">(${ins.all_time_total} jobs)</span>
+        </td>
+        <td class="mono">${ins.last_started ? fmtDate(ins.last_started) : '—'}</td>
+        <td class="mono">${fmt(ins.files_processed)}</td>
+        <td class="mono">${fmtBig(ins.providers_found)}</td>
+        <td class="mono" style="color:${ins.errors > 0 ? 'var(--red)' : 'var(--muted)'}">${fmt(ins.errors)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Quality Checks ─────────────────────────────────────────────────────────
+
+  async function loadQualityChecks() {
+    const data = await fetchJson('/quality/checks');
+    const checks = data.checks || [];
+    const summary = data.summary || {};
+
+    const badge = document.getElementById('checkBadge');
+    if (summary.critical_failures > 0) {
+      badge.textContent = `${summary.critical_failures} critical`;
+      badge.className = 'section-badge badge-crit';
+    } else if (summary.warnings > 0) {
+      badge.textContent = `${summary.warnings} warning`;
+      badge.className = 'section-badge badge-warn';
+    } else {
+      badge.textContent = `${summary.passed}/${summary.total} passed`;
+      badge.className = 'section-badge badge-ok';
+    }
+
+    const grid = document.getElementById('checksGrid');
+    if (!checks.length) {
+      grid.innerHTML = '<div class="empty-state">No checks available.</div>';
+      return;
+    }
+
+    grid.innerHTML = checks.map(c => {
+      const stateClass = c.passed ? 'passed' : c.severity === 'critical' ? 'critical' : 'warning';
+      const statusPill = c.passed
+        ? '<span class="check-status status-pass">PASS</span>'
+        : c.severity === 'critical'
+          ? '<span class="check-status status-fail-crit">CRITICAL</span>'
+          : '<span class="check-status status-fail-warn">WARNING</span>';
+
+      const isPercent = c.unit === 'percent';
+      const isCount   = c.unit === 'count' || c.unit === 'networks' || c.unit === 'states';
+      const valueColor = c.passed ? 'var(--green)' : c.severity === 'critical' ? 'var(--red)' : 'var(--amber)';
+
+      let barHtml = '';
+      if (isPercent) {
+        const barColor = c.passed ? '#22c55e' : c.severity === 'critical' ? '#f87171' : '#fbbf24';
+        barHtml = `
+          <div class="check-bar-bg">
+            <div class="check-bar-fill" style="width:${Math.min(c.value,100)}%;background:${barColor}"></div>
+          </div>
+          <div class="check-threshold">Threshold: ≥${c.threshold}${c.unit === 'percent' ? '%' : ''}</div>
+        `;
+      } else if (isCount) {
+        barHtml = `<div class="check-threshold">Threshold: ${c.threshold} ${c.unit}</div>`;
+      }
+
+      return `
+        <div class="check-card ${stateClass}">
+          <div class="check-header">
+            <div class="check-name">${escHtml(c.check_name.replace(/_/g,' '))}</div>
+            ${statusPill}
+          </div>
+          <div class="check-value" style="color:${valueColor}">
+            ${c.value}${c.unit === 'percent' ? '%' : ''}
+          </div>
+          ${barHtml}
+          <div class="check-detail">${escHtml(c.detail)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Network Staleness ──────────────────────────────────────────────────────
+
+  async function loadStaleness() {
+    const data = await fetchJson('/quality/network-staleness');
+    const networks = data.networks || [];
+    const summary  = data.summary || {};
+
+    const badge = document.getElementById('stalenessBadge');
+    if (summary.critical > 0) {
+      badge.textContent = `${summary.critical} critical`;
+      badge.className = 'section-badge badge-crit';
+    } else if (summary.stale > 0) {
+      badge.textContent = `${summary.stale} stale`;
+      badge.className = 'section-badge badge-warn';
+    } else {
+      badge.textContent = `${summary.current} current`;
+      badge.className = 'section-badge badge-ok';
+    }
+
+    const tbody = document.getElementById('stalenessBody');
+    if (!networks.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No networks in database yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = networks.map(n => {
+      const pillClass = {
+        current: 'pill-current', stale: 'pill-stale',
+        critical: 'pill-critical', never_crawled: 'pill-never'
+      }[n.status] || 'pill-never';
+
+      return `
+        <tr>
+          <td>${escHtml(n.network_name)}</td>
+          <td style="color:var(--muted)">${escHtml(n.insurer_name)}</td>
+          <td class="mono">${n.last_snapshot ? fmtDate(n.last_snapshot) : '—'}</td>
+          <td class="mono" style="color:${n.days_stale > 30 ? 'var(--red)' : n.days_stale > 14 ? 'var(--amber)' : 'var(--muted)'}">
+            ${n.days_stale != null ? n.days_stale + 'd' : '—'}
+          </td>
+          <td class="mono">${fmt(n.snapshot_provider_count || n.reported_provider_count)}</td>
+          <td><span class="status-pill ${pillClass}">${n.status.replace('_',' ')}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // ── Provider Deltas ────────────────────────────────────────────────────────
+
+  async function loadDeltas() {
+    const data = await fetchJson('/quality/provider-deltas');
+    const deltas  = data.deltas || [];
+    const summary = data.summary || {};
+
+    const badge = document.getElementById('deltaBadge');
+    if (summary.flagged_regressions > 0) {
+      badge.textContent = `${summary.flagged_regressions} flagged`;
+      badge.className = 'section-badge badge-crit';
+    } else {
+      badge.textContent = 'No regressions';
+      badge.className = 'section-badge badge-ok';
+    }
+
+    const tbody = document.getElementById('deltaBody');
+    if (!deltas.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Need ≥2 snapshots per network to compute deltas.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = deltas.map(d => {
+      const delta   = d.delta || 0;
+      const pct     = d.delta_pct;
+      const isPos   = delta >= 0;
+      const pctStr  = pct != null ? ` (${pct > 0 ? '+' : ''}${pct}%)` : '';
+      const flagHtml = d.flag ? '<span class="delta-flag">⚠ DROP</span>' : '';
+      return `
+        <tr>
+          <td>${escHtml(d.network_name)}</td>
+          <td style="color:var(--muted)">${escHtml(d.insurer_name)}</td>
+          <td class="mono">${fmt(d.prior_count)}</td>
+          <td class="mono">${fmt(d.current_count)}</td>
+          <td>
+            <span class="mono ${isPos ? 'delta-pos' : 'delta-neg'}">
+              ${isPos ? '+' : ''}${fmt(delta)}${pctStr}
+            </span>
+            ${flagHtml}
+          </td>
+          <td class="mono" style="color:var(--muted)">${d.prior_date ? fmtDate(d.prior_date) : '—'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+
+  async function fetchJson(path) {
+    const resp = await fetch(api() + path);
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({}));
+      throw new Error(`${path} → HTTP ${resp.status}: ${body.detail || ''}`);
+    }
+    return (await resp.json()).data;
+  }
+
+  function fmt(n)    { return Number(n || 0).toLocaleString(); }
+  function fmtBig(n) { const v = Number(n || 0); return v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(1)+'K' : fmt(v); }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) +
+      ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  }
+  function rateColor(r) { return r >= 95 ? 'var(--green)' : r >= 80 ? 'var(--amber)' : 'var(--red)'; }
+  function escHtml(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+  function showGlobalError(msg) {
+    const el = document.getElementById('globalError');
+    el.textContent = `Error loading dashboard: ${msg}`;
+    el.classList.add('visible');
+  }
+
+  // Auto-load on page ready
+  loadAll();
+</script>
+</body>
+</html>

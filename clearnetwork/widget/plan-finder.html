@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClearNetwork — Plan Finder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0c0e;
+      --surface:   #141416;
+      --border:    #2a2a2d;
+      --accent:    #3b82f6;
+      --accent-lt: #60a5fa;
+      --green:     #22c55e;
+      --green-bg:  #052e16;
+      --green-bd:  #166534;
+      --red:       #f87171;
+      --red-bg:    #450a0a;
+      --red-bd:    #991b1b;
+      --amber:     #fbbf24;
+      --text:      #e4e4e7;
+      --muted:     #71717a;
+      --mono:      'JetBrains Mono', 'Fira Mono', monospace;
+      --radius:    10px;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .header-title { font-size: 18px; font-weight: 600; }
+    .header-sub   { font-size: 13px; color: var(--muted); margin-left: auto; }
+
+    /* ── Layout ── */
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .hero h1 { font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 10px; }
+    .hero p  { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; }
+    .hero h1 span { color: var(--accent-lt); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── NPI inputs ── */
+    .npi-list { display: flex; flex-direction: column; gap: 10px; }
+    .npi-row  { display: flex; gap: 8px; align-items: center; }
+    .npi-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .npi-row input:focus { border-color: var(--accent); }
+    .npi-row input::placeholder { color: var(--muted); }
+    .npi-row input.resolved { border-color: var(--green-bd); }
+    .npi-row input.error    { border-color: var(--red-bd); }
+
+    .npi-label {
+      width: 160px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .npi-label.resolved { color: var(--green); }
+    .npi-label.error    { color: var(--red); }
+
+    .btn-icon {
+      width: 34px; height: 34px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+    }
+    .btn-icon:hover { border-color: var(--red-bd); color: var(--red); }
+
+    .add-npi {
+      margin-top: 4px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 8px 14px;
+      width: 100%;
+      text-align: left;
+      transition: border-color .15s, color .15s;
+    }
+    .add-npi:hover { border-color: var(--accent); color: var(--accent-lt); }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+    .filter-group label { font-size: 12px; color: var(--muted); }
+    .filter-group select, .filter-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .filter-group select:focus,
+    .filter-group input:focus { border-color: var(--accent); }
+    .filter-group select option { background: var(--surface); }
+
+    /* ── Search button ── */
+    .btn-search {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px;
+      margin-top: 4px;
+      transition: opacity .15s;
+    }
+    .btn-search:hover:not(:disabled) { opacity: .85; }
+    .btn-search:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Status / spinner ── */
+    .status-bar {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px 0;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-bar.visible { display: flex; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      background: var(--red-bg);
+      border: 1px solid var(--red-bd);
+      border-radius: 8px;
+      color: var(--red);
+      font-size: 13px;
+      padding: 12px 16px;
+      display: none;
+      margin-top: 12px;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Results ── */
+    #results { display: none; }
+    #results.visible { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .results-header h2 { font-size: 16px; font-weight: 600; }
+    .results-count { font-size: 13px; color: var(--muted); }
+
+    /* Provider legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .legend-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      color: var(--muted);
+    }
+    .legend-chip strong { color: var(--text); }
+
+    /* Coverage matrix table */
+    .matrix-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .plan-name    { font-weight: 500; }
+    .insurer-name { color: var(--muted); font-size: 12px; }
+    .plan-type    {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+
+    /* Coverage bar */
+    .coverage-cell { min-width: 110px; }
+    .coverage-bar-bg {
+      background: rgba(255,255,255,.06);
+      border-radius: 3px;
+      height: 6px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .coverage-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .4s ease;
+    }
+    .coverage-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .cov-100 { color: var(--green); }
+    .cov-high { color: var(--accent-lt); }
+    .cov-mid  { color: var(--amber); }
+    .cov-low  { color: var(--red); }
+
+    /* In/out network cells */
+    .net-cell {
+      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .net-in  { background: var(--green-bg); color: var(--green);  border: 1px solid var(--green-bd); }
+    .net-out { background: var(--red-bg);   color: var(--red);    border: 1px solid var(--red-bd); }
+    .net-tier {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      margin-top: 28px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .disclaimer strong { color: rgba(255,255,255,.5); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">CN</div>
+  <div class="header-title">ClearNetwork</div>
+  <div class="header-sub">Plan Finder</div>
+</div>
+
+<div class="container">
+
+  <div class="hero">
+    <h1>Which plans cover <span>all my doctors</span>?</h1>
+    <p>Enter up to 5 provider NPIs, pick your state and plan type, and see which plans keep your care team in-network.</p>
+  </div>
+
+  <!-- Step 1: Providers -->
+  <div class="card">
+    <div class="card-title">Step 1 — Your Providers (NPI numbers)</div>
+    <div class="npi-list" id="npiList"></div>
+    <button class="add-npi" id="addNpi">+ Add another provider</button>
+  </div>
+
+  <!-- Step 2: Filters -->
+  <div class="card">
+    <div class="card-title">Step 2 — Plan Filters</div>
+    <div class="filters">
+      <div class="filter-group">
+        <label>State</label>
+        <select id="stateSelect">
+          <option value="">All states</option>
+          <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+          <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+          <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+          <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+          <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+          <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+          <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+          <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+          <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+          <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+          <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
+          <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
+          <option>WI</option><option>WY</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Plan Type</label>
+        <select id="planType">
+          <option value="">Any type</option>
+          <option>HMO</option>
+          <option>PPO</option>
+          <option>EPO</option>
+          <option>POS</option>
+          <option>HDHP</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Plan Year</label>
+        <select id="planYear">
+          <option value="">Any year</option>
+          <option>2025</option>
+          <option>2024</option>
+          <option>2023</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>API Base URL</label>
+        <input type="url" id="apiBase" placeholder="http://localhost:8001/v1" />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-search" id="searchBtn" disabled>Find Plans</button>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusText">Searching plans…</span>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header">
+      <h2>Matching Plans</h2>
+      <span class="results-count" id="resultsCount"></span>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="matrix-wrap">
+        <table id="resultsTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Legal notice:</strong> Network status is sourced from federally-mandated
+    machine-readable files published by insurers per <strong>45 CFR §147.211</strong>
+    (CMS Transparency in Coverage Rule). Network status changes frequently —
+    <strong>always verify with your insurer before receiving care.</strong>
+    This tool stores no personal health information.
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  const API_BASE_DEFAULT = 'http://localhost:8001/v1';
+  const MAX_NPIS = 5;
+
+  let npis = [{ id: 0, value: '', name: null, error: null }];
+  let npiIdCounter = 1;
+
+  function getApiBase() {
+    const v = document.getElementById('apiBase').value.trim();
+    return v || API_BASE_DEFAULT;
+  }
+
+  // ── NPI list rendering ─────────────────────────────────────────────────────
+
+  function renderNpiList() {
+    const list = document.getElementById('npiList');
+    list.innerHTML = '';
+    npis.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'npi-row';
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.maxLength = 10;
+      inp.placeholder = '10-digit NPI';
+      inp.value = entry.value;
+      if (entry.name)  inp.classList.add('resolved');
+      if (entry.error) inp.classList.add('error');
+
+      inp.addEventListener('input', e => {
+        entry.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        e.target.value = entry.value;
+        entry.name = null;
+        entry.error = null;
+        inp.classList.remove('resolved', 'error');
+        label.textContent = 'Enter NPI above';
+        label.className = 'npi-label';
+        if (entry.value.length === 10) scheduleResolve(entry, inp, label);
+        updateSearchButton();
+      });
+
+      const label = document.createElement('span');
+      label.className = 'npi-label' + (entry.name ? ' resolved' : entry.error ? ' error' : '');
+      label.textContent = entry.name || entry.error || 'Enter NPI above';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn-icon';
+      removeBtn.title = 'Remove';
+      removeBtn.innerHTML = '×';
+      removeBtn.addEventListener('click', () => {
+        npis = npis.filter(e => e.id !== entry.id);
+        renderNpiList();
+        updateSearchButton();
+      });
+
+      row.appendChild(inp);
+      row.appendChild(label);
+      if (npis.length > 1) row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+
+    document.getElementById('addNpi').style.display =
+      npis.length >= MAX_NPIS ? 'none' : '';
+  }
+
+  const resolveTimers = {};
+  function scheduleResolve(entry, inp, label) {
+    clearTimeout(resolveTimers[entry.id]);
+    resolveTimers[entry.id] = setTimeout(() => resolveNpi(entry, inp, label), 600);
+  }
+
+  async function resolveNpi(entry, inp, label) {
+    label.textContent = 'Looking up…';
+    label.className = 'npi-label';
+    try {
+      const resp = await fetch(`${getApiBase()}/providers/${entry.value}`);
+      if (resp.ok) {
+        const json = await resp.json();
+        entry.name = json.data?.name_canonical || `NPI ${entry.value}`;
+        inp.classList.add('resolved');
+        label.textContent = entry.name;
+        label.className = 'npi-label resolved';
+      } else if (resp.status === 404) {
+        entry.error = 'Not found in database';
+        inp.classList.add('error');
+        label.textContent = entry.error;
+        label.className = 'npi-label error';
+      }
+    } catch {
+      entry.error = 'API unreachable';
+      label.textContent = entry.error;
+      label.className = 'npi-label error';
+    }
+    updateSearchButton();
+  }
+
+  document.getElementById('addNpi').addEventListener('click', () => {
+    if (npis.length < MAX_NPIS) {
+      npis.push({ id: npiIdCounter++, value: '', name: null, error: null });
+      renderNpiList();
+    }
+  });
+
+  function updateSearchButton() {
+    const validNpis = npis.filter(e => e.value.length === 10 && !e.error);
+    document.getElementById('searchBtn').disabled = validNpis.length === 0;
+  }
+
+  // ── Search ─────────────────────────────────────────────────────────────────
+
+  document.getElementById('searchBtn').addEventListener('click', runSearch);
+
+  async function runSearch() {
+    const validNpis = npis.filter(e => e.value.length === 10);
+    if (!validNpis.length) return;
+
+    const state    = document.getElementById('stateSelect').value;
+    const planType = document.getElementById('planType').value;
+    const year     = document.getElementById('planYear').value;
+    const apiBase  = getApiBase();
+
+    setStatus(true, 'Fetching available plans…');
+    hideError();
+    hideResults();
+
+    try {
+      // Step 1: get all plans matching the filters
+      const planParams = new URLSearchParams({ per_page: 200 });
+      if (state)    planParams.set('state', state);
+      if (planType) planParams.set('plan_type', planType);
+      if (year)     planParams.set('year', year);
+
+      const plansResp = await fetch(`${apiBase}/plans/search?${planParams}`);
+      if (!plansResp.ok) throw new Error(`Plan search failed: HTTP ${plansResp.status}`);
+      const plansJson = await plansResp.json();
+      const allPlans  = plansJson.data || [];
+
+      if (allPlans.length === 0) {
+        throw new Error('No plans found matching your filters. Try broadening your search.');
+      }
+
+      setStatus(true, `Comparing ${allPlans.length} plans across ${validNpis.length} providers…`);
+
+      // Step 2: compare all plans for these NPIs
+      const planIds   = allPlans.map(p => p.id).join(',');
+      const npiString = validNpis.map(e => e.value).join(',');
+
+      const compareResp = await fetch(
+        `${apiBase}/plans/compare?plan_ids=${encodeURIComponent(planIds)}&provider_npis=${encodeURIComponent(npiString)}`
+      );
+      if (!compareResp.ok) throw new Error(`Comparison failed: HTTP ${compareResp.status}`);
+      const compareJson = await compareResp.json();
+
+      setStatus(false);
+      renderResults(compareJson.data, validNpis);
+
+    } catch (err) {
+      setStatus(false);
+      showError(err.message);
+    }
+  }
+
+  // ── Render results ─────────────────────────────────────────────────────────
+
+  function renderResults(data, validNpis) {
+    const plans    = data.plans || [];
+    const provReq  = data.providers_requested || [];
+
+    // Build legend
+    const legend = document.getElementById('legend');
+    legend.innerHTML = provReq.map((p, i) =>
+      `<div class="legend-chip"><strong>P${i+1}</strong> ${escHtml(p.name || p.npi)}</div>`
+    ).join('');
+
+    // Build table header
+    const thead = document.getElementById('tableHead');
+    const provHeaders = provReq.map((_, i) => `<th>P${i+1}</th>`).join('');
+    thead.innerHTML = `
+      <tr>
+        <th>Plan</th>
+        <th>Type</th>
+        <th class="coverage-cell">Coverage</th>
+        ${provHeaders}
+      </tr>
+    `;
+
+    // Build table body
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = plans.map(plan => {
+      const pct = plan.coverage_pct || 0;
+      const covClass = pct === 100 ? 'cov-100' : pct >= 75 ? 'cov-high' : pct >= 50 ? 'cov-mid' : 'cov-low';
+      const barColor = pct === 100 ? '#22c55e' : pct >= 75 ? '#60a5fa' : pct >= 50 ? '#fbbf24' : '#f87171';
+
+      const provCells = (plan.providers || []).map(pp => {
+        const tierHtml = pp.tier ? `<span class="net-tier">${escHtml(pp.tier)}</span>` : '';
+        return pp.in_network
+          ? `<td><span class="net-cell net-in">✓ In-network</span>${tierHtml}</td>`
+          : `<td><span class="net-cell net-out">✗ Out</span></td>`;
+      }).join('');
+
+      return `
+        <tr>
+          <td>
+            <div class="plan-name">${escHtml(plan.plan_name)}</div>
+            <div class="insurer-name">${escHtml(plan.insurer_name || '')}</div>
+          </td>
+          <td><span class="plan-type">${escHtml(plan.plan_type || '—')}</span></td>
+          <td class="coverage-cell">
+            <span class="coverage-label ${covClass}">${pct}%</span>
+            <div class="coverage-bar-bg">
+              <div class="coverage-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+            </div>
+          </td>
+          ${provCells}
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('resultsCount').textContent =
+      `${plans.length} plan${plans.length !== 1 ? 's' : ''}`;
+
+    document.getElementById('results').classList.add('visible');
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function setStatus(visible, text = '') {
+    const bar = document.getElementById('statusBar');
+    document.getElementById('statusText').textContent = text;
+    bar.classList.toggle('visible', visible);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').classList.remove('visible');
+  }
+
+  function hideResults() {
+    document.getElementById('results').classList.remove('visible');
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  renderNpiList();
+</script>
+</body>
+</html>
