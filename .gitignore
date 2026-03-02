@@ -10,3 +10,5 @@ inpatient-qi/*.xls
 data/
 *.csv
 *.pdf
+*.egg-info/
+__pycache__/

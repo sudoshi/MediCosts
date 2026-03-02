@@ -1,0 +1,139 @@
+"""MRF In-Network File Parser — stream-parses massive MRF files to extract provider NPIs.
+
+MRF in-network file structure (simplified):
+{
+  "in_network": [{
+    "negotiation_arrangement": "ffs",
+    "name": "...",
+    "billing_code_type": "CPT",
+    "billing_code": "99213",
+    "negotiated_rates": [{
+      "provider_references": [1, 2, 3],
+      "negotiated_prices": [...]
+    }]
+  }],
+  "provider_references": [{
+    "provider_group_id": 1,
+    "provider_groups": [{
+      "npi": [1234567890, 1234567891],
+      "tin": {"type": "ein", "value": "123456789"}
+    }]
+  }]
+}
+"""
+import asyncio
+import gzip
+import io
+import logging
+import os
+import uuid
+from pathlib import Path
+
+import asyncpg
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+logger = logging.getLogger(__name__)
+
+SCHEMA = "clearnetwork"
+BATCH_SIZE = 1000
+
+try:
+    import ijson
+    HAS_IJSON = True
+except ImportError:
+    HAS_IJSON = False
+
+
+async def extract_npis_from_file(file_path: Path) -> set[str]:
+    """Extract all unique NPIs from an in-network MRF file using streaming."""
+    npis = set()
+
+    # Detect gzip by magic bytes, not filename
+    with open(file_path, "rb") as check:
+        magic = check.read(2)
+    is_gzipped = magic == b"\x1f\x8b"
+    opener = gzip.open if is_gzipped else open
+
+    if HAS_IJSON:
+        with opener(file_path, "rb") as f:
+            # Strategy 1: Look for provider_references[].provider_groups[].npi[]
+            try:
+                for npi in ijson.items(f, "provider_references.item.provider_groups.item.npi.item"):
+                    npis.add(str(npi).zfill(10))
+            except Exception as e:
+                logger.warning(f"Strategy 1 failed for {file_path}: {e}")
+
+            # Strategy 2: Rewind and try in_network[].negotiated_rates[].provider_references[]
+            if not npis:
+                f.seek(0)
+                try:
+                    for item in ijson.items(f, "in_network.item"):
+                        for rate in item.get("negotiated_rates", []):
+                            for group in rate.get("provider_groups", []):
+                                for npi in group.get("npi", []):
+                                    npis.add(str(npi).zfill(10))
+                except Exception as e:
+                    logger.warning(f"Strategy 2 failed for {file_path}: {e}")
+    else:
+        # Fallback: load full JSON (very memory-intensive for large files)
+        import json
+        with opener(file_path, "rt") as f:
+            try:
+                data = json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to parse {file_path}: {e}")
+                return npis
+
+            # Extract from provider_references
+            for ref in data.get("provider_references", []):
+                for group in ref.get("provider_groups", []):
+                    for npi in group.get("npi", []):
+                        npis.add(str(npi).zfill(10))
+
+    return npis
+
+
+async def upsert_network_providers(
+    conn: asyncpg.Connection,
+    network_id: uuid.UUID,
+    npis: set[str],
+) -> int:
+    """Match NPIs against canonical_providers and insert network_provider records."""
+    if not npis:
+        return 0
+
+    # Batch-lookup canonical_provider_ids by NPI
+    npi_list = list(npis)
+    linked = 0
+
+    for i in range(0, len(npi_list), BATCH_SIZE):
+        batch = npi_list[i : i + BATCH_SIZE]
+
+        # Find matching canonical providers
+        rows = await conn.fetch(
+            f"SELECT canonical_id, npi FROM {SCHEMA}.canonical_providers WHERE npi = ANY($1)",
+            batch,
+        )
+
+        if not rows:
+            continue
+
+        # Batch upsert using unnest for performance
+        provider_ids = [row["canonical_id"] for row in rows]
+        network_ids = [network_id] * len(provider_ids)
+
+        await conn.execute(
+            f"""
+            INSERT INTO {SCHEMA}.network_providers
+                (network_id, canonical_provider_id, in_network, last_verified)
+            SELECT unnest($1::uuid[]), unnest($2::uuid[]), TRUE, NOW()
+            ON CONFLICT (network_id, canonical_provider_id)
+            DO UPDATE SET in_network = TRUE, last_verified = NOW()
+            """,
+            network_ids, provider_ids,
+        )
+        linked += len(provider_ids)
+
+    return linked

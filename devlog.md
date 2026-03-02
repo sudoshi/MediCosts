@@ -1221,3 +1221,155 @@ Updated `server/lib/abby-schema-context.md` with new query patterns for procedur
 | `server/lib/abby-schema-context.md` | Modified | New query patterns + zip_centroids table |
 
 **Totals:** 3 new files, 24 modified files, 5 new API endpoints, 1 new page, 1 new data table, ~2,200 lines added
+
+---
+
+## ClearNetwork: MRF Crawler Pipeline + Full Data Population (2026-03-02)
+
+Completed all remaining ClearNetwork implementation phases — the platform now has real provider data, live insurer network intelligence, and consumer-facing API endpoints verified end-to-end with production data.
+
+### Phase 4: NPPES NPI Enrichment — 9M Providers Loaded
+
+Loaded the full NPPES National Provider Identifier registry (11 GB CSV, 330 columns) into `clearnetwork.canonical_providers` using streaming batch inserts.
+
+**Key metrics:**
+- **9,011,058 providers** loaded (7,120,224 individuals, 1,890,834 facilities)
+- **870 unique specialties** mapped via NUCC taxonomy codes
+- **8,849,358 geocoded** (98.2%) using ZIP centroid approximation
+- Load time: ~4.3 minutes at ~35K rows/sec
+
+**Technical challenges solved:**
+
+1. **asyncpg implicit transaction trap**: `copy_records_to_table()` without explicit `async with conn.transaction()` caused the TRUNCATE and all COPY batches to sit in one giant uncommitted transaction — appeared to load 130K rows but nothing committed. Fixed by wrapping each COPY batch in its own explicit transaction.
+
+2. **VARCHAR(2) overflow**: Some NPPES records have `address_state` values longer than 2 characters. Added `state = row[COL_PRACTICE_STATE].strip()[:2]` truncation and batch-level error recovery (retry individual rows when a batch fails).
+
+3. **Python stdout buffering**: Background process output was invisible due to buffering. Fixed with `sys.stdout.flush()` and `-u` flag.
+
+**Script: `scripts/load_nppes.py`** — Streams 11 GB CSV line-by-line, filters deactivated/non-US NPIs, maps 330 CSV columns to 15 DB fields, batch-inserts via `asyncpg.copy_records_to_table()` in 5,000-row batches with explicit transactions. Drops/recreates NPI unique index for faster loading.
+
+**Script: `scripts/geocode_providers.py`** — Backfills `lat`/`lng` on canonical_providers by joining against `clearnetwork.zip_centroids` (33K ZIP codes). Runs in 10K-row batches. 417 seconds for 8.8M providers.
+
+### Phase 1-2: MRF Crawler + Ingestion Pipeline
+
+Built the full Machine-Readable File crawl pipeline: insurer discovery → index parsing → file download → NPI extraction → network population.
+
+**Components:**
+
+| Module | Purpose |
+|--------|---------|
+| `crawler/known_insurers.json` | 21 curated insurers with MRF index URLs |
+| `crawler/discovery.py` | Seeds `insurers` table from JSON + deduplicates |
+| `crawler/mrf_index.py` | Stream-parses MRF `index.json` with `ijson` — extracts plans + in-network file URLs |
+| `crawler/mrf_parser.py` | Stream-parses in-network rate files — extracts NPIs from `provider_references` |
+| `crawler/downloader.py` | Async download manager — streaming, retry, dedup, rate limiting |
+| `crawler/orchestrator.py` | Pipeline coordinator — `python -m crawler.orchestrator --insurer=<name>` |
+
+**First successful crawl — Blue Cross and Blue Shield of Minnesota:**
+- **14,910 plans** discovered and stored
+- **9,170 in-network files** found in index (limited to first 5 for safety)
+- **5 rate files** downloaded, decompressed, and parsed
+- **241,734 unique providers** linked to the BCBS MN network
+- **0 errors**, completed in ~60 minutes
+
+**Technical challenges solved:**
+
+1. **IPv6 connectivity**: Machine has no IPv6 route. `aiohttp` tried IPv6 first and failed. Fixed with `aiohttp.TCPConnector(family=2)` (AF_INET, IPv4 only) in both `downloader.py` and `orchestrator.py`.
+
+2. **CloudFront signed URL expiration**: January 2026 index had expired S3/CloudFront signatures. Updated to current month's index URL (`2026-03-01`).
+
+3. **Gzip detection by magic bytes**: Downloaded files are saved with MD5-hash filenames (no `.gz` extension). The parser's `.endswith(".gz")` check failed on gzipped content. Fixed by reading the first 2 bytes and checking for gzip magic `\x1f\x8b`.
+
+4. **Batch upsert performance**: Initial row-by-row `INSERT...ON CONFLICT` took ~60 minutes for 221K NPIs. Optimized to batch `unnest()` approach:
+   ```sql
+   INSERT INTO network_providers (network_id, canonical_provider_id, in_network, last_verified)
+   SELECT unnest($1::uuid[]), unnest($2::uuid[]), TRUE, NOW()
+   ON CONFLICT (network_id, canonical_provider_id)
+   DO UPDATE SET in_network = TRUE, last_verified = NOW()
+   ```
+   Future crawls will be orders of magnitude faster.
+
+**Migrations applied:**
+- `004_add_crawl_tracking.py` — `crawl_jobs` and `crawl_failures` tables for pipeline observability
+- `005_add_snapshots_and_alerts.py` — `network_snapshots` and `alert_subscriptions` tables
+
+### Phase 5: Change Detection
+
+- `crawler/change_detector.py` — Compares current network membership against previous snapshot, computes added/removed/tier-changed providers, inserts diffs into `network_changes`
+- `app/routes/alerts.py` — Alert subscription API:
+  - `POST /v1/alerts/subscribe` — create subscription for plan + provider NPIs
+  - `GET /v1/alerts/subscriptions?email=` — list active subscriptions
+  - `DELETE /v1/alerts/{id}` — unsubscribe
+- Ready for next crawl run to produce first change detection results
+
+### Phase 9: Consumer Widget + Network Adequacy Scoring
+
+**Network Adequacy API** (`app/routes/adequacy.py`):
+- `GET /v1/networks/{network_id}/adequacy?state=&zip=`
+- Scoring dimensions: PCP access, specialist coverage, facility access, total provider coverage
+- BCBS MN scored **82.2 overall** (100% PCP, 100% specialist, 60% facility, 61.1% total)
+
+**Embeddable Widget** (`widget/index.js`):
+- `<clear-network-check plan-id="..." provider-npi="..." />` custom element
+- Shadow DOM encapsulation, light/dark mode, XSS protection
+- States: loading spinner, in-network (green badge), out-of-network (red badge), error
+- Shows tier, provider info, alternatives, legal disclaimer
+
+### End-to-End API Verification
+
+All endpoints tested with real production data:
+
+| Endpoint | Result |
+|----------|--------|
+| `GET /v1/health` | `{"status": "ok", "database": "connected"}` |
+| `GET /v1/providers/search?name=mayo+clinic&state=MN` | Mayo Clinic Hospital-Rochester, Mayo Clinic |
+| `GET /v1/providers/nearby?zip=55905&radius=10` | Rochester MN providers with distances |
+| `GET /v1/plans/search?q=blue+cross` | 14,910 BCBS MN plans |
+| `GET /v1/plans/{id}/network?provider_npi=1003130212` | `"in_network": true` |
+| `GET /v1/plans/{id}/network?provider_npi=1083249577` | `"in_network": false` (facility not in rate files) |
+| `POST /v1/alerts/subscribe` | Subscription created (201) |
+| `GET /v1/networks/{id}/adequacy?state=MN` | `"overall_score": 82.2` |
+
+### Database State
+
+| Table | Row Count |
+|-------|-----------|
+| `canonical_providers` | 9,011,058 |
+| `network_providers` | 241,734 |
+| `plans` | 14,910 |
+| `networks` | 4 |
+| `insurers` | 21 |
+| `crawl_jobs` | 1 (completed, 0 errors) |
+| `zip_centroids` | ~33,000 |
+| `alert_subscriptions` | 1 (test) |
+
+### Dependencies Added (`pyproject.toml`)
+
+- `ijson>=3.2.0` — streaming JSON parser for massive MRF files
+- `aiohttp>=3.9.0` — async HTTP client for downloads
+- `aiofiles>=24.1.0` — async file I/O
+
+### Files Changed
+
+| File | Status | Description |
+|------|--------|-------------|
+| `clearnetwork/crawler/__init__.py` | New | Package init |
+| `clearnetwork/crawler/known_insurers.json` | New | 21 curated insurers with MRF index URLs |
+| `clearnetwork/crawler/discovery.py` | New | Insurer registry seeder |
+| `clearnetwork/crawler/mrf_index.py` | New | MRF index.json stream parser |
+| `clearnetwork/crawler/mrf_parser.py` | New | In-network file NPI extractor (batch unnest upsert) |
+| `clearnetwork/crawler/downloader.py` | New | Async download manager with retry/dedup |
+| `clearnetwork/crawler/orchestrator.py` | New | Pipeline coordinator CLI |
+| `clearnetwork/crawler/change_detector.py` | New | Network change detection |
+| `clearnetwork/app/routes/alerts.py` | New | Alert subscription endpoints |
+| `clearnetwork/app/routes/adequacy.py` | New | Network adequacy scoring |
+| `clearnetwork/widget/index.js` | New | Embeddable web component |
+| `clearnetwork/widget/demo.html` | New | Widget demo page |
+| `clearnetwork/alembic/versions/004_*.py` | New | Crawl tracking migration |
+| `clearnetwork/alembic/versions/005_*.py` | New | Snapshots + alerts migration |
+| `clearnetwork/scripts/load_nppes.py` | Modified | Transaction fixes, state truncation, error recovery |
+| `clearnetwork/scripts/geocode_providers.py` | Modified | Batch execution |
+| `clearnetwork/app/main.py` | Modified | Mount alerts + adequacy routers |
+| `clearnetwork/pyproject.toml` | Modified | Added ijson, aiohttp, aiofiles |
+
+**Totals:** 14 new files, 4 modified files, 3 new API routers, 9M+ provider records, 241K network links, 14.9K plans
