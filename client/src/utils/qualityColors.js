@@ -3,7 +3,8 @@ export const DOMAIN_COLORS = {
   safety:      { main: '#ef4444', dim: 'rgba(239, 68, 68, 0.12)' },
   operational: { main: '#22c55e', dim: 'rgba(34, 197, 94, 0.12)' },
   quality:     { main: '#a78bfa', dim: 'rgba(167, 139, 250, 0.12)' },
-  financial:   { main: '#f59e0b', dim: 'rgba(245, 158, 11, 0.12)' },
+  financial:          { main: '#f59e0b', dim: 'rgba(245, 158, 11, 0.12)' },
+  patient_experience: { main: '#ec4899', dim: 'rgba(236, 72, 153, 0.12)' },
 };
 
 export function comparisonColor(text) {

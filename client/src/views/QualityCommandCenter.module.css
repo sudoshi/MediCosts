@@ -25,7 +25,7 @@
 
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
 
@@ -37,6 +37,7 @@
 .kpiGrid > *:nth-child(3) { animation-delay: 0.12s; }
 .kpiGrid > *:nth-child(4) { animation-delay: 0.16s; }
 .kpiGrid > *:nth-child(5) { animation-delay: 0.20s; }
+.kpiGrid > *:nth-child(6) { animation-delay: 0.24s; }
 
 @media (max-width: 1200px) {
   .kpiGrid { grid-template-columns: repeat(3, 1fr); }
@@ -44,6 +45,50 @@
 
 @media (max-width: 768px) {
   .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.tableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.dataTable th {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  padding: 8px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-dim);
+}
+.dataTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--text-primary);
+}
+.dataTable tr:hover td {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+.stateCell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.mono {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+.emptyMsg {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 20px 0;
 }
 
 .tabBar {

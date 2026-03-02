@@ -18,6 +18,7 @@ export default function HospitalExplorer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchResults, setSearchResults] = useState(null);
+  const [hcahpsMap, setHcahpsMap] = useState({});
 
   const perPage = 50;
 
@@ -35,6 +36,19 @@ export default function HospitalExplorer() {
   }, [page, sort, order, stateFilter]);
 
   useEffect(() => { fetchHospitals(); }, [fetchHospitals]);
+
+  // Fetch HCAHPS data for current state filter
+  useEffect(() => {
+    const params = stateFilter ? `?state=${stateFilter}` : '';
+    fetch(`${API}/quality/hcahps/by-hospital${params}`)
+      .then(r => r.json())
+      .then(rows => {
+        const map = {};
+        for (const r of rows) map[r.facility_id] = r;
+        setHcahpsMap(map);
+      })
+      .catch(() => {});
+  }, [stateFilter]);
 
   // Search autocomplete
   useEffect(() => {
@@ -90,12 +104,13 @@ export default function HospitalExplorer() {
                 { key: 'facility_name', label: 'Hospital', align: 'left' },
                 { key: 'state', label: 'State', align: 'center' },
                 { key: 'star_rating', label: 'Stars', align: 'center' },
+                { key: 'patient_rating', label: 'Patient Rating', align: 'center', noSort: true },
                 { key: 'psi_90_score', label: 'PSI-90', align: 'right' },
                 { key: 'avg_excess_readm_ratio', label: 'Readm Ratio', align: 'right' },
                 { key: 'weighted_avg_payment', label: 'Avg Payment', align: 'right' },
               ].map((col) => (
                 <th key={col.key} style={{ textAlign: col.align }} className={`${s.th} ${sort === col.key ? s.sorted : ''}`}
-                  onClick={() => !showingSearch && handleSort(col.key)}>
+                  onClick={() => !showingSearch && !col.noSort && handleSort(col.key)}>
                   {col.label}
                   {sort === col.key && !showingSearch && <span className={s.arrow}>{order === 'asc' ? ' ▲' : ' ▼'}</span>}
                 </th>
@@ -105,26 +120,32 @@ export default function HospitalExplorer() {
           <tbody>
             {loading ? (
               Array.from({ length: 10 }).map((_, i) => (
-                <tr key={i}><td colSpan={6}><Skeleton height={18} /></td></tr>
+                <tr key={i}><td colSpan={7}><Skeleton height={18} /></td></tr>
               ))
             ) : hospitals.length === 0 ? (
-              <tr><td colSpan={6} className={s.empty}>No hospitals found</td></tr>
+              <tr><td colSpan={7} className={s.empty}>No hospitals found</td></tr>
             ) : (
-              hospitals.map((h) => (
-                <tr key={h.facility_id} className={s.row} onClick={() => navigate(`/hospitals/${h.facility_id}`)}>
-                  <td className={s.name}>
-                    <span className={s.facilityName}>{h.facility_name}</span>
-                    {h.city && <span className={s.city}>{h.city}</span>}
-                  </td>
-                  <td className={s.center}>{h.state}</td>
-                  <td className={s.center}>
-                    <span className={s.stars}>{fmtStars(h.star_rating || h.hospital_overall_rating)}</span>
-                  </td>
-                  <td className={s.mono}>{h.psi_90_score ? Number(h.psi_90_score).toFixed(3) : '—'}</td>
-                  <td className={s.mono}>{h.avg_excess_readm_ratio ? Number(h.avg_excess_readm_ratio).toFixed(4) : '—'}</td>
-                  <td className={s.mono}>{fmtCurrency(h.weighted_avg_payment)}</td>
-                </tr>
-              ))
+              hospitals.map((h) => {
+                const hc = hcahpsMap[h.facility_id];
+                return (
+                  <tr key={h.facility_id} className={s.row} onClick={() => navigate(`/hospitals/${h.facility_id}`)}>
+                    <td className={s.name}>
+                      <span className={s.facilityName}>{h.facility_name}</span>
+                      {h.city && <span className={s.city}>{h.city}</span>}
+                    </td>
+                    <td className={s.center}>{h.state}</td>
+                    <td className={s.center}>
+                      <span className={s.stars}>{fmtStars(h.star_rating || h.hospital_overall_rating)}</span>
+                    </td>
+                    <td className={s.center}>
+                      <span className={s.stars}>{hc ? fmtStars(hc.overall_star) : '—'}</span>
+                    </td>
+                    <td className={s.mono}>{h.psi_90_score ? Number(h.psi_90_score).toFixed(3) : '—'}</td>
+                    <td className={s.mono}>{h.avg_excess_readm_ratio ? Number(h.avg_excess_readm_ratio).toFixed(4) : '—'}</td>
+                    <td className={s.mono}>{fmtCurrency(h.weighted_avg_payment)}</td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

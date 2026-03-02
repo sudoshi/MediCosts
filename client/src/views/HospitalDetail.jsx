@@ -28,6 +28,7 @@ export default function HospitalDetail() {
   const { data: unplanned } = useApi(`/unplanned-visits/hospital/${ccn}`, [ccn]);
   const { data: trendRaw } = useApi(`/trends/provider?ccn=${ccn}`, [ccn]);
   const { data: outpatient } = useApi(`/outpatient/provider/${ccn}`, [ccn]);
+  const { data: hcahps } = useApi(`/quality/hcahps/hospital/${ccn}`, [ccn]);
 
   if (loadingComposite) {
     return (
@@ -243,6 +244,34 @@ export default function HospitalDetail() {
                 );
               })}
             </div>
+          </Panel>
+        )}
+
+        {/* Patient Experience (HCAHPS) */}
+        {hcahps && (
+          <Panel title="Patient Experience (HCAHPS)">
+            <div className={s.hcahpsGrid}>
+              {[
+                { label: 'Overall', star: hcahps.overall_star },
+                { label: 'Nurse Communication', star: hcahps.nurse_comm_star },
+                { label: 'Doctor Communication', star: hcahps.doctor_comm_star },
+                { label: 'Staff Responsiveness', star: hcahps.staff_responsive_star },
+                { label: 'Medicine Communication', star: hcahps.medicine_comm_star },
+                { label: 'Discharge Info', star: hcahps.discharge_info_star },
+                { label: 'Care Transition', star: hcahps.care_transition_star },
+                { label: 'Cleanliness', star: hcahps.cleanliness_star },
+                { label: 'Quietness', star: hcahps.quietness_star },
+                { label: 'Would Recommend', star: hcahps.recommend_star },
+              ].map(m => (
+                <div key={m.label} className={s.hcahpsItem}>
+                  <span className={s.hcahpsLabel}>{m.label}</span>
+                  <span className={s.hcahpsStars}>{fmtStars(m.star)}</span>
+                </div>
+              ))}
+            </div>
+            {hcahps.num_surveys && (
+              <p className={s.hcahpsSurveys}>Based on {Number(hcahps.num_surveys).toLocaleString()} completed surveys</p>
+            )}
           </Panel>
         )}
       </div>

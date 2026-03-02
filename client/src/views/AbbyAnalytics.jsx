@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import s from './AbbyAnalytics.module.css';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -102,9 +103,11 @@ export default function AbbyAnalytics() {
   const [ollamaStatus, setOllamaStatus] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState('');
+  const [patientHandoffDone, setPatientHandoffDone] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const location = useLocation();
 
   // Scroll to bottom on new messages
   const scrollToBottom = useCallback(() => {
@@ -125,6 +128,22 @@ export default function AbbyAnalytics() {
       .then(setSuggestions)
       .catch(() => {});
   }, []);
+
+  // Auto-send patient context from For Patients page
+  const sendMessageRef = useRef(null);
+  useEffect(() => {
+    if (patientHandoffDone) return;
+    const ctx = location.state?.patientContext;
+    if (!ctx) return;
+    setPatientHandoffDone(true);
+    // Defer until sendMessage is defined
+    const timer = setTimeout(() => {
+      if (sendMessageRef.current) {
+        sendMessageRef.current(ctx);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [location.state, patientHandoffDone]);
 
   // Auto-resize textarea
   const handleInputChange = (e) => {
@@ -237,6 +256,8 @@ export default function AbbyAnalytics() {
       setStatusText('');
     }
   };
+
+  sendMessageRef.current = sendMessage;
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -282,6 +282,83 @@ router.get('/mortality/summary', async (_req, res, next) => {
 });
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/quality/hcahps/summary                                    */
+/*  State-level HCAHPS patient experience averages                     */
+/* ------------------------------------------------------------------ */
+router.get('/hcahps/summary', async (req, res, next) => {
+  try {
+    const { state } = req.query;
+    let query = `
+      SELECT h.facility_id, i.state,
+        h.overall_star, h.nurse_comm_star, h.doctor_comm_star,
+        h.cleanliness_star, h.quietness_star, h.recommend_star, h.num_surveys
+      FROM medicosts.mv_hcahps_summary h
+      JOIN medicosts.hospital_info i ON h.facility_id = i.facility_id
+      WHERE h.overall_star IS NOT NULL
+    `;
+    const params = [];
+    if (state) {
+      params.push(state);
+      query += ` AND i.state = $1`;
+    }
+
+    const { rows } = await pool.query(`
+      SELECT state,
+        COUNT(*)::int AS hospitals,
+        AVG(overall_star)::numeric(3,1) AS avg_overall_star,
+        AVG(nurse_comm_star)::numeric(3,1) AS avg_nurse_star,
+        AVG(doctor_comm_star)::numeric(3,1) AS avg_doctor_star,
+        AVG(cleanliness_star)::numeric(3,1) AS avg_cleanliness_star,
+        AVG(quietness_star)::numeric(3,1) AS avg_quietness_star,
+        AVG(recommend_star)::numeric(3,1) AS avg_recommend_star,
+        SUM(num_surveys)::int AS total_surveys
+      FROM (${query}) sub
+      GROUP BY state
+      ORDER BY state
+    `, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/hcahps/hospital/:ccn                              */
+/*  Single-hospital HCAHPS patient experience scores                   */
+/* ------------------------------------------------------------------ */
+router.get('/hcahps/hospital/:ccn', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM medicosts.mv_hcahps_summary WHERE facility_id = $1`,
+      [req.params.ccn]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'No HCAHPS data for this hospital' });
+    res.json(rows[0]);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/hcahps/by-hospital?state=XX                       */
+/*  Per-hospital HCAHPS stars for Hospital Explorer                    */
+/* ------------------------------------------------------------------ */
+router.get('/hcahps/by-hospital', async (req, res, next) => {
+  try {
+    const { state } = req.query;
+    let query = `
+      SELECT h.facility_id, h.overall_star, h.recommend_star, h.num_surveys
+      FROM medicosts.mv_hcahps_summary h
+      JOIN medicosts.hospital_info i ON h.facility_id = i.facility_id
+      WHERE h.overall_star IS NOT NULL
+    `;
+    const params = [];
+    if (state) {
+      params.push(state);
+      query += ` AND i.state = $1`;
+    }
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/quality/state-summary                                     */
 /* ------------------------------------------------------------------ */
 router.get('/state-summary', async (_req, res, next) => {
@@ -340,6 +417,111 @@ router.get('/hospitals', async (req, res, next) => {
 
     const [countRes, dataRes] = await Promise.all([countQ, dataQ]);
     res.json({ total: countRes.rows[0].total, page: Number(page), per_page: Number(per_page), data: dataRes.rows });
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/accountability/markups?state=XX&limit=100         */
+/*  Hospitals with highest charge-to-payment markup ratios             */
+/* ------------------------------------------------------------------ */
+router.get('/accountability/markups', async (req, res, next) => {
+  try {
+    const { state, limit = 100 } = req.query;
+    const conditions = ['avg_covered_charges > 0', 'avg_total_payments > 0'];
+    const params = [];
+    let idx = 1;
+    if (state) { conditions.push(`m.state_abbr = $${idx++}`); params.push(state); }
+
+    const { rows } = await pool.query(`
+      SELECT m.provider_ccn AS facility_id,
+        m.provider_name AS facility_name,
+        m.state_abbr AS state,
+        m.provider_city AS city,
+        COUNT(*)::int AS drg_count,
+        (SUM(m.avg_covered_charges * m.total_discharges) / NULLIF(SUM(m.avg_total_payments * m.total_discharges), 0))::numeric(8,2) AS markup_ratio,
+        (SUM(m.avg_total_payments * m.total_discharges) / NULLIF(SUM(m.total_discharges), 0))::numeric(14,2) AS weighted_avg_payment,
+        (SUM(m.avg_covered_charges * m.total_discharges) / NULLIF(SUM(m.total_discharges), 0))::numeric(14,2) AS weighted_avg_charges,
+        SUM(m.total_discharges)::int AS total_discharges
+      FROM medicosts.medicare_inpatient m
+      WHERE ${conditions.join(' AND ')}
+      GROUP BY m.provider_ccn, m.provider_name, m.state_abbr, m.provider_city
+      HAVING SUM(m.total_discharges) >= 100
+      ORDER BY markup_ratio DESC
+      LIMIT $${idx}
+    `, [...params, Math.min(Number(limit) || 100, 200)]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/accountability/state-rankings                     */
+/*  States ranked by composite accountability metrics                  */
+/* ------------------------------------------------------------------ */
+router.get('/accountability/state-rankings', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      WITH markup AS (
+        SELECT state_abbr AS state,
+          (SUM(avg_covered_charges * total_discharges) / NULLIF(SUM(avg_total_payments * total_discharges), 0))::numeric(6,2) AS avg_markup
+        FROM medicosts.medicare_inpatient
+        WHERE avg_covered_charges > 0 AND avg_total_payments > 0
+        GROUP BY state_abbr
+      ),
+      penalties AS (
+        SELECT state,
+          COUNT(DISTINCT facility_id)::int AS penalized_hospitals,
+          AVG(excess_readmission_ratio)::numeric(6,4) AS avg_excess_ratio
+        FROM medicosts.hospital_readmissions
+        WHERE excess_readmission_ratio > 1
+        GROUP BY state
+      ),
+      hac AS (
+        SELECT state,
+          AVG(total_hac_score)::numeric(8,3) AS avg_hac_score,
+          COUNT(*) FILTER (WHERE payment_reduction = 'Yes')::int AS hac_penalized
+        FROM medicosts.patient_safety_indicators
+        WHERE total_hac_score IS NOT NULL
+        GROUP BY state
+      ),
+      hcahps AS (
+        SELECT i.state,
+          AVG(h.overall_star)::numeric(3,1) AS avg_patient_star
+        FROM medicosts.mv_hcahps_summary h
+        JOIN medicosts.hospital_info i ON h.facility_id = i.facility_id
+        WHERE h.overall_star IS NOT NULL
+        GROUP BY i.state
+      )
+      SELECT m.state,
+        m.avg_markup,
+        COALESCE(p.penalized_hospitals, 0) AS penalized_hospitals,
+        p.avg_excess_ratio,
+        hc.avg_hac_score, hc.hac_penalized,
+        hp.avg_patient_star
+      FROM markup m
+      LEFT JOIN penalties p ON m.state = p.state
+      LEFT JOIN hac hc ON m.state = hc.state
+      LEFT JOIN hcahps hp ON m.state = hp.state
+      WHERE length(m.state) = 2
+      ORDER BY m.avg_markup DESC
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/quality/accountability/summary                            */
+/*  National accountability headline stats                             */
+/* ------------------------------------------------------------------ */
+router.get('/accountability/summary', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        (SELECT COUNT(DISTINCT facility_id)::int FROM medicosts.hospital_readmissions WHERE excess_readmission_ratio > 1) AS hospitals_penalized,
+        (SELECT COUNT(*) FILTER (WHERE payment_reduction = 'Yes')::int FROM medicosts.patient_safety_indicators) AS hac_penalized,
+        (SELECT (SUM(avg_covered_charges * total_discharges) / NULLIF(SUM(avg_total_payments * total_discharges), 0))::numeric(6,2) FROM medicosts.medicare_inpatient WHERE avg_covered_charges > 0 AND avg_total_payments > 0) AS national_markup,
+        (SELECT AVG(overall_star)::numeric(3,1) FROM medicosts.mv_hcahps_summary WHERE overall_star IS NOT NULL) AS avg_patient_star
+    `);
+    res.json(rows[0]);
   } catch (err) { next(err); }
 });
 

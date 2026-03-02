@@ -6,7 +6,8 @@ const DOMAINS = [
   { id: 'safety',      label: 'Safety',      color: DOMAIN_COLORS.safety.main,      dim: DOMAIN_COLORS.safety.dim },
   { id: 'operational', label: 'Operations',   color: DOMAIN_COLORS.operational.main, dim: DOMAIN_COLORS.operational.dim },
   { id: 'quality',     label: 'Outcomes',     color: DOMAIN_COLORS.quality.main,     dim: DOMAIN_COLORS.quality.dim },
-  { id: 'financial',   label: 'Financial',    color: DOMAIN_COLORS.financial.main,   dim: DOMAIN_COLORS.financial.dim },
+  { id: 'financial',          label: 'Financial',          color: DOMAIN_COLORS.financial.main,          dim: DOMAIN_COLORS.financial.dim },
+  { id: 'patient_experience', label: 'Patient Experience', color: DOMAIN_COLORS.patient_experience.main, dim: DOMAIN_COLORS.patient_experience.dim },
 ];
 
 export default function DomainTabs({ activeDomain, onDomainChange }) {

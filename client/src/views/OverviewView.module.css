@@ -1,0 +1,191 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* Hero Section */
+.heroSection {
+  text-align: center;
+  padding: 12px 0 4px;
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
+  margin-bottom: 6px;
+}
+
+.heroSubtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.shockGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  text-align: left;
+}
+@media (max-width: 900px) { .shockGrid { grid-template-columns: repeat(2, 1fr); } }
+
+.shockCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--panel-radius);
+  animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.shockCard:nth-child(1) { animation-delay: 0.04s; }
+.shockCard:nth-child(2) { animation-delay: 0.08s; }
+.shockCard:nth-child(3) { animation-delay: 0.12s; }
+.shockCard:nth-child(4) { animation-delay: 0.16s; }
+
+.shockValue {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.shockLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 6px;
+}
+.shockDesc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Patient Journey Cards */
+.journeyRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 900px) { .journeyRow { grid-template-columns: repeat(2, 1fr); } }
+
+.journeyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--panel-radius);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.journeyCard:nth-child(1) { animation-delay: 0.08s; }
+.journeyCard:nth-child(2) { animation-delay: 0.12s; }
+.journeyCard:nth-child(3) { animation-delay: 0.16s; }
+.journeyCard:nth-child(4) { animation-delay: 0.20s; }
+
+.journeyCard:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.journeyIcon {
+  font-size: 24px;
+}
+.journeyTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.journeyDesc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Worst Offenders */
+.offendersRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 768px) { .offendersRow { grid-template-columns: 1fr; } }
+
+.offenderList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.offenderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.offenderItem:hover {
+  background: rgba(59, 130, 246, 0.04);
+}
+.offenderItem:last-of-type {
+  border-bottom: none;
+}
+
+.offenderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.offenderName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.offenderCity {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.offenderBadge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.seeAll {
+  background: none;
+  border: none;
+  color: var(--accent-light);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 0 0;
+  text-align: left;
+  transition: color 0.15s;
+}
+.seeAll:hover { color: var(--accent); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

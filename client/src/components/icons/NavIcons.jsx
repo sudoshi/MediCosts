@@ -117,3 +117,29 @@ export const UsersIcon = icon(
     <path d="M16 3.13a4 4 0 010 7.75" />
   </>
 );
+
+export const AlertTriangleIcon = icon(
+  <>
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </>
+);
+
+export const ScaleIcon = icon(
+  <>
+    <path d="M16 3h5v5" />
+    <path d="M8 3H3v5" />
+    <path d="M12 22V8" />
+    <path d="M20 3l-8 8-8-8" />
+    <path d="M3 16c0 2.8 4 5 9 5s9-2.2 9-5" />
+  </>
+);
+
+export const ClipboardHeartIcon = icon(
+  <>
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+    <path d="M12 11a2.5 2.5 0 015 0c0 3-5 5.5-5 5.5S7 14 7 11a2.5 2.5 0 015 0z" />
+  </>
+);

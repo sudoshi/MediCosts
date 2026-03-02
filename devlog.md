@@ -808,3 +808,131 @@ Updated `mv_post_acute_landscape` to include `num_irf_facilities` and `num_ltch_
 | `client/src/components/AppShell.jsx` | Modified — added 4 nav items |
 | `client/src/App.jsx` | Modified — added 4 lazy imports + routes |
 | `devlog.md` | Modified — this entry |
+
+---
+
+## Consumer Empowerment Phase — "Sunshine on Healthcare" (2026-03-01)
+
+Transformed MediCosts from an analyst dashboard into a consumer transparency weapon. Added 3 new pages, redesigned the Overview, fixed the QCC Financial tab, and surfaced HCAHPS patient satisfaction data (175K surveys) across the app. Core ethos: expose the worst, celebrate the best, empower consumers with truth about cost AND quality.
+
+### Backend: 6 New Endpoints (`server/routes/quality.js`)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/quality/hcahps/summary?state=` | State-level HCAHPS averages (joins mv_hcahps_summary + hospital_info) |
+| `GET /api/quality/hcahps/by-hospital?state=` | Per-hospital HCAHPS stars for Hospital Explorer table |
+| `GET /api/quality/hcahps/hospital/:ccn` | Single hospital HCAHPS — all 10 star dimensions + survey count |
+| `GET /api/quality/accountability/markups?state=&limit=` | Hospitals ranked by charge-to-payment markup ratio |
+| `GET /api/quality/accountability/state-rankings` | Composite state rankings: markup + penalties + HAC + HCAHPS |
+| `GET /api/quality/accountability/summary` | National headline stats (penalized count, avg markup, avg patient star) |
+
+### 3 New Pages
+
+**Accountability Dashboard (`/accountability`)** — `AccountabilityDashboard.jsx`
+- "Name and shame" page with hero stats row (national markup, hospitals penalized, HAC penalized, avg patient rating)
+- 4 tabs: Price Gouging (markup ratios), Readmission Penalties, HAC Scores, State Rankings
+- State filter on markups and penalties tabs, clickable rows → hospital detail
+- Uses `markupColor()` and `sirColor()` helper functions for severity badges
+
+**Hospital Comparison (`/compare`)** — `HospitalCompare.jsx`
+- Side-by-side comparison of up to 3 hospitals
+- Search autocomplete using existing `/quality/search` endpoint
+- ComparisonGrid fetches composite/hcahps/vbp data in parallel per hospital
+- 4 sections: Quality & Ratings, Cost, Safety, VBP Performance
+- Green highlighting for best values via `bestIdx()` helper
+
+**For Patients (`/for-patients`)** — `ForPatients.jsx`
+- Patient intake page with drag-and-drop PDF upload zone
+- Client-side PDF text extraction via `pdfjs-dist` (dynamic import)
+- Questionnaire: condition, state/city, priority (cost/quality/distance radio cards)
+- "Talk to Abby" CTA navigates to `/abby` with `location.state.patientContext`
+- New dependency: `pdfjs-dist` installed in `client/`
+
+### Modified Pages
+
+**Quality Command Center (`QualityCommandCenter.jsx`)**
+- **Bug fix:** Financial tab (line 93) was rendering `<StateQualityTable />` — a duplicate of the Quality tab. Replaced with VBP state-level aggregation using `/vbp/rankings?limit=200`
+- **New domain:** Added "Patient Experience" tab showing state-by-state HCAHPS star averages
+- **6th KPI card** added for patient_experience domain
+- Updated CSS grid to `repeat(6, 1fr)`
+
+**Hospital Detail (`HospitalDetail.jsx`)**
+- New "Patient Experience (HCAHPS)" panel with 10-item grid
+- Shows: overall, nurse comm, doctor comm, staff responsive, medicine comm, discharge info, care transition, cleanliness, quietness, recommend — all as star ratings
+- Survey count displayed below grid
+- Uses new `/quality/hcahps/hospital/:ccn` endpoint
+
+**Hospital Explorer (`HospitalExplorer.jsx`)**
+- Added "Patient Rating" column to hospital table
+- Fetches HCAHPS data via `/quality/hcahps/by-hospital`, builds lookup map by facility_id
+- Column count increased from 6 to 7
+
+**Overview (`OverviewView.jsx`)** — Consumer-first redesign
+- **ShockStats Hero:** 4 large KPI cards — national markup, hospitals penalized, HAC penalized, avg patient satisfaction
+- **Patient Journey Cards:** 4 clickable cards → /hospitals, /for-patients, /compare, /accountability
+- **Worst Offenders Preview:** Top 5 markup hospitals + top 5 penalty hospitals side-by-side
+- Existing components (CostVsQualityScatter, drill-down sections) preserved below
+
+**Abby Analytics (`AbbyAnalytics.jsx`)**
+- Accepts `location.state.patientContext` handoff from For Patients page
+- Auto-sends patient context as first message (deferred 500ms via `sendMessageRef`)
+- `patientHandoffDone` state prevents duplicate sends
+
+### Navigation Updates
+
+- 3 new icons in `NavIcons.jsx`: `ClipboardHeartIcon`, `ScaleIcon`, `AlertTriangleIcon`
+- 3 new nav items in `AppShell.jsx`: For Patients, Compare, Accountability
+- 3 lazy imports + routes in `App.jsx`
+- Added `patient_experience` color to `qualityColors.js` and tab to `DomainTabs.jsx`
+
+### Bug Fix: `medicare_inpatient` Column Name Mismatch
+
+**Problem:** The markups and state-rankings endpoints used `provider_id` and `provider_state` — columns that don't exist in `medicare_inpatient`.
+
+**Root cause:** Assumed column names without checking the actual schema. The `medicare_inpatient` table uses `provider_ccn` (not `provider_id`) and `state_abbr` (not `provider_state`).
+
+**Discovery:** `curl` test returned 500; `journalctl --user -u medicosts` showed `column m.provider_id does not exist`; confirmed correct names by reading existing queries in `server/routes/api.js`.
+
+**Fix:** In `server/routes/quality.js`:
+- Markups endpoint: `m.provider_id` → `m.provider_ccn`, `m.provider_state` → `m.state_abbr` (in SELECT, WHERE, GROUP BY)
+- State-rankings CTE: `provider_state` → `state_abbr` (in SELECT alias and GROUP BY)
+
+**Lesson:** Always verify column names against existing working queries or the table DDL in `scripts/load-data.js` before writing new SQL.
+
+### Endpoint Verification
+
+All 6 new endpoints tested and returning data:
+- `/api/quality/accountability/summary` → `{hospitals_penalized: 2358, hac_penalized: 719, national_markup: "4.89", avg_patient_star: "3.2"}`
+- `/api/quality/hcahps/summary?state=CA` → state-level HCAHPS averages
+- `/api/quality/hcahps/hospital/310044` → 10 star dimensions + 1414 surveys
+- `/api/quality/accountability/markups?limit=3` → NJ hospitals with 18-23x markups
+- `/api/quality/accountability/state-rankings` → 50+ states ranked by composite metrics
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| API endpoints | ~49 | ~55 |
+| Frontend pages | 12 | 15 |
+| HCAHPS visibility | None | QCC tab, Hospital Detail panel, Hospital Explorer column |
+| Consumer-facing pages | 0 | 4 (Accountability, Compare, For Patients, Overview redesign) |
+
+### New/Modified Files
+
+| File | Status |
+|------|--------|
+| `client/src/views/AccountabilityDashboard.jsx` + `.module.css` | New |
+| `client/src/views/HospitalCompare.jsx` + `.module.css` | New |
+| `client/src/views/ForPatients.jsx` + `.module.css` | New |
+| `client/src/views/OverviewView.jsx` + `.module.css` | Modified — consumer-first redesign |
+| `client/src/views/QualityCommandCenter.jsx` + `.module.css` | Modified — fix financial tab, add HCAHPS domain |
+| `client/src/views/HospitalDetail.jsx` + `.module.css` | Modified — HCAHPS panel |
+| `client/src/views/HospitalExplorer.jsx` | Modified — HCAHPS column |
+| `client/src/views/AbbyAnalytics.jsx` | Modified — patient context handoff |
+| `client/src/utils/qualityColors.js` | Modified — patient_experience color |
+| `client/src/components/quality/DomainTabs.jsx` | Modified — patient_experience tab |
+| `client/src/components/AppShell.jsx` | Modified — 3 new nav items |
+| `client/src/components/icons/NavIcons.jsx` | Modified — 3 new icons |
+| `client/src/App.jsx` | Modified — 3 lazy imports + routes |
+| `server/routes/quality.js` | Modified — 6 new endpoints |
+| `devlog.md` | Modified — this entry |
