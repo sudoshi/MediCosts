@@ -1959,3 +1959,68 @@ Also refactored the parsing logic into reusable helpers:
 | Anthem support | OOM on 10GB index | **Streaming to disk, near-zero memory** |
 | Aetna support | Skipped entirely | **Playwright automation available** |
 | Orchestrator flags | `--automatable-only`, `--max-files` | + **`--include-browser`** |
+
+---
+
+## Phase 1.3 — HRSA Shortage Areas (2026-03-02)
+
+### Data Promotion
+- **`scripts/promote-hrsa.js`** — Unions 3 HPSA tables + MUA/MUP from stage → `medicosts.hrsa_shortage_areas`
+  - Primary Care: 28,432 designated areas | avg score 14.8/25
+  - Dental Health: 20,199 | avg score 16.6/25
+  - Mental Health: 19,813 | avg score 16.0/25
+  - Medically Underserved: 19,645 areas
+  - Total: 88,089 records; filters out `Withdrawn` status, NULL scores
+  - Note: population field uses NUMERIC cast first to handle "34526.0" decimal strings
+
+### API
+- **`server/routes/shortage.js`**: 3 endpoints mounted at `/api/shortage-areas`:
+  - `GET /?zip=` — shortage designations for a ZIP (Designated only)
+  - `GET /state/:state` — summary by shortage type for a state (cached 1h)
+  - `GET /national` — national counts + worst states for primary care (cached 1h)
+
+### Frontend
+- **`HospitalDetail.jsx`**: shortage area chips with score/type/population (red accent)
+- **`CostEstimator.jsx`**: amber warning banner when searched ZIP is in shortage area
+  - Live fetches on ZIP change, suggests widening radius
+
+---
+
+## Phase 1.4 — CDC PLACES Community Health (2026-03-02)
+
+### Data Promotion
+- **`scripts/promote-cdc-places.js`** — Pivots 1.17M long-format rows to 32,520 wide rows
+  - Single-pass FILTER aggregation across 26 measureIDs
+  - `datavaluetypeid = 'CrdPrv'` (crude prevalence, age-adjusted also available)
+  - Results: avg diabetes 13.0%, avg obesity 35.8%, avg uninsured 10.0%
+
+### API
+- **`server/routes/community-health.js`**: 2 endpoints at `/api/community-health`:
+  - `GET /:zip` — full health profile (26 measures + total population)
+  - `GET /compare?zips=` — up to 10 ZIPs side by side
+
+### Frontend
+- **`HospitalDetail.jsx`**: "Community Health Context" KPI row (diabetes, obesity, heart disease, uninsured, depression, smoking) with source citation
+
+---
+
+## Phase 4.2 — Abby Tools for New Datasets (2026-03-02)
+
+New tools added to `server/lib/abby-tools.js`:
+- `get_shortage_areas(zip)` → `/api/shortage-areas?zip=`
+- `get_shortage_summary_by_state(state)` → `/api/shortage-areas/state/:state`
+- `get_community_health(zip)` → `/api/community-health/:zip`
+- `get_hospital_financials(ccn)` → `/api/financials/hospital/:ccn`
+
+---
+
+## Phase 6.3 + 6.4 — Security Hardening (2026-03-02)
+
+### Rate Limiting (`express-rate-limit`)
+- `/api/` — 300 req / 15 min (general)
+- `/api/abby/` — 20 req / 1 min (LLM inference protection)
+- `/api/auth` — 20 req / 15 min (brute-force login protection)
+
+### Env Validation
+- `server/index.js` now validates `PGHOST`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `JWT_SECRET` at startup
+- Exits with `FATAL` message if any required variable is missing
