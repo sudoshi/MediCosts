@@ -147,7 +147,7 @@ export default function App() {
 
           {/* ── Protected app routes ── */}
           {isAuthenticated ? (
-            <Route element={<AppShell onLogout={handleLogout} />}>
+            <Route element={<AppShell onLogout={handleLogout} user={user} />}>
               <Route index element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={<ErrorBoundary><OverviewView /></ErrorBoundary>} />
               <Route path="/quality" element={<ErrorBoundary><QualityCommandCenter /></ErrorBoundary>} />

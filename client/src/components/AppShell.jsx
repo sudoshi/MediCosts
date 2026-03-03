@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import useStats from '../hooks/useStats.js';
+import { useState, useEffect, useRef } from 'react';
+import { Outlet, NavLink, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboardIcon, ShieldCheckIcon, BuildingIcon,
-  MapIcon, StethoscopeIcon, SparklesIcon, PlugIcon, GearIcon,
+  MapIcon, StethoscopeIcon, SparklesIcon, GearIcon,
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
   AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
-  InfoIcon, PillIcon, BookOpenIcon,
+  InfoIcon, PillIcon, BookOpenIcon, PlugIcon,
 } from './icons/NavIcons';
+import useStats from '../hooks/useStats.js';
 import s from './AppShell.module.css';
 
+/* ── Nav definition — admin items removed from sidebar ── */
 const NAV_GROUPS = [
   {
     label: null,
@@ -21,9 +22,9 @@ const NAV_GROUPS = [
   {
     label: 'Quality & Safety',
     items: [
-      { path: '/quality',       label: 'Quality Command',  icon: ShieldCheckIcon },
-      { path: '/accountability',label: 'Accountability',   icon: AlertTriangleIcon },
-      { path: '/compare',       label: 'Compare Hospitals',icon: ScaleIcon },
+      { path: '/quality',        label: 'Quality Command',   icon: ShieldCheckIcon },
+      { path: '/accountability', label: 'Accountability',    icon: AlertTriangleIcon },
+      { path: '/compare',        label: 'Compare Hospitals', icon: ScaleIcon },
     ],
   },
   {
@@ -61,32 +62,102 @@ const NAV_GROUPS = [
   {
     label: 'AI & Data',
     items: [
-      { path: '/abby',       label: 'Abby Analytics',  icon: SparklesIcon },
-      { path: '/connectors', label: 'Data Connectors', icon: PlugIcon },
+      { path: '/abby', label: 'Abby Analytics', icon: SparklesIcon },
     ],
   },
   {
     label: null,
     items: [
-      { path: '/settings', label: 'Settings',             icon: GearIcon },
-      { path: '/blog',     label: 'Blog',                 icon: BookOpenIcon },
-      { path: '/about',    label: 'About & Data Sources', icon: InfoIcon },
+      { path: '/blog',  label: 'Blog',                 icon: BookOpenIcon },
+      { path: '/about', label: 'About & Data Sources', icon: InfoIcon },
     ],
   },
 ];
 
+/* Admin-only items that appear in the topbar dropdown */
+const ADMIN_ITEMS = [
+  { path: '/connectors', label: 'Data Connectors', icon: PlugIcon },
+  { path: '/settings',   label: 'Settings',        icon: GearIcon },
+];
+
 const NAV_FLAT = NAV_GROUPS.flatMap(g => g.items);
 
-export default function AppShell({ onLogout }) {
+const STORAGE_KEY = 'medicosts_nav_open_groups';
+
+function loadOpenGroups() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+  } catch { return new Set(); }
+}
+
+function saveOpenGroups(set) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...set])); } catch {}
+}
+
+/* Which group label contains a given pathname? */
+function groupForPath(pathname) {
+  for (const g of NAV_GROUPS) {
+    if (!g.label) continue;
+    if (g.items.some(i => pathname.startsWith(i.path))) return g.label;
+  }
+  return null;
+}
+
+export default function AppShell({ onLogout, user }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState(() => {
+    const stored = loadOpenGroups();
+    return stored.size ? stored : new Set();
+  });
+  const [adminOpen, setAdminOpen] = useState(false);
+  const adminRef = useRef(null);
   const location = useLocation();
   const { fmt } = useStats();
+
+  const isAdmin = user?.role === 'admin';
 
   // Close mobile sidebar on navigation
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  const current = NAV_FLAT.find(i => location.pathname.startsWith(i.path));
+  // Auto-open the group that contains the current route
+  useEffect(() => {
+    const activeGroup = groupForPath(location.pathname);
+    if (activeGroup) {
+      setOpenGroups(prev => {
+        if (prev.has(activeGroup)) return prev;
+        const next = new Set(prev);
+        next.add(activeGroup);
+        saveOpenGroups(next);
+        return next;
+      });
+    }
+  }, [location.pathname]);
+
+  // Close admin dropdown on outside click
+  useEffect(() => {
+    if (!adminOpen) return;
+    function onDown(e) {
+      if (adminRef.current && !adminRef.current.contains(e.target)) {
+        setAdminOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [adminOpen]);
+
+  function toggleGroup(label) {
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      saveOpenGroups(next);
+      return next;
+    });
+  }
+
+  const current = NAV_FLAT.find(i => location.pathname.startsWith(i.path))
+    ?? ADMIN_ITEMS.find(i => location.pathname.startsWith(i.path));
 
   return (
     <div className={`${s.shell} ${collapsed ? s.shellCollapsed : ''}`}>
@@ -103,29 +174,51 @@ export default function AppShell({ onLogout }) {
         </div>
 
         <nav className={s.nav}>
-          {NAV_GROUPS.map((group, gi) => (
-            <div key={gi} className={s.navGroup}>
-              {group.label && (
-                <span className={s.navGroupLabel}>{group.label}</span>
-              )}
-              {!group.label && gi > 0 && (
-                <div className={s.navDivider} />
-              )}
-              {group.items.map(({ path, label, icon: Icon }) => (
-                <NavLink
-                  key={path}
-                  to={path}
-                  className={({ isActive }) =>
-                    `${s.navItem} ${isActive ? s.active : ''}`
-                  }
-                  title={collapsed ? label : undefined}
-                >
-                  <Icon />
-                  {!collapsed && <span className={s.navLabel}>{label}</span>}
-                </NavLink>
-              ))}
-            </div>
-          ))}
+          {NAV_GROUPS.map((group, gi) => {
+            const isOpen = !group.label || openGroups.has(group.label);
+            const hasActive = group.items.some(i => location.pathname.startsWith(i.path));
+
+            return (
+              <div key={gi} className={s.navGroup}>
+                {/* Labeled groups get a collapsible header */}
+                {group.label ? (
+                  <button
+                    className={`${s.navGroupHeader} ${hasActive ? s.navGroupHeaderActive : ''}`}
+                    onClick={() => !collapsed && toggleGroup(group.label)}
+                    title={collapsed ? group.label : undefined}
+                  >
+                    <span className={s.navGroupLabel}>{group.label}</span>
+                    {!collapsed && (
+                      <span className={`${s.groupChevron} ${isOpen ? s.groupChevronOpen : ''}`}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  gi > 0 && <div className={s.navDivider} />
+                )}
+
+                {/* Items — hidden when group collapsed (unless sidebar itself is collapsed) */}
+                <div className={`${s.navGroupItems} ${!isOpen && !collapsed && group.label ? s.navGroupItemsHidden : ''}`}>
+                  {group.items.map(({ path, label, icon: Icon }) => (
+                    <NavLink
+                      key={path}
+                      to={path}
+                      className={({ isActive }) =>
+                        `${s.navItem} ${isActive ? s.active : ''}`
+                      }
+                      title={collapsed ? label : undefined}
+                    >
+                      <Icon />
+                      {!collapsed && <span className={s.navLabel}>{label}</span>}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </nav>
 
         <div className={s.sidebarFooter}>
@@ -165,8 +258,43 @@ export default function AppShell({ onLogout }) {
             <span className={s.viewName}>{current?.label || 'Dashboard'}</span>
             <span className={s.dataYear}>Data Year 2023</span>
           </div>
+
           <div className={s.topbarRight}>
             {fmt && <span className={s.dataBadge}>{fmt.totalRecords} Records</span>}
+
+            {/* Admin dropdown — only for admins */}
+            {isAdmin && (
+              <div className={s.adminDropdown} ref={adminRef}>
+                <button
+                  className={`${s.adminBtn} ${adminOpen ? s.adminBtnOpen : ''}`}
+                  onClick={() => setAdminOpen(o => !o)}
+                  title="Admin tools"
+                >
+                  <GearIcon />
+                  <span>Admin</span>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`${s.adminChevron} ${adminOpen ? s.adminChevronOpen : ''}`}>
+                    <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {adminOpen && (
+                  <div className={s.adminMenu}>
+                    <div className={s.adminMenuLabel}>Admin Tools</div>
+                    {ADMIN_ITEMS.map(({ path, label, icon: Icon }) => (
+                      <Link
+                        key={path}
+                        to={path}
+                        className={`${s.adminMenuItem} ${location.pathname.startsWith(path) ? s.adminMenuItemActive : ''}`}
+                        onClick={() => setAdminOpen(false)}
+                      >
+                        <Icon />
+                        <span>{label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
