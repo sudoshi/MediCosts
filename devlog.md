@@ -2100,3 +2100,44 @@ Centene's index JSON files contain download URLs with bare `centene.com` domain,
 | Working browser-scraped insurers | 0 | **2** (Kaiser, Centene) |
 | File formats supported | JSON, gzip | + **ZIP archives** |
 | Kaiser providers linked | 0 | **305,362** |
+
+---
+
+## Phase 6.5 — Structured Logging (2026-03-02)
+
+- **`server/lib/logger.js`**: Pino logger — JSON in production (piped to journald), pino-pretty in dev
+- **`server/index.js`**:
+  - Startup messages use `logger.info()` / `logger.fatal()`
+  - Global Express error handler: logs `method`, `url`, `query`, `error.message`, `error.stack`, `ms`
+  - `req._startAt = Date.now()` middleware for response time tracking
+
+---
+
+## Phase 7.1 — Public Landing Page (2026-03-02)
+
+### Architecture
+- Unauthenticated users now see `/` → `LandingPage` (not login gate)
+- `BrowserRouter` wraps entire app so the router is always active
+- Login is triggered by "Explore the Data" CTA within the landing page (inline modal-style flow)
+- Authenticated users redirected `/` → `/overview`
+- `/login` route available as a direct URL
+
+### LandingPage.jsx sections
+1. **Sticky nav**: Logo, links (Data Sources, Features), Sign In button
+2. **Hero**: Headline "Know what hospitals actually charge", mission paragraph, dual CTAs
+3. **Stats strip**: 3.4× markup, $26B surprise billing, 9M+ records
+4. **Feature grid** (2×3): Hospital Explorer, Industry Payments, Shortage Alerts, Cost Estimator, Clinician Directory, Abby AI
+5. **Data sources grid**: 8 sources with colored indicator dots
+6. **CTA banner**: "Healthcare transparency is a right"
+7. **Footer**: Data attribution, legal disclaimer
+
+---
+
+## Phase 7.2 — About & Methodology Page (2026-03-02)
+
+- Route: `/about` inside authenticated app shell + nav item
+- **Mission section**: Plain-language explanation of why this exists
+- **Legal section**: 4 cards — no PHI, mandated disclosures, no affiliation, data limitations
+- **Data sources**: 8 entries with agency, year, row count, description, official URL
+- **Methodology notes**: 6 entries covering composite score calculation, charge markup ratio,
+  HPSA score interpretation, CDC PLACES crude prevalence, Open Payments aggregation, geographic distance
