@@ -2024,3 +2024,79 @@ New tools added to `server/lib/abby-tools.js`:
 ### Env Validation
 - `server/index.js` now validates `PGHOST`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `JWT_SECRET` at startup
 - Exits with `FATAL` message if any required variable is missing
+
+---
+
+## ClearNetwork: Generic Browser Scraping, ZIP Support & Multi-Insurer Crawl (2026-03-02)
+
+### Overview
+
+Extended the ClearNetwork crawler with generic Playwright-based browser scraping, ZIP archive support for in-network files, and SSL domain normalization. Probed all 16 browser-required insurers, successfully crawled Kaiser Permanente (305K providers) and Centene (35 in-network URLs discovered).
+
+### Browser Scraper Rewrite — `crawler/browser.py`
+
+Rewrote `browser.py` from an Aetna-specific handler to a **generic 4-strategy browser scraper** that works for any insurer:
+
+1. **Strategy 1 — `<a href>` extraction**: Evaluates all links matching `index.json`
+2. **Strategy 2 — Page source regex**: Scans full HTML for `INDEX_JSON_RE` pattern
+3. **Strategy 3 — Network interception**: Captures JSON responses from XHR/fetch calls, including Aetna-style API responses from `apix.cvshealth.com`
+4. **Strategy 4 — Expandable sections**: Clicks "Show More", accordion headers, tab elements, then re-scans
+
+Two public functions:
+- `_scrape_page_for_mrf_urls(url)` — generic scraper returning deduplicated list of index URLs
+- `fetch_mrf_urls_with_browser(url, session, max_indexes)` — wraps scraper + parses each discovered index via `fetch_and_parse_index()`
+
+### Browser-Required Insurer Probing Results
+
+Tested all 16 `browser_required` insurers with Playwright:
+
+| Status | Insurers |
+|--------|----------|
+| **Working (direct HTML links)** | Kaiser Permanente (16 index URLs), Centene (12 index URLs) |
+| **JS SPA, no discoverable URLs** | Highmark, Molina, Aetna |
+| **HTTP errors (404/502/530)** | BCBS MI, IBX, BCBS NC, CareFirst, Oscar, BCBS MA, FL Blue, Humana, Bright |
+| **Timeout / no URLs** | Medica, Premera |
+
+### Kaiser Permanente — Full Pipeline Success
+
+- Browser found **16 unique index URLs** from page HTML
+- Parsed all 16 indexes → **2,704 plans**, **21 unique in-network URLs**
+- In-network files are **ZIP archives** (not `.json.gz`) — required new ZIP support
+- Downloaded 3 ZIP files → extracted **305,362 providers linked** to network
+- Total pipeline: 193 seconds, 0 errors
+
+### ZIP Archive Support — `crawler/mrf_parser.py`
+
+Kaiser ships in-network rate files as `.zip` archives containing JSON. Added support:
+- Magic bytes detection: `PK\x03\x04` for ZIP vs `\x1f\x8b` for gzip
+- `zipfile.ZipFile` handler iterates all `.json` members
+- Extracted `_extract_npis_from_stream()` helper for reuse across formats
+- Falls back to `json.load()` if ijson is unavailable
+
+### Centene — SSL Domain Fix
+
+Centene's index JSON files contain download URLs with bare `centene.com` domain, which triggers `TLSV1_UNRECOGNIZED_NAME` SSL errors. `www.centene.com` works fine.
+
+**Fix:** Added `_normalize_url()` in `downloader.py` that rewrites `://centene.com/` → `://www.centene.com/`.
+
+### Database Fix
+
+`crawl_jobs.status` was `VARCHAR(20)`, too short for `"completed_with_errors"` (21 chars). Widened to `VARCHAR(30)` via migration `006_widen_crawl_status.py`.
+
+### Files Changed
+
+| File | Action | Description |
+|------|--------|-------------|
+| `clearnetwork/crawler/browser.py` | Rewritten | Generic 4-strategy browser scraper (was Aetna-specific) |
+| `clearnetwork/crawler/mrf_parser.py` | Modified | ZIP archive support, `_extract_npis_from_stream()` helper |
+| `clearnetwork/crawler/downloader.py` | Modified | `_normalize_url()` for Centene SSL fix |
+| `clearnetwork/alembic/versions/006_widen_crawl_status.py` | New | Widen `crawl_jobs.status` to VARCHAR(30) |
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Total network-provider links | 1,547,627 | **1,718,004** |
+| Working browser-scraped insurers | 0 | **2** (Kaiser, Centene) |
+| File formats supported | JSON, gzip | + **ZIP archives** |
+| Kaiser providers linked | 0 | **305,362** |

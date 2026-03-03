@@ -1,136 +1,175 @@
 """Browser-based MRF discovery for insurers requiring JavaScript rendering.
 
-Uses Playwright to navigate insurer websites, intercept API calls, and extract
-MRF index/in-network file URLs that aren't available via direct HTTP.
-
-Usage:
-    # Called by orchestrator when --include-browser is set
-    result = await fetch_mrf_urls_with_browser(url, session)
+Uses Playwright to navigate insurer websites, extract MRF index URLs from
+page links and intercepted network traffic.
 
 Requires: pip install playwright && playwright install chromium
 """
 import asyncio
 import logging
 import re
-from urllib.parse import urljoin
 
 import aiohttp
 
-from crawler.mrf_index import MRFIndexResult
+from crawler.mrf_index import MRFIndexResult, fetch_and_parse_index
 
 logger = logging.getLogger(__name__)
 
-# Known patterns for extracting MRF URLs from intercepted network traffic
-AETNA_API_PATTERN = re.compile(r"apix\.cvshealth\.com|transparency-proxy\.aetna\.com")
-MRF_URL_PATTERN = re.compile(r"https?://[^\s\"']+(?:index\.json|in-network-rates|allowed-amounts)[^\s\"']*", re.IGNORECASE)
+# Patterns for finding MRF URLs in page content and network traffic
+INDEX_JSON_RE = re.compile(
+    r"https?://[^\s\"'<>]+_index\.json(?:\.gz)?(?:\?[^\s\"'<>]*)?",
+    re.IGNORECASE,
+)
+MRF_URL_RE = re.compile(
+    r"https?://[^\s\"'<>]+(?:in.network.rates|allowed.amounts|table.of.contents)[^\s\"'<>]*",
+    re.IGNORECASE,
+)
+AETNA_API_RE = re.compile(r"apix\.cvshealth\.com|transparency-proxy\.aetna\.com")
 
 
-async def _discover_aetna_urls(base_url: str) -> list[str]:
-    """Navigate Aetna's MRF portal and intercept API responses for file URLs."""
-    try:
-        from playwright.async_api import async_playwright
-    except ImportError:
-        logger.error("playwright not installed. Run: pip install playwright && playwright install chromium")
-        return []
+async def _scrape_page_for_mrf_urls(url: str, timeout_ms: int = 45000) -> list[str]:
+    """Generic scraper: navigate a page, extract all MRF index URLs.
 
-    discovered_urls = []
+    Works for any insurer that renders index links in HTML (Kaiser, Centene, etc.)
+    Also intercepts XHR/fetch responses for SPA-based sites (Highmark, Aetna, etc.)
+    """
+    from playwright.async_api import async_playwright
+
+    discovered = []
+    intercepted_json_urls = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
-            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            user_agent=(
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            )
         )
         page = await context.new_page()
 
-        # Intercept network responses to capture API data
-        async def handle_response(response):
+        # Intercept network responses for API-driven sites
+        async def on_response(response):
             try:
-                url = response.url
-                if AETNA_API_PATTERN.search(url) and response.status == 200:
-                    content_type = response.headers.get("content-type", "")
-                    if "json" in content_type:
+                resp_url = response.url
+                ct = response.headers.get("content-type", "")
+                if response.status == 200 and "json" in ct:
+                    # Check if the response URL itself is an index
+                    if "index.json" in resp_url.lower():
+                        intercepted_json_urls.append(resp_url)
+                    # For Aetna-like APIs, scan response body for URLs
+                    if AETNA_API_RE.search(resp_url):
                         body = await response.text()
-                        # Extract any MRF-like URLs from the response
-                        urls = MRF_URL_PATTERN.findall(body)
-                        for u in urls:
-                            if u not in discovered_urls:
-                                discovered_urls.append(u)
-                                logger.debug(f"    Intercepted MRF URL: {u[:80]}...")
+                        for m in INDEX_JSON_RE.findall(body):
+                            intercepted_json_urls.append(m)
+                        for m in MRF_URL_RE.findall(body):
+                            intercepted_json_urls.append(m)
             except Exception:
                 pass
 
-        page.on("response", handle_response)
+        page.on("response", on_response)
 
         try:
-            logger.info(f"    Navigating to {base_url}...")
-            await page.goto(base_url, wait_until="networkidle", timeout=60000)
+            logger.info(f"    Browser: navigating to {url[:80]}...")
+            await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+            await page.wait_for_timeout(3000)
 
-            # Wait for dynamic content to load
-            await page.wait_for_timeout(5000)
+            # Strategy 1: Extract all <a href> links matching index.json
+            all_hrefs = await page.eval_on_selector_all(
+                "a[href]", "els => els.map(e => e.href)"
+            )
+            for href in all_hrefs:
+                if "index.json" in href.lower():
+                    discovered.append(href)
 
-            # Try to find and click through any file listing elements
-            # Aetna's SPA may need interaction to load file lists
-            links = await page.query_selector_all("a[href*='.json'], a[href*='download'], a[href*='mrf']")
-            for link in links[:10]:
-                href = await link.get_attribute("href")
-                if href and href.startswith("http"):
-                    discovered_urls.append(href)
-
-            # Also check for any direct links in page source
+            # Strategy 2: Scan full page source for index URLs only
             content = await page.content()
-            page_urls = MRF_URL_PATTERN.findall(content)
-            for u in page_urls:
-                if u not in discovered_urls:
-                    discovered_urls.append(u)
+            for m in INDEX_JSON_RE.findall(content):
+                discovered.append(m)
+
+            # Strategy 3: Add intercepted network URLs
+            discovered.extend(intercepted_json_urls)
+
+            # Strategy 4: Try clicking expandable sections / "show more"
+            expandables = await page.query_selector_all(
+                "button:has-text('Show'), button:has-text('More'), "
+                "button:has-text('Download'), details summary, "
+                "[role='tab'], .accordion-header"
+            )
+            if expandables and len(discovered) < 5:
+                for btn in expandables[:10]:
+                    try:
+                        await btn.click()
+                        await page.wait_for_timeout(1000)
+                    except Exception:
+                        pass
+                # Re-scan after expanding
+                content = await page.content()
+                for m in INDEX_JSON_RE.findall(content):
+                    discovered.append(m)
 
         except Exception as e:
-            logger.error(f"    Browser navigation error: {e}")
+            logger.warning(f"    Browser error at {url}: {e}")
         finally:
             await browser.close()
 
-    return discovered_urls
+    # Deduplicate preserving order
+    return list(dict.fromkeys(discovered))
 
 
-async def fetch_mrf_urls_with_browser(url: str, session: aiohttp.ClientSession) -> MRFIndexResult:
-    """Fetch MRF URLs using browser automation for browser_required insurers.
+async def fetch_mrf_urls_with_browser(
+    url: str, session: aiohttp.ClientSession, max_indexes: int = 20
+) -> MRFIndexResult:
+    """Discover MRF index URLs via browser, then parse them for in-network files.
 
-    Currently supports Aetna. Other browser_required insurers can be added
-    by creating handler functions and mapping them here.
+    Works generically for any browser_required insurer:
+    1. Navigate to the insurer's transparency page with Playwright
+    2. Extract index.json URLs from links, page source, and network traffic
+    3. Parse each discovered index file for plans and in-network file URLs
     """
     result = MRFIndexResult()
 
-    # Dispatch to insurer-specific handler
-    if "aetna" in url.lower() or "mrf.aetna.com" in url.lower():
-        result.entity_name = "Aetna Life Insurance Company"
-        result.entity_type = "health insurance issuer"
-        urls = await _discover_aetna_urls(url)
-    else:
-        result.errors.append(f"No browser handler for URL: {url}")
+    try:
+        from playwright.async_api import async_playwright  # noqa: F401
+    except ImportError:
+        result.errors.append(
+            "playwright not installed. Run: pip install playwright && playwright install chromium"
+        )
         return result
 
-    if urls:
-        # Separate index files from in-network files
-        index_urls = [u for u in urls if "index.json" in u.lower()]
-        in_network_urls = [u for u in urls if "in-network" in u.lower() or "in_network" in u.lower()]
+    # Step 1: Scrape for index URLs
+    index_urls = await _scrape_page_for_mrf_urls(url)
 
-        if index_urls:
-            # Parse the first index file to get plans and more in-network URLs
-            from crawler.mrf_index import fetch_and_parse_index
-            for idx_url in index_urls[:5]:
-                try:
-                    sub = await fetch_and_parse_index(idx_url, session)
-                    result.plans.extend(sub.plans)
-                    result.in_network_urls.extend(sub.in_network_urls)
-                except Exception as e:
-                    result.errors.append(f"Error parsing browser-discovered index: {e}")
+    if not index_urls:
+        result.errors.append(f"Browser found no MRF index URLs at {url}")
+        logger.warning(f"    No index URLs found at {url}")
+        return result
 
-        # Add directly discovered in-network URLs
-        result.in_network_urls.extend(in_network_urls)
+    logger.info(f"    Browser found {len(index_urls)} index URLs")
 
-        # Deduplicate
-        result.in_network_urls = list(dict.fromkeys(result.in_network_urls))
-        logger.info(f"    Browser discovered {len(result.in_network_urls)} in-network URLs")
-    else:
-        result.errors.append(f"Browser automation found no MRF URLs at {url}")
+    # Step 2: Parse each index file for plans and in-network URLs
+    sample = index_urls[:max_indexes]
+    for idx, idx_url in enumerate(sample, 1):
+        try:
+            logger.info(f"    [{idx}/{len(sample)}] Parsing: {idx_url[:100]}...")
+            sub = await fetch_and_parse_index(idx_url, session)
+
+            if not result.entity_name and sub.entity_name:
+                result.entity_name = sub.entity_name
+                result.entity_type = sub.entity_type
+
+            result.plans.extend(sub.plans)
+            result.in_network_urls.extend(sub.in_network_urls)
+            if sub.errors:
+                result.errors.extend(sub.errors)
+        except Exception as e:
+            result.errors.append(f"Error parsing index {idx_url[:80]}: {e}")
+
+    # Deduplicate
+    result.in_network_urls = list(dict.fromkeys(result.in_network_urls))
+    logger.info(
+        f"    Browser totals: {len(result.plans)} plans, "
+        f"{len(result.in_network_urls)} unique in-network URLs"
+    )
 
     return result

@@ -72,10 +72,18 @@ class DownloadManager:
         return DownloadResult(url=url, path=None, size=0, content_hash=None,
                               error=f"Failed after {MAX_RETRIES} retries: {last_error}")
 
+    @staticmethod
+    def _normalize_url(url: str) -> str:
+        """Fix known domain issues (e.g. bare centene.com has SSL problems)."""
+        # centene.com without www triggers TLSV1_UNRECOGNIZED_NAME; www.centene.com works
+        return url.replace("://centene.com/", "://www.centene.com/")
+
     async def _stream_download(self, url: str, filename: str | None) -> DownloadResult:
         """Stream-download a URL to disk, computing hash as we go."""
         if not self.session:
             raise RuntimeError("DownloadManager not initialized. Use async with.")
+
+        url = self._normalize_url(url)
 
         async with self.session.get(url, allow_redirects=True) as resp:
             resp.raise_for_status()

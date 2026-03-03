@@ -27,6 +27,7 @@ import io
 import logging
 import os
 import uuid
+import zipfile
 from pathlib import Path
 
 import asyncpg
@@ -46,38 +47,74 @@ except ImportError:
     HAS_IJSON = False
 
 
+def _extract_npis_from_stream(f, npis: set[str]):
+    """Extract NPIs from a JSON file-like stream using ijson."""
+    # Strategy 1: Look for provider_references[].provider_groups[].npi[]
+    try:
+        for npi in ijson.items(f, "provider_references.item.provider_groups.item.npi.item"):
+            npis.add(str(npi).zfill(10))
+    except Exception as e:
+        logger.warning(f"Strategy 1 failed: {e}")
+
+    # Strategy 2: Rewind and try in_network[].negotiated_rates[].provider_groups[]
+    if not npis:
+        try:
+            f.seek(0)
+        except Exception:
+            return
+        try:
+            for item in ijson.items(f, "in_network.item"):
+                for rate in item.get("negotiated_rates", []):
+                    for group in rate.get("provider_groups", []):
+                        for npi in group.get("npi", []):
+                            npis.add(str(npi).zfill(10))
+        except Exception as e:
+            logger.warning(f"Strategy 2 failed: {e}")
+
+
 async def extract_npis_from_file(file_path: Path) -> set[str]:
-    """Extract all unique NPIs from an in-network MRF file using streaming."""
+    """Extract all unique NPIs from an in-network MRF file using streaming.
+
+    Handles: plain JSON, gzip-compressed JSON, and ZIP archives containing JSON.
+    """
     npis = set()
 
-    # Detect gzip by magic bytes, not filename
+    # Detect format by magic bytes
     with open(file_path, "rb") as check:
-        magic = check.read(2)
-    is_gzipped = magic == b"\x1f\x8b"
+        magic = check.read(4)
+    is_gzipped = magic[:2] == b"\x1f\x8b"
+    is_zip = magic[:4] == b"PK\x03\x04"
+
+    if is_zip:
+        # ZIP archive (e.g. Kaiser in-network-rates.zip)
+        try:
+            with zipfile.ZipFile(file_path, "r") as zf:
+                json_names = [n for n in zf.namelist() if n.endswith(".json")]
+                if not json_names:
+                    logger.warning(f"ZIP archive has no JSON files: {file_path}")
+                    return npis
+                logger.info(f"    ZIP contains {len(json_names)} JSON file(s)")
+                for jname in json_names:
+                    with zf.open(jname) as member:
+                        if HAS_IJSON:
+                            _extract_npis_from_stream(member, npis)
+                        else:
+                            import json
+                            data = json.load(member)
+                            for ref in data.get("provider_references", []):
+                                for group in ref.get("provider_groups", []):
+                                    for npi in group.get("npi", []):
+                                        npis.add(str(npi).zfill(10))
+        except zipfile.BadZipFile:
+            logger.error(f"Bad ZIP file: {file_path}")
+        return npis
+
     opener = gzip.open if is_gzipped else open
 
     if HAS_IJSON:
         with opener(file_path, "rb") as f:
-            # Strategy 1: Look for provider_references[].provider_groups[].npi[]
-            try:
-                for npi in ijson.items(f, "provider_references.item.provider_groups.item.npi.item"):
-                    npis.add(str(npi).zfill(10))
-            except Exception as e:
-                logger.warning(f"Strategy 1 failed for {file_path}: {e}")
-
-            # Strategy 2: Rewind and try in_network[].negotiated_rates[].provider_references[]
-            if not npis:
-                f.seek(0)
-                try:
-                    for item in ijson.items(f, "in_network.item"):
-                        for rate in item.get("negotiated_rates", []):
-                            for group in rate.get("provider_groups", []):
-                                for npi in group.get("npi", []):
-                                    npis.add(str(npi).zfill(10))
-                except Exception as e:
-                    logger.warning(f"Strategy 2 failed for {file_path}: {e}")
+            _extract_npis_from_stream(f, npis)
     else:
-        # Fallback: load full JSON (very memory-intensive for large files)
         import json
         with opener(file_path, "rt") as f:
             try:
@@ -85,8 +122,6 @@ async def extract_npis_from_file(file_path: Path) -> set[str]:
             except Exception as e:
                 logger.error(f"Failed to parse {file_path}: {e}")
                 return npis
-
-            # Extract from provider_references
             for ref in data.get("provider_references", []):
                 for group in ref.get("provider_groups", []):
                     for npi in group.get("npi", []):
