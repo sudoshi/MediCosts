@@ -1761,3 +1761,78 @@ ABBY_MODEL_SYNTH=claude-sonnet-4-6         (optional override)
 - `client/src/components/AppShell.jsx` (added nav item)
 - `client/src/App.jsx` (added route)
 - `.env` (ANTHROPIC_API_KEY placeholder)
+
+---
+
+## MediCosts 1.0 Sprint — Phase 1.2: HCRIS Hospital Cost Reports (2026-03-02)
+
+### Overview
+Promoted CMS Hospital Cost Report (HCRIS Form 2552-10) data for FY2023 and FY2024 into
+`medicosts.hospital_financials`. Key challenge: HCRIS uses a sparse pivot format where each
+value is stored as `(rpt_rec_num, wksht_cd, line_num, col_num) → value`, requiring pivoting
+with `FILTER` aggregation. Column names differ per year because they're named after the first
+data row's values in the source CSV.
+
+### Promote Script: `scripts/promote-hcris.js`
+
+**HCRIS column mapping discovery:**
+| Stage column | Meaning |
+|---|---|
+| `_748262` / `_770748` | `rpt_rec_num` (join key) |
+| `_144042` / `_170075` | Provider CCN (hospital identifier) |
+| `_10_01_2022` / `_10_01_2023` | Fiscal year begin date |
+| `_12_31_2022` / `_12_31_2023` | Fiscal year end date |
+| `_150393` / `_96572` | Numeric value (in NMRC table) |
+
+**Worksheet → metric mappings (confirmed via CMS HCRIS 2552-10 codebook):**
+| Worksheet | Line | Col | Metric |
+|---|---|---|---|
+| G200000 | 01000 | 00100 | Total patient charges (gross) |
+| G200000 | 00100 | 00100 | Inpatient charges |
+| S300001 | 00100 | 00200 | Licensed beds |
+| S300001 | 00100 | 00300 | Total inpatient days |
+| S100001 | 00100 | 00100 | Has charity program (>0) |
+| S100001 | 00200 | 00100 | Charity care charges |
+| S100001 | 02900 | 00100 | Cost of charity care |
+| S100001 | 00700 | 00100 | Uncompensated care charges |
+| S100001 | 03100 | 00100 | Total uncompensated care cost |
+
+**Approach:** `DISTINCT ON (ccn) ORDER BY fy_end DESC` to get latest report per hospital, then
+single-pass `SUM ... FILTER(WHERE ...)` pivot on NMRC table filtered to 3 worksheet codes.
+
+**Results:**
+| Year | Hospitals | With Charges | With Beds | With Uncomp Care | Avg Gross Charges | Avg Beds |
+|---|---|---|---|---|---|---|
+| 2023 | 5,939 | 5,787 | 5,933 | 4,491 | $114M | 113 |
+| 2024 | 5,645 | 5,509 | 5,634 | 4,380 | $124M | 113 |
+
+### API Routes: `server/routes/financials.js`
+4 endpoints mounted at `/api/financials`:
+| Endpoint | Description |
+|---|---|
+| `GET /hospital/:ccn` | Cost report data for specific hospital + derived metrics (occupancy, uncomp %) |
+| `GET /summary?year=` | National summary: totals, by bed size category, top uncomp care |
+| `GET /top?year=&by=` | Leaderboard (charges/beds/uncompensated/occupancy) |
+| `GET /uncompensated?year=&state=` | Top uncompensated care providers with hospital name join |
+
+### Frontend
+- **`client/src/views/FinancialsExplorer.jsx`** — new `/financials` page
+  - 7 KPI cards (hospitals, avg charges, total charges, avg beds, occupancy, uncomp care, charity)
+  - 2-column grid: by-bed-size breakdown + top 15 uncompensated care providers
+  - Sortable leaderboard (4 modes) with click-through to `/hospitals/:ccn`
+- **`client/src/views/FinancialsExplorer.module.css`** — full dark-mode styles
+- **`client/src/views/HospitalDetail.jsx`** — added "Cost Report Financials" panel
+  - Shows gross charges, beds, inpatient days, occupancy, uncompensated care cost
+  - Charity care details if available (charges, cost, % of total)
+- **`client/src/components/AppShell.jsx`** — added "Hospital Financials" nav item
+- **`client/src/App.jsx`** — registered `/financials` route
+
+### Files Changed
+- `scripts/promote-hcris.js` (new)
+- `server/routes/financials.js` (new)
+- `server/index.js` (added financials router)
+- `client/src/views/FinancialsExplorer.jsx` (new)
+- `client/src/views/FinancialsExplorer.module.css` (new)
+- `client/src/views/HospitalDetail.jsx` (added financials panel)
+- `client/src/components/AppShell.jsx` (added nav item)
+- `client/src/App.jsx` (added route)

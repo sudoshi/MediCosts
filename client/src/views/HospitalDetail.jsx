@@ -30,6 +30,7 @@ export default function HospitalDetail() {
   const { data: outpatient } = useApi(`/outpatient/provider/${ccn}`, [ccn]);
   const { data: hcahps } = useApi(`/quality/hcahps/hospital/${ccn}`, [ccn]);
   const { data: hospPayments } = useApi(`/payments/hospital/${ccn}`, [ccn]);
+  const { data: financials } = useApi(`/financials/hospital/${ccn}`, [ccn]);
 
   if (loadingComposite) {
     return (
@@ -364,6 +365,50 @@ export default function HospitalDetail() {
           </div>
         </Panel>
       )}
+
+      {/* Hospital Financials (HCRIS Cost Report) */}
+      {financials?.financials?.length > 0 && (() => {
+        const f = financials.financials[0]; // latest year
+        return (
+          <Panel title={`Cost Report Financials — FY ${f.report_year}`}>
+            <div className={s.kpiRow}>
+              {f.total_patient_charges && <KpiCard label="Gross Charges" value={fmtCurrency(f.total_patient_charges)} />}
+              {f.licensed_beds && <KpiCard label="Licensed Beds" value={fmtNumber(f.licensed_beds)} />}
+              {f.total_inpatient_days && <KpiCard label="Inpatient Days" value={fmtNumber(f.total_inpatient_days)} />}
+              {f.occupancy_pct && <KpiCard label="Occupancy" value={`${f.occupancy_pct}%`} />}
+              {f.uncompensated_care_cost && (
+                <KpiCard label="Uncompensated Care Cost" value={fmtCurrency(f.uncompensated_care_cost)} />
+              )}
+            </div>
+            {f.has_charity_program && f.charity_care_charges && (
+              <div className={s.metricList} style={{ marginTop: '0.75rem' }}>
+                <div className={s.metricRow}>
+                  <span className={s.metricName}>Charity Care Program</span>
+                  <span className={s.metricValue} style={{ color: 'var(--better)' }}>Yes</span>
+                </div>
+                {f.charity_care_charges && (
+                  <div className={s.metricRow}>
+                    <span className={s.metricName}>Charity Care Charges</span>
+                    <span className={s.metricValue}>{fmtCurrency(f.charity_care_charges)}</span>
+                  </div>
+                )}
+                {f.charity_care_cost && (
+                  <div className={s.metricRow}>
+                    <span className={s.metricName}>Charity Care Cost</span>
+                    <span className={s.metricValue}>{fmtCurrency(f.charity_care_cost)}</span>
+                  </div>
+                )}
+                {f.uncomp_pct_charges && (
+                  <div className={s.metricRow}>
+                    <span className={s.metricName}>Uncompensated Care % of Charges</span>
+                    <span className={s.metricValue}>{f.uncomp_pct_charges}%</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </Panel>
+        );
+      })()}
 
       {/* Industry Payments (Open Payments / Sunshine Act) */}
       {hospPayments?.summary?.total_payments > 0 && (

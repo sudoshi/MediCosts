@@ -1,0 +1,140 @@
+.page {
+  padding: 1.5rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 600px;
+}
+
+/* ── KPI ─────────────────────────────────────────────────────────── */
+.kpiRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-top: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpiLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.kpiValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Grid ────────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Table ───────────────────────────────────────────────────────── */
+.tableWrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-mid);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.table tr:last-child td { border-bottom: none; }
+.clickRow { cursor: pointer; }
+.clickRow:hover td { background: rgba(59, 130, 246, 0.06); }
+
+.bold   { font-weight: 600; color: var(--text-primary); }
+.muted  { color: var(--text-secondary); font-size: 11px; }
+.mono   { font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); font-size: 11px; }
+.rank   { font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); font-size: 11px; width: 28px; }
+.name   { color: var(--text-primary); }
+.accent { color: var(--accent-light) !important; font-weight: 600; }
+
+/* ── Controls ────────────────────────────────────────────────────── */
+.controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.yearPicker, .btnGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.toggleBtn {
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  padding: 5px 12px;
+  transition: all 0.15s;
+}
+
+.toggleBtn:hover { border-color: var(--accent); color: var(--text-primary); }
+.toggleBtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}

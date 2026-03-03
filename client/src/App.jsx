@@ -34,6 +34,7 @@ const ForPatients = lazy(() => import('./views/ForPatients'));
 const DataConnectors = lazy(() => import('./views/DataConnectors'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
 const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
+const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
 
 function ViewLoader() {
   return (
@@ -154,6 +155,7 @@ export default function App() {
               <Route path="/physicians" element={<ErrorBoundary><PhysicianAnalytics /></ErrorBoundary>} />
               <Route path="/abby" element={<ErrorBoundary><AbbyAnalytics /></ErrorBoundary>} />
               <Route path="/payments" element={<ErrorBoundary><PaymentsExplorer /></ErrorBoundary>} />
+              <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
               <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />
               <Route path="/settings" element={<ErrorBoundary><SettingsView /></ErrorBoundary>} />
               <Route path="*" element={<Navigate to="/overview" replace />} />

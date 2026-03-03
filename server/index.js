@@ -14,6 +14,7 @@ import postAcuteRouter from './routes/post-acute.js';
 import facilitiesRouter from './routes/facilities.js';
 import clearnetworkAdminRouter from './routes/clearnetwork-admin.js';
 import paymentsRouter from './routes/payments.js';
+import financialsRouter from './routes/financials.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/post-acute', postAcuteRouter);
 app.use('/api/facilities', facilitiesRouter);
 app.use('/api/clearnetwork', requireAdmin, clearnetworkAdminRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api/financials', financialsRouter);
 
 if (isProd) {
   const clientBuild = path.join(__dirname, '../client/dist');
