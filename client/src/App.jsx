@@ -4,6 +4,7 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import AppShell from './components/AppShell';
+const LandingPage = lazy(() => import('./views/LandingPage'));
 import ErrorBoundary from './components/ErrorBoundary';
 import { setUnauthorizedHandler } from './hooks/useApi';
 import './App.css';
@@ -35,6 +36,7 @@ const DataConnectors = lazy(() => import('./views/DataConnectors'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
 const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
 const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
+const AboutView = lazy(() => import('./views/AboutView'));
 
 function ViewLoader() {
   return (
@@ -104,32 +106,40 @@ export default function App() {
 
   const isAuthenticated = !!user;
 
-  // Not logged in — show login or register
-  if (!isAuthenticated) {
-    if (showRegister) {
-      return <RegisterPage onSignIn={() => setShowRegister(false)} />;
-    }
-    return (
-      <LoginPage
-        onLogin={handleLogin}
-        onRegister={() => setShowRegister(true)}
-      />
-    );
-  }
-
   return (
-    <>
+    <BrowserRouter>
       {/* Blocking modal if password must be changed */}
-      {user.mustChangePassword && (
+      {isAuthenticated && user.mustChangePassword && (
         <ChangePasswordModal
           token={authToken}
           onSuccess={handlePasswordChanged}
         />
       )}
 
-      <BrowserRouter>
-        <Suspense fallback={<ViewLoader />}>
-          <Routes>
+      <Suspense fallback={<ViewLoader />}>
+        <Routes>
+          {/* ── Public routes ── */}
+          <Route
+            path="/"
+            element={
+              isAuthenticated
+                ? <Navigate to="/overview" replace />
+                : <LandingPage onLogin={handleLogin} />
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              isAuthenticated
+                ? <Navigate to="/overview" replace />
+                : showRegister
+                  ? <RegisterPage onSignIn={() => setShowRegister(false)} />
+                  : <LoginPage onLogin={handleLogin} onRegister={() => setShowRegister(true)} />
+            }
+          />
+
+          {/* ── Protected app routes ── */}
+          {isAuthenticated ? (
             <Route element={<AppShell onLogout={handleLogout} />}>
               <Route index element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={<ErrorBoundary><OverviewView /></ErrorBoundary>} />
@@ -158,11 +168,15 @@ export default function App() {
               <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
               <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />
               <Route path="/settings" element={<ErrorBoundary><SettingsView /></ErrorBoundary>} />
+              <Route path="/about" element={<ErrorBoundary><AboutView /></ErrorBoundary>} />
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </>
+          ) : (
+            /* Unauthenticated: redirect all unknown paths to landing */
+            <Route path="*" element={<Navigate to="/" replace />} />
+          )}
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   );
 }

@@ -152,3 +152,11 @@ export const ClipboardHeartIcon = icon(
     <path d="M12 11a2.5 2.5 0 015 0c0 3-5 5.5-5 5.5S7 14 7 11a2.5 2.5 0 015 0z" />
   </>
 );
+
+export const InfoIcon = icon(
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </>
+);

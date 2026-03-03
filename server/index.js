@@ -3,16 +3,18 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import logger from './lib/logger.js';
 import { runMigrations } from './lib/db-migrate.js';
 
 // ── Startup env validation (Phase 6.4) ─────────────────────────────────────
 const REQUIRED_ENV = ['PGHOST', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'JWT_SECRET'];
 REQUIRED_ENV.forEach(k => {
   if (!process.env[k]) {
-    console.error(`FATAL: Missing required environment variable ${k}`);
+    logger.fatal({ missing: k }, `Missing required environment variable ${k}`);
     process.exit(1);
   }
 });
+
 import authRouter from './routes/auth.js';
 import { requireAuth, requireAdmin } from './middleware/auth.js';
 import apiRouter from './routes/api.js';
@@ -36,16 +38,22 @@ const isProd = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
+// ── Request logging (Phase 6.5) ─────────────────────────────────────────────
+app.use((req, _res, next) => {
+  req._startAt = Date.now();
+  next();
+});
+
 // ── Rate limiting (Phase 6.3) ───────────────────────────────────────────────
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
 });
 const abbyLimiter = rateLimit({
-  windowMs: 60 * 1000,        // 1 minute
+  windowMs: 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
@@ -62,7 +70,7 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/abby/', abbyLimiter);
 
-// Auth routes — public, no token required (must be before the requireAuth guard)
+// Auth routes — public
 app.use('/api/auth', authLimiter, authRouter);
 
 // Protect all remaining /api routes
@@ -90,14 +98,29 @@ if (isProd) {
   });
 }
 
-// Run DB migrations then start server
+// ── Global error handler (Phase 6.5) ────────────────────────────────────────
+app.use((err, req, res, _next) => {
+  const ms = req._startAt ? Date.now() - req._startAt : undefined;
+  logger.error({
+    err: { message: err.message, stack: err.stack },
+    req: { method: req.method, url: req.url, query: req.query },
+    ms,
+  }, 'Unhandled request error');
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// ── Slow-query warning via monkey-patch on pool query (logged per route) ─────
+// Individual routes can call logger.warn({ ms }, 'slow query') as needed.
+// See server/lib/cache.js stats() for cache health.
+
+// Run DB migrations then start
 runMigrations()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`✦ MediCosts API listening on http://localhost:${PORT}`);
+      logger.info(`MediCosts API listening on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Migration failed:', err);
+    logger.fatal({ err }, 'Migration failed');
     process.exit(1);
   });
