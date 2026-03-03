@@ -1836,3 +1836,46 @@ single-pass `SUM ... FILTER(WHERE ...)` pivot on NMRC table filtered to 3 worksh
 - `client/src/views/HospitalDetail.jsx` (added financials panel)
 - `client/src/components/AppShell.jsx` (added nav item)
 - `client/src/App.jsx` (added route)
+
+---
+
+## Phase 2.2 — Mobile Responsiveness (2026-03-02)
+
+### AppShell Mobile Sidebar
+- Added `mobileOpen` state (boolean) alongside existing `collapsed` state
+- **Hamburger button**: SVG 3-bar icon in topbar breadcrumb, hidden on desktop (`display: none`), shown on `≤480px` via CSS
+- **Overlay backdrop**: `div.mobileOverlay` fixed over content when sidebar open, tap to close
+- **Auto-close**: `useEffect` on `location.pathname` sets `mobileOpen(false)` on every navigation
+- Sidebar uses `transform: translateX(-100%)` → `translateX(0)` transition on mobile (no layout reflow)
+- Sidebar class conditionally combines: `s.collapsed`, `s.mobileOpen` independently
+
+### CSS Changes (`AppShell.module.css`)
+- Added `.hamburger` default style (hidden `display: none`, flex when enabled at mobile breakpoint)
+- `@media (max-width: 480px)`:
+  - `--_sidebar-w: 0px` so main area takes full width
+  - Sidebar slides off-screen by default, `.mobileOpen` slides in over content with `z-index: 200`
+  - `.mobileOverlay`: full-screen fixed backdrop at `z-index: 190`
+  - `.hamburger { display: flex }` to show hamburger
+
+---
+
+## Phase 2.3 — In-Memory Query Cache (2026-03-02)
+
+### `server/lib/cache.js` (new)
+Simple TTL-based in-memory cache using `Map`:
+- `cache(key, ttlSec, fn)` — returns cached value or calls `fn()` to compute + store
+- `invalidate(prefix)` — delete keys matching prefix
+- `stats()` — live/expired counts for monitoring
+
+### Cache Applied To
+| Endpoint | TTL | Rationale |
+|---|---|---|
+| `GET /api/drgs/top50` | 1 hour | Static materialized view, rarely changes |
+| `GET /api/quality/summary` | 1 hour | Aggregate over all hospitals, stable |
+| `GET /api/payments/summary` | 30 min | 30M row aggregate |
+| `GET /api/payments/top?by=&year=` | 10 min | Heavy GROUP BY with year filter |
+| `GET /api/financials/summary?year=` | 30 min | National HCRIS aggregates |
+| `GET /api/financials/top?year=&by=` | 10 min | Leaderboard queries |
+| `GET /api/financials/uncompensated?year=&state=` | 10 min | Joined query with name lookup |
+
+Cache keys include all query parameters, so different filter combinations cache independently.
