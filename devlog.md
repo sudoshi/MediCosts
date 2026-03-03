@@ -2103,6 +2103,68 @@ Centene's index JSON files contain download URLs with bare `centene.com` domain,
 
 ---
 
+## ClearNetwork: Pennsylvania Health Plan Focus — UPMC + MRF Accessibility Audit (2026-03-02)
+
+### PA Health Plan MRF Accessibility Research
+
+Conducted comprehensive accessibility audit of all major Pennsylvania health insurers' Machine-Readable Files:
+
+| Rank | Insurer | Accessibility | MRF Format | Status |
+|------|---------|--------------|-----------|--------|
+| 1 | **UPMC Health Plan** | Easy | Direct dated JSON (CMS standard) | **Added + crawled** |
+| 2 | **Independence Blue Cross** | Hard | EIN-search API (`/cmsticsvc/`) | In registry (browser_required) |
+| 3 | **Highmark BCBS PA** | Moderate | SPA with CloudFront signed URLs | In registry (browser_required) |
+| 4 | **Capital Blue Cross** | Hard | EIN/HIOS lookup required | Not yet added |
+| 5 | **Geisinger** | Hard | Radware Bot Manager blocks automation | Not yet added |
+| 6 | **AmeriHealth Caritas** | N/A for PA | Only FL/NC/LA commercial plans | Medicaid-only in PA |
+| 7 | **Gateway Health** | N/A | Acquired by Highmark (2021) | Data under Highmark |
+
+National insurers also covering PA: UHC (working), Cigna (working), Aetna (browser_required), Anthem (streaming), Centene (browser_required), Oscar (404).
+
+### UPMC Health Plan — Successfully Crawled
+
+**Added to `known_insurers.json`:**
+- URL pattern: `https://content.upmchp.com/publicweb/table-of-contents/{date}_UPMC-Health-Plan_index.json`
+- Date pattern: `YYYY-MM-01` (current and previous months both work)
+- Index type: `dated_azure`
+- Standard CMS format: 2,581 reporting structures, 3,005 plans, 8 unique in-network URLs
+
+**Data quality issue discovered:** UPMC's in-network JSON files have a doubled double-quote encoding bug — `"value""` instead of `"value"` at field boundaries. This breaks ijson's parser.
+
+**Fix:** Added malformed JSON detection and sanitization in `mrf_parser.py`:
+- Detects doubled-quote pattern (`""` at field boundaries) in first 512 bytes
+- Reads full file, applies `replace(b'""', b'"')` to collapse doubled quotes
+- Parses sanitized content from in-memory `BytesIO` stream
+- No temp files needed
+
+**Crawl results:**
+- 3,001 plans stored
+- 68,786 unique NPIs extracted from first in-network file
+- 68,306 providers linked to UPMC network
+- 148 seconds, 0 errors
+
+### IBX Investigation
+
+IBX's `/transparency-in-coverage` redirects to `/cmsticsvc/` (returns 400 — requires EIN parameters). Their `/developer-resources` page has direct JSON files but those are ACA Marketplace format (provider/formulary URLs), not CMS Transparency-in-Coverage format. Correctly classified as `browser_required`.
+
+### Files Changed
+
+| File | Action | Description |
+|------|--------|-------------|
+| `clearnetwork/crawler/known_insurers.json` | Modified | Added UPMC Health Plan |
+| `clearnetwork/crawler/mrf_parser.py` | Modified | Doubled-quote JSON sanitization for UPMC |
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Total network-provider links | 1,718,004 | **1,786,310** |
+| Registered PA insurers | 3 | **4** (+ UPMC) |
+| UPMC providers linked | 0 | **68,306** |
+| Total plans | 105,784 | **108,785** |
+
+---
+
 ## Phase 6.5 — Structured Logging (2026-03-02)
 
 - **`server/lib/logger.js`**: Pino logger — JSON in production (piped to journald), pino-pretty in dev

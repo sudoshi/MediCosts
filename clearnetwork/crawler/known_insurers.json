@@ -84,6 +84,16 @@
     "date_pattern": "YYYY-MM-DD"
   },
   {
+    "legal_name": "UPMC Health Plan",
+    "trade_names": ["UPMC", "UPMC Health Plan", "UPMC for You", "UPMC for Life"],
+    "naic_code": "95216",
+    "states_licensed": ["PA", "WV"],
+    "plan_types": ["HMO", "PPO", "EPO"],
+    "mrf_index_url": "https://content.upmchp.com/publicweb/table-of-contents/{date}_UPMC-Health-Plan_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-01"
+  },
+  {
     "legal_name": "Highmark Inc",
     "trade_names": ["Highmark Blue Cross Blue Shield", "Highmark Blue Shield"],
     "naic_code": "54828",

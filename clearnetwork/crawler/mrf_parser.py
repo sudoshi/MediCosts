@@ -111,6 +111,36 @@ async def extract_npis_from_file(file_path: Path) -> set[str]:
 
     opener = gzip.open if is_gzipped else open
 
+    # Detect malformed JSON (e.g. UPMC doubled double-quotes: "" instead of ")
+    # Pattern: "value"","next_key":""next_value" — doubled quotes at field boundaries
+    needs_sanitize = False
+    with opener(file_path, "rb") as f:
+        sample = f.read(512)
+        if b'"","' in sample or b'":""' in sample:
+            needs_sanitize = True
+
+    if needs_sanitize:
+        logger.info(f"    Sanitizing malformed JSON (doubled quotes): {file_path.name}")
+        with opener(file_path, "rb") as f:
+            raw = f.read()
+        # Collapse all "" to " — fixes UPMC's doubled-quote encoding bug
+        sanitized = raw.replace(b'""', b'"')
+        stream = io.BytesIO(sanitized)
+        if HAS_IJSON:
+            _extract_npis_from_stream(stream, npis)
+        else:
+            import json
+            try:
+                data = json.load(stream)
+            except Exception as e:
+                logger.error(f"Failed to parse sanitized {file_path}: {e}")
+                return npis
+            for ref in data.get("provider_references", []):
+                for group in ref.get("provider_groups", []):
+                    for npi in group.get("npi", []):
+                        npis.add(str(npi).zfill(10))
+        return npis
+
     if HAS_IJSON:
         with opener(file_path, "rb") as f:
             _extract_npis_from_stream(f, npis)
