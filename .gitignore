@@ -12,3 +12,4 @@ data/
 *.pdf
 *.egg-info/
 __pycache__/
+.claudeapikey

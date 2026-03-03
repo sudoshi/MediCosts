@@ -26,7 +26,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from crawler.discovery import seed_known_insurers
 from crawler.downloader import DownloadManager
-from crawler.mrf_index import fetch_and_parse_index, store_index_results
+from crawler.mrf_index import fetch_and_parse_index, fetch_uhc_blob_index, store_index_results
 from crawler.mrf_parser import extract_npis_from_file, upsert_network_providers
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -159,6 +159,7 @@ def load_insurer_json_index() -> dict:
 async def crawl_insurer(
     conn, insurer_row, session: aiohttp.ClientSession, downloader: DownloadManager,
     max_files: int = 0, insurer_json: dict | None = None,
+    include_browser: bool = False,
 ):
     """Full crawl pipeline for a single insurer."""
     insurer_id = insurer_row["id"]
@@ -167,20 +168,33 @@ async def crawl_insurer(
     # Resolve the actual URL from the JSON config (handles dated patterns)
     if insurer_json:
         index_type = insurer_json.get("index_type", "direct_json")
+
         if index_type == "browser_required":
-            logger.info(f"  [{insurer_name}] Requires browser automation — skipping")
-            return
+            if include_browser:
+                try:
+                    from crawler.browser import fetch_mrf_urls_with_browser
+                    logger.info(f"  [{insurer_name}] Using browser automation...")
+                    mrf_url = insurer_json.get("mrf_index_url", "")
+                except ImportError:
+                    logger.warning(f"  [{insurer_name}] Browser module not available — skipping")
+                    return
+            else:
+                logger.info(f"  [{insurer_name}] Requires browser automation — skipping")
+                return
 
         url_template = insurer_json.get("mrf_index_url", "")
-        if "{date}" in url_template:
+        if index_type == "uhc_blob_api":
+            mrf_url = url_template  # UHC uses its own fetch path below
+        elif "{date}" in url_template:
             date_pattern = insurer_json.get("date_pattern", "YYYY-MM-01")
             mrf_url = await try_dated_urls(url_template, date_pattern, session)
             if not mrf_url:
                 logger.warning(f"  [{insurer_name}] No working dated URL found — skipping")
                 return
-        else:
+        elif index_type != "browser_required":
             mrf_url = url_template
     else:
+        index_type = "direct_json"
         mrf_url = insurer_row["mrf_index_url"]
 
     if not mrf_url:
@@ -196,8 +210,15 @@ async def crawl_insurer(
     error_log = []
 
     try:
-        # Step 1: Parse MRF index
-        index_result = await fetch_and_parse_index(mrf_url, session)
+        # Step 1: Parse MRF index (dispatch by index_type)
+        if index_type == "uhc_blob_api":
+            max_indexes = max(max_files, 20) if max_files > 0 else 50
+            index_result = await fetch_uhc_blob_index(mrf_url, session, max_indexes=max_indexes)
+        elif index_type == "browser_required" and include_browser:
+            from crawler.browser import fetch_mrf_urls_with_browser
+            index_result = await fetch_mrf_urls_with_browser(mrf_url, session)
+        else:
+            index_result = await fetch_and_parse_index(mrf_url, session)
 
         if index_result.errors:
             for err in index_result.errors:
@@ -302,6 +323,7 @@ async def main(
     seed_only: bool = False,
     max_files: int = DEFAULT_MAX_FILES,
     automatable_only: bool = False,
+    include_browser: bool = False,
 ):
     conn = await get_db_conn()
 
@@ -333,8 +355,8 @@ async def main(
             f"SELECT * FROM {SCHEMA}.insurers WHERE mrf_index_url IS NOT NULL"
         )
 
-    # Filter to automatable insurers if requested
-    if automatable_only:
+    # Filter to automatable insurers if requested (unless --include-browser is set)
+    if automatable_only and not include_browser:
         automatable_rows = []
         for row in rows:
             json_cfg = insurer_json_index.get(row["legal_name"], {})
@@ -359,6 +381,7 @@ async def main(
                 await crawl_insurer(
                     conn, row, session, downloader,
                     max_files=max_files, insurer_json=json_cfg,
+                    include_browser=include_browser,
                 )
 
     elapsed = time.time() - start
@@ -383,6 +406,8 @@ if __name__ == "__main__":
                         help="Max in-network files per insurer (0=unlimited)")
     parser.add_argument("--automatable-only", action="store_true",
                         help="Skip insurers requiring browser automation")
+    parser.add_argument("--include-browser", action="store_true",
+                        help="Include browser-automated insurers (requires playwright)")
     args = parser.parse_args()
 
     asyncio.run(main(
@@ -390,4 +415,5 @@ if __name__ == "__main__":
         seed_only=args.seed_only,
         max_files=args.max_files,
         automatable_only=args.automatable_only,
+        include_browser=args.include_browser,
     ))

@@ -1879,3 +1879,83 @@ Simple TTL-based in-memory cache using `Map`:
 | `GET /api/financials/uncompensated?year=&state=` | 10 min | Joined query with name lookup |
 
 Cache keys include all query parameters, so different filter combinations cache independently.
+
+---
+
+## ClearNetwork: Fix 3 Failing Insurer Crawlers — UHC, Anthem, Aetna (2026-03-02)
+
+### Overview
+
+Addressed the three insurers that failed in the initial multi-insurer crawl:
+- **UnitedHealthcare** — `uhc_blob_api` had no handler (completed with 0 files)
+- **Anthem** — 10GB gzipped index caused OOM (buffered entire file in RAM)
+- **Aetna** — `browser_required` type was skipped (needs headless browser)
+
+### 1. UnitedHealthcare — Blob API Handler
+
+**Problem:** UHC's MRF data is served via a REST API at `/api/v1/uhc/blobs/` that returns all 85,321 blobs in a single JSON response — not a standard CMS index format.
+
+**Solution:** New `fetch_uhc_blob_index()` function in `mrf_index.py`:
+- Single unauthenticated GET returns all blobs with Azure SAS download URLs (valid until 2030)
+- Filters to `_index.json` files (66K of 85K blobs)
+- Sorts by size descending, picks top N indexes (larger = more plans/providers)
+- Parses each sub-index for in-network file URLs using existing `fetch_and_parse_index()`
+- Deduplicates shared in-network URLs across employer indexes
+
+**Test results:** Parsed 20 sub-indexes → 1,042 plans, 2,591 unique in-network URLs. Successfully downloaded 2 files, linked 42 providers.
+
+### 2. Anthem — Streaming Gzip Decompression
+
+**Problem:** Anthem's index is 10.36 GB gzipped. Previous code did `data = await resp.read()` (10GB into RAM) then `gzip.decompress(data)` (50GB+ into RAM).
+
+**Solution:** Dual-path `fetch_and_parse_index()`:
+- **Small indexes (< 100MB):** Existing in-memory path (fast, unchanged)
+- **Large indexes (>= 100MB):** New streaming path:
+  - Downloads to temp file in 1MB chunks via `resp.content.iter_chunked()`
+  - Opens with `gzip.open()` for streaming decompression (near-zero memory)
+  - Feeds directly to `ijson.parse()` for incremental processing
+  - Cleans up temp file after parsing
+  - 2-hour timeout (up from 5 minutes)
+
+Also refactored the parsing logic into reusable helpers:
+- `_parse_index_from_stream()` — single-pass ijson parsing (entity name, plans, in-network URLs)
+- `_parse_index_from_bytes()` — json.loads fallback
+
+**Verification:** Confirmed 10.36 GB file streams correctly, gzip magic bytes (`1f8b`) detected, 1MB chunks flowing at ~1 MB/s. Full crawl expected to take 2-3 hours via nightly cron.
+
+### 3. Aetna — Playwright Browser Automation
+
+**Problem:** Aetna's MRF portal (`mrf.aetna.com`) is a React SPA behind Azure AD B2C OAuth. Old HealthSparq direct URLs are dead (404). The guest token endpoint requires API keys + fingerprinting.
+
+**Solution:** New `crawler/browser.py` module:
+- Uses Playwright to navigate the SPA in headless Chromium
+- Intercepts network responses matching `apix.cvshealth.com` and `transparency-proxy.aetna.com`
+- Extracts MRF URLs from intercepted API responses using regex pattern matching
+- Also scrapes direct links and page source for any `_index.json` or `in-network` URLs
+- Discovered index files are then parsed through the standard `fetch_and_parse_index()` pipeline
+
+**Orchestrator integration:**
+- New `--include-browser` CLI flag (off by default, Playwright is heavy)
+- Lazy import of `crawler.browser` — only loaded when browser mode is active
+- Falls back to skip message if Playwright isn't installed
+
+**Dependency:** `playwright>=1.45.0` added as optional `[browser]` extra in `pyproject.toml`
+
+### Files Changed
+
+| File | Action | Description |
+|------|--------|-------------|
+| `clearnetwork/crawler/mrf_index.py` | Modified | UHC blob handler, streaming gzip, refactored parse helpers |
+| `clearnetwork/crawler/orchestrator.py` | Modified | UHC/browser dispatch, `--include-browser` flag |
+| `clearnetwork/crawler/browser.py` | New | Playwright-based browser automation for Aetna |
+| `clearnetwork/pyproject.toml` | Modified | Added `playwright` as `[browser]` optional dependency |
+| `.gitignore` | Modified | Added `.claudeapikey` |
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Working MRF endpoints | 4 | **5** (UHC now working) |
+| Anthem support | OOM on 10GB index | **Streaming to disk, near-zero memory** |
+| Aetna support | Skipped entirely | **Playwright automation available** |
+| Orchestrator flags | `--automatable-only`, `--max-files` | + **`--include-browser`** |
