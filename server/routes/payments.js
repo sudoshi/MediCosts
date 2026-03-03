@@ -146,12 +146,17 @@ router.get('/hospital/:ccn', async (req, res) => {
 // ── GET /top ───────────────────────────────────────────────────────────────
 
 router.get('/top', async (req, res) => {
-  const year = req.query.year ? Number(req.query.year) : null;
+  const yearRaw = req.query.year ? Number(req.query.year) : null;
+  const year = yearRaw && Number.isInteger(yearRaw) && yearRaw >= 2000 && yearRaw <= 2100 ? yearRaw : null;
   const limit = Math.min(50, numericParam(req.query.limit, 25));
   const by = ['physician', 'payer', 'nature', 'hospital'].includes(req.query.by)
     ? req.query.by : 'physician';
 
-  const yearClause = year ? `WHERE payment_year = ${year}` : '';
+  // Use parameterized queries — year and limit via $N placeholders
+  const params = [];
+  const yearCondition = year ? (params.push(year), `AND payment_year = $${params.length}`) : '';
+  params.push(limit);
+  const limitPlaceholder = `$${params.length}`;
 
   let query;
   if (by === 'physician') {
@@ -165,11 +170,10 @@ router.get('/top', async (req, res) => {
              COUNT(DISTINCT payer_name) AS unique_payers,
              COUNT(DISTINCT payment_year) AS years_active
       FROM medicosts.open_payments
-      ${yearClause}
-      WHERE physician_npi IS NOT NULL
+      WHERE physician_npi IS NOT NULL ${yearCondition}
       GROUP BY physician_npi
       ORDER BY total_amount DESC
-      LIMIT ${limit}
+      LIMIT ${limitPlaceholder}
     `;
   } else if (by === 'payer') {
     query = `
@@ -180,11 +184,10 @@ router.get('/top', async (req, res) => {
              COUNT(DISTINCT physician_npi) AS unique_physicians,
              COUNT(DISTINCT hospital_ccn) AS unique_hospitals
       FROM medicosts.open_payments
-      ${yearClause}
-      WHERE payer_name IS NOT NULL
+      WHERE payer_name IS NOT NULL ${yearCondition}
       GROUP BY payer_name, payer_state
       ORDER BY total_amount DESC
-      LIMIT ${limit}
+      LIMIT ${limitPlaceholder}
     `;
   } else if (by === 'hospital') {
     query = `
@@ -194,11 +197,10 @@ router.get('/top', async (req, res) => {
              COUNT(*) AS num_payments,
              COUNT(DISTINCT payer_name) AS unique_payers
       FROM medicosts.open_payments
-      ${yearClause}
-      WHERE hospital_ccn IS NOT NULL
+      WHERE hospital_ccn IS NOT NULL ${yearCondition}
       GROUP BY hospital_ccn
       ORDER BY total_amount DESC
-      LIMIT ${limit}
+      LIMIT ${limitPlaceholder}
     `;
   } else {
     // by nature
@@ -209,16 +211,15 @@ router.get('/top', async (req, res) => {
              AVG(payment_amount) AS avg_amount,
              COUNT(DISTINCT physician_npi) AS unique_physicians
       FROM medicosts.open_payments
-      ${yearClause}
-      WHERE payment_nature IS NOT NULL
+      WHERE payment_nature IS NOT NULL ${yearCondition}
       GROUP BY payment_nature
       ORDER BY total_amount DESC
-      LIMIT ${limit}
+      LIMIT ${limitPlaceholder}
     `;
   }
 
   const cacheKey = `payments:top:${by}:${year || 'all'}:${limit}`;
-  const rows = await cache(cacheKey, 600, () => pool.query(query).then(r => r.rows));
+  const rows = await cache(cacheKey, 600, () => pool.query(query, params).then(r => r.rows));
   res.json({ by, year: year || 'all', results: rows });
 });
 

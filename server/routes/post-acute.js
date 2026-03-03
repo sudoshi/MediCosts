@@ -197,13 +197,30 @@ router.get('/dialysis/:ccn', async (req, res, next) => {
 router.get('/landscape', async (req, res, next) => {
   try {
     const { state } = req.query;
-    let query = `SELECT * FROM medicosts.mv_post_acute_landscape`;
-    const params = [];
-    if (state) {
-      params.push(state);
-      query += ` WHERE state = $1`;
-    }
-    query += ` ORDER BY state`;
+    const stateFilter = state ? `WHERE state = $1` : '';
+    const params = state ? [state] : [];
+
+    const query = `
+      SELECT
+        state,
+        COUNT(DISTINCT CASE WHEN type='nursing_home' THEN ccn END) AS nursing_homes,
+        COUNT(DISTINCT CASE WHEN type='dialysis' THEN ccn END) AS dialysis_facilities,
+        COUNT(DISTINCT CASE WHEN type='home_health' THEN ccn END) AS home_health_agencies,
+        COUNT(DISTINCT CASE WHEN type='hospice' THEN ccn END) AS hospice_providers,
+        COUNT(DISTINCT CASE WHEN type='irf' THEN ccn END) AS irf_facilities,
+        COUNT(DISTINCT CASE WHEN type='ltch' THEN ccn END) AS ltch_facilities
+      FROM (
+        SELECT state, 'nursing_home' AS type, provider_ccn AS ccn FROM medicosts.nursing_home_info
+        UNION ALL SELECT state, 'dialysis',    provider_ccn FROM medicosts.dialysis_facilities
+        UNION ALL SELECT state, 'home_health', provider_ccn FROM medicosts.home_health_agencies
+        UNION ALL SELECT state, 'hospice',     provider_ccn FROM medicosts.hospice_providers
+        UNION ALL SELECT state, 'irf',         provider_ccn FROM medicosts.irf_info
+        UNION ALL SELECT state, 'ltch',        provider_ccn FROM medicosts.ltch_info
+      ) t
+      ${stateFilter}
+      GROUP BY state
+      ORDER BY state
+    `;
     const { rows } = await pool.query(query, params);
     res.json(rows);
   } catch (err) { next(err); }
