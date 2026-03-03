@@ -257,7 +257,6 @@ export default function AppShell({ onLogout, user }) {
               </svg>
             </button>
             <span className={s.viewName}>{current?.label || 'Dashboard'}</span>
-            <span className={s.dataYear}>Data Year 2023</span>
           </div>
 
           <div className={s.topbarRight}>
