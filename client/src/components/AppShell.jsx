@@ -6,7 +6,7 @@ import {
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
   AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
-  InfoIcon, PillIcon, BookOpenIcon, PlugIcon,
+  InfoIcon, PillIcon, BookOpenIcon, PlugIcon, AwardIcon,
 } from './icons/NavIcons';
 import useStats from '../hooks/useStats.js';
 import s from './AppShell.module.css';
@@ -23,6 +23,7 @@ const NAV_GROUPS = [
     label: 'Quality & Safety',
     items: [
       { path: '/quality',        label: 'Quality Command',   icon: ShieldCheckIcon },
+      { path: '/excellence',     label: 'Best of the Best',  icon: AwardIcon },
       { path: '/accountability', label: 'Accountability',    icon: AlertTriangleIcon },
       { path: '/compare',        label: 'Compare Hospitals', icon: ScaleIcon },
     ],

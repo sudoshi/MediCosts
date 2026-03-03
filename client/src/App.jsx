@@ -38,6 +38,7 @@ const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
 const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
 const DrugSpending = lazy(() => import('./views/DrugSpending'));
 const AboutView = lazy(() => import('./views/AboutView'));
+const ExcellenceView = lazy(() => import('./views/ExcellenceView'));
 const BlogIndex = lazy(() => import('./views/BlogIndex'));
 const BlogPost = lazy(() => import('./views/BlogPost'));
 
@@ -163,6 +164,7 @@ export default function App() {
               <Route path="/irf/:ccn" element={<ErrorBoundary><RehabDetail type="irf" /></ErrorBoundary>} />
               <Route path="/ltch/:ccn" element={<ErrorBoundary><RehabDetail type="ltch" /></ErrorBoundary>} />
               <Route path="/accountability" element={<ErrorBoundary><AccountabilityDashboard /></ErrorBoundary>} />
+              <Route path="/excellence" element={<ErrorBoundary><ExcellenceView /></ErrorBoundary>} />
               <Route path="/compare" element={<ErrorBoundary><HospitalCompare /></ErrorBoundary>} />
               <Route path="/estimate" element={<ErrorBoundary><CostEstimator /></ErrorBoundary>} />
               <Route path="/for-patients" element={<ErrorBoundary><ForPatients /></ErrorBoundary>} />

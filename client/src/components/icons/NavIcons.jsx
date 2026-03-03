@@ -175,3 +175,10 @@ export const PillIcon = icon(
     <path d="M8 12h8M12 8v8" strokeWidth="1.5" />
   </>
 );
+
+export const AwardIcon = icon(
+  <>
+    <circle cx="12" cy="8" r="6" />
+    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+  </>
+);
