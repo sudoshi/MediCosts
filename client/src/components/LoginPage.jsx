@@ -1,5 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import s from './LoginPage.module.css';
+
+const API_STATS = (import.meta.env.VITE_API_URL || '/api') + '/stats';
+
+function useLiveStats() {
+  const [fmt, setFmt] = useState(null);
+  useEffect(() => {
+    fetch(API_STATS).then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) return;
+      const M = n => n >= 1e6 ? Math.round(n / 1e6) + 'M+' : n.toLocaleString();
+      setFmt({ totalRecords: M(d.total_records), hospitals: d.hospitals?.toLocaleString() + '+' });
+    }).catch(() => {});
+  }, []);
+  return fmt;
+}
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -70,6 +84,7 @@ function AlertCircleIcon() {
 /* ── Login page ── */
 
 export default function LoginPage({ onLogin, onRegister }) {
+  const liveStats = useLiveStats();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -129,7 +144,7 @@ export default function LoginPage({ onLogin, onRegister }) {
           </h1>
           <p className={s.heroTagline}>
             Explore Medicare hospital costs, quality ratings, safety metrics,
-            and geographic patterns across 4,700+ facilities — all in one
+            and geographic patterns across 5,400+ facilities — all in one
             powerful analytics dashboard.
           </p>
 
@@ -140,11 +155,11 @@ export default function LoginPage({ onLogin, onRegister }) {
             </div>
             <div className={s.trustItem}>
               <span className={s.trustIcon}><BuildingIcon /></span>
-              4,700+ Hospitals
+              {liveStats?.hospitals || '5,400+'} Hospitals
             </div>
             <div className={s.trustItem}>
               <span className={s.trustIcon}><ShieldIcon /></span>
-              9M+ Records
+              {liveStats?.totalRecords || '47M+'} Records
             </div>
           </div>
         </div>

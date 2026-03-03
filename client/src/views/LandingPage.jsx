@@ -4,33 +4,45 @@
  * Indexable by search engines (no auth required).
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoginPage from '../components/LoginPage';
 import RegisterPage from '../components/RegisterPage';
 import s from './LandingPage.module.css';
 
-const STATS = [
+const API_STATS = (import.meta.env.VITE_API_URL || '/api') + '/stats';
+
+function useLiveStats() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    fetch(API_STATS).then(r => r.ok ? r.json() : null).then(d => { if (d) setData(d); }).catch(() => {});
+  }, []);
+  return data;
+}
+
+const STATIC_STATS = [
   { value: '3.4×', label: 'Average hospital markup over Medicare rates', sub: 'Hospitals charge 340% of what Medicare pays on average' },
-  { value: '$26B', label: 'Annual surprise billing burden on Americans', sub: 'Unexpected out-of-network bills devastate families' },
-  { value: '9M+', label: 'Records across 15+ CMS datasets', sub: 'Hospitals, clinicians, payments, financials, quality' },
+  { value: '$6.6B', label: 'Pharma & device payments to physicians disclosed', sub: 'Track every dollar paid to every doctor — by drug and company' },
+  { value: '47M+', label: 'Records across 20+ CMS datasets', sub: 'Hospitals, clinicians, payments, financials, quality, post-acute' },
 ];
 
 const DATA_SOURCES = [
   { name: 'CMS Inpatient Charges', detail: '146K hospital-DRG pairs, 2023', color: '#3b82f6' },
   { name: 'Hospital Quality (HCAHPS)', detail: '5-star ratings, safety, readmissions', color: '#22d3ee' },
-  { name: 'Open Payments', detail: '30M pharma payments, PY2023–2024', color: '#a78bfa' },
+  { name: 'Open Payments', detail: '30M+ pharma payments, $6.6B disclosed, PY2023–2024', color: '#a78bfa' },
   { name: 'HCRIS Cost Reports', detail: 'Hospital financials, FY2023–2024', color: '#34d399' },
   { name: 'HRSA Shortage Areas', detail: '88K primary care / dental / mental health shortage areas', color: '#f87171' },
   { name: 'CDC PLACES', detail: 'Community health at ZIP level, 32K ZIPs', color: '#fbbf24' },
   { name: 'NPI Clinician Directory', detail: '2.7M active providers', color: '#60a5fa' },
-  { name: 'Post-Acute Care', detail: 'Nursing homes, dialysis, hospice, rehab', color: '#4ade80' },
+  { name: 'Post-Acute Care', detail: '465K hospice, nursing homes, dialysis, rehab, home health', color: '#4ade80' },
+  { name: 'Medicare Physician Services', detail: '9.7M service-level claims by provider & procedure', color: '#f97316' },
+  { name: 'Part D Drug Spending', detail: '1.4M prescribers · 14K drugs tracked', color: '#e879f9' },
 ];
 
 const FEATURES = [
   {
     icon: '🏥',
     title: 'Hospital Explorer',
-    desc: 'Search 4,000+ hospitals. See charges, quality ratings, readmissions, infections, and patient experience scores side by side.',
+    desc: 'Search 5,400+ hospitals. See charges, quality ratings, readmissions, infections, and patient experience scores side by side.',
   },
   {
     icon: '💊',
@@ -50,7 +62,7 @@ const FEATURES = [
   {
     icon: '👩‍⚕️',
     title: 'Clinician Directory',
-    desc: '2.7M providers searchable by name, specialty, ZIP, and affiliation — with pharma payment history.',
+    desc: '2.7M+ providers searchable by name, specialty, ZIP, and affiliation — with pharma payment history.',
   },
   {
     icon: '🤖',
@@ -60,8 +72,18 @@ const FEATURES = [
 ];
 
 export default function LandingPage({ onLogin, onRegister }) {
+  const liveStats = useLiveStats();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  // Build dynamic stats — replace placeholders when live data arrives
+  const M = n => n >= 1e6 ? Math.round(n / 1e6) + 'M+' : n?.toLocaleString() || '—';
+  const B = n => n >= 1e9 ? '$' + (n / 1e9).toFixed(1) + 'B' : '$' + Math.round(n / 1e6) + 'M';
+  const STATS = liveStats ? [
+    { value: '3.4×', label: 'Average hospital markup over Medicare rates', sub: 'Hospitals charge 340% of what Medicare pays on average' },
+    { value: B(liveStats.open_payments_dollars), label: 'Pharma & device payments to physicians disclosed', sub: `${M(liveStats.open_payments)} payment records from ${liveStats.clinicians ? Math.round(liveStats.clinicians / 1e6) + 'M+' : '2.7M+'} providers` },
+    { value: M(liveStats.total_records), label: 'Records across 20+ CMS datasets', sub: `${liveStats.hospitals?.toLocaleString()}+ hospitals · ${M(liveStats.clinicians)} clinicians · ${M(liveStats.physician_services)} Medicare claims` },
+  ] : STATIC_STATS;
 
   if (showRegister) {
     return (
@@ -110,7 +132,7 @@ export default function LandingPage({ onLogin, onRegister }) {
           <span className={s.heroAccent}>actually charge</span> — and why.
         </h1>
         <p className={s.heroSub}>
-          MediCosts aggregates 9 million+ records from 15 CMS datasets to put hospital costs,
+          MediCosts aggregates {liveStats ? M(liveStats.total_records) : '47M+'} records from 20+ CMS datasets to put hospital costs,
           quality ratings, physician payments, and community health data in one place — so you can
           make informed healthcare decisions before the bill arrives.
         </p>

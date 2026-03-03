@@ -1,5 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import s from './RegisterPage.module.css';
+
+const API_STATS = (import.meta.env.VITE_API_URL || '/api') + '/stats';
+
+function useLiveStats() {
+  const [fmt, setFmt] = useState(null);
+  useEffect(() => {
+    fetch(API_STATS).then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) return;
+      const M = n => n >= 1e6 ? Math.round(n / 1e6) + 'M+' : n.toLocaleString();
+      setFmt({ totalRecords: M(d.total_records), hospitals: d.hospitals?.toLocaleString() + '+' });
+    }).catch(() => {});
+  }, []);
+  return fmt;
+}
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,6 +71,7 @@ function BuildingIcon() {
 }
 
 export default function RegisterPage({ onSignIn }) {
+  const liveStats = useLiveStats();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -114,12 +129,12 @@ export default function RegisterPage({ onSignIn }) {
           </h1>
           <p className={s.heroTagline}>
             Explore Medicare hospital costs, quality ratings, safety metrics,
-            and geographic patterns across 4,700+ facilities.
+            and geographic patterns across 5,400+ facilities.
           </p>
           <div className={s.trustRow}>
             <div className={s.trustItem}><span className={s.trustIcon}><DatabaseIcon /></span>CMS Data 2023</div>
-            <div className={s.trustItem}><span className={s.trustIcon}><BuildingIcon /></span>4,700+ Hospitals</div>
-            <div className={s.trustItem}><span className={s.trustIcon}><ShieldIcon /></span>9M+ Records</div>
+            <div className={s.trustItem}><span className={s.trustIcon}><BuildingIcon /></span>{liveStats?.hospitals || '5,400+'} Hospitals</div>
+            <div className={s.trustItem}><span className={s.trustIcon}><ShieldIcon /></span>{liveStats?.totalRecords || '47M+'} Records</div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import useStats from '../hooks/useStats.js';
 import {
   LayoutDashboardIcon, ShieldCheckIcon, BuildingIcon,
   MapIcon, StethoscopeIcon, SparklesIcon, PlugIcon, GearIcon,
@@ -80,6 +81,7 @@ export default function AppShell({ onLogout }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { fmt } = useStats();
 
   // Close mobile sidebar on navigation
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
@@ -164,7 +166,7 @@ export default function AppShell({ onLogout }) {
             <span className={s.dataYear}>Data Year 2023</span>
           </div>
           <div className={s.topbarRight}>
-            <span className={s.dataBadge}>9M+ Records</span>
+            {fmt && <span className={s.dataBadge}>{fmt.totalRecords} Records</span>}
           </div>
         </header>
 

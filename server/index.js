@@ -31,6 +31,7 @@ import shortageRouter from './routes/shortage.js';
 import communityHealthRouter from './routes/community-health.js';
 import networkRouter from './routes/network.js';
 import drugsRouter from './routes/drugs.js';
+import statsRouter from './routes/stats.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -77,6 +78,9 @@ app.use('/api/abby/', abbyLimiter);
 
 // Auth routes — public
 app.use('/api/auth', authLimiter, authRouter);
+
+// Stats route — public (no auth, cached 24h, used by landing/login pages)
+app.use('/api/stats', statsRouter);
 
 // Protect all remaining /api routes
 app.use('/api', requireAuth);
