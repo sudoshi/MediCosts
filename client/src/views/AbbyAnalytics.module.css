@@ -58,6 +58,66 @@
   border-color: var(--accent);
   color: var(--accent-light);
 }
+.historyBtn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 8px;
+}
+.historyBtn:hover { border-color: var(--accent); color: var(--accent-light); }
+.historyPanel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-mid);
+  border-radius: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.historyHeader {
+  padding: 10px 16px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-dim);
+}
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.historyItem:last-child { border-bottom: none; }
+.historyItem:hover { background: rgba(59,130,246,0.05); }
+.historyItemActive { background: var(--accent-dim); }
+.historyTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.historyMeta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
 
 /* ── Chat container ──────────────────────────────────── */
 .chatContainer {

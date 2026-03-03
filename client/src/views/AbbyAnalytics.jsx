@@ -96,12 +96,23 @@ function SendIcon() {
 
 /* ── Main component ─────────────────────────────────── */
 const STORAGE_KEY = 'abby_messages';
+const SESSION_KEY = 'abby_session_id';
 
 function loadSavedMessages() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
+}
+
+async function apiCall(path, opts = {}) {
+  const token = localStorage.getItem('authToken');
+  const resp = await fetch(`${API}/api${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers || {}) },
+  });
+  if (!resp.ok) throw new Error(`${resp.status}`);
+  return resp.json();
 }
 
 export default function AbbyAnalytics() {
@@ -114,6 +125,9 @@ export default function AbbyAnalytics() {
   const [error, setError] = useState('');
   const [patientHandoffDone, setPatientHandoffDone] = useState(false);
   const [estimatorHandoffDone, setEstimatorHandoffDone] = useState(false);
+  const [sessionId, setSessionId] = useState(() => localStorage.getItem(SESSION_KEY));
+  const [sessions, setSessions] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -125,10 +139,66 @@ export default function AbbyAnalytics() {
     catch { /* quota exceeded — ignore */ }
   }, [messages]);
 
-  function clearConversation() {
+  // Load session history
+  const loadSessions = useCallback(async () => {
+    try {
+      const d = await apiCall('/abby/sessions');
+      setSessions(d.sessions || []);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  // Ensure a session exists when first message is sent
+  async function ensureSession() {
+    if (sessionId) return sessionId;
+    try {
+      const d = await apiCall('/abby/sessions', { method: 'POST', body: JSON.stringify({ title: 'New Conversation' }) });
+      const sid = d.session_id;
+      setSessionId(sid);
+      localStorage.setItem(SESSION_KEY, sid);
+      return sid;
+    } catch { return null; }
+  }
+
+  // Save a message pair to the DB session
+  async function saveToSession(sid, userMsg, assistantMsg) {
+    if (!sid) return;
+    try {
+      await apiCall(`/abby/sessions/${sid}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ messages: [userMsg, assistantMsg] }),
+      });
+    } catch { /* non-critical — don't break the chat */ }
+  }
+
+  async function clearConversation() {
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
+    setSessionId(null);
     setError('');
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    // Create a fresh session
+    try {
+      const d = await apiCall('/abby/sessions', { method: 'POST', body: JSON.stringify({ title: 'New Conversation' }) });
+      setSessionId(d.session_id);
+      localStorage.setItem(SESSION_KEY, d.session_id);
+    } catch { /* ignore */ }
+    loadSessions();
+  }
+
+  async function loadSession(sid) {
+    try {
+      const d = await apiCall(`/abby/sessions/${sid}/messages`);
+      const msgs = (d.messages || []).map(m => ({ role: m.role, content: m.content }));
+      setMessages(msgs);
+      setSessionId(sid);
+      localStorage.setItem(SESSION_KEY, sid);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+      setShowHistory(false);
+    } catch (e) {
+      setError('Failed to load conversation');
+    }
   }
 
   // Scroll to bottom on new messages
@@ -282,6 +352,10 @@ export default function AbbyAnalytics() {
           }
           return [...prev, { role: 'assistant', content: assistantContent }];
         });
+        // Save to DB session
+        const sid = await ensureSession();
+        await saveToSession(sid, userMsg, { role: 'assistant', content: assistantContent });
+        loadSessions();
       }
     } catch (err) {
       setError(err.message || 'Failed to get response');
@@ -320,7 +394,35 @@ export default function AbbyAnalytics() {
           {messages.length > 0 && (
             <button className={s.newConvoBtn} onClick={clearConversation}>New Conversation</button>
           )}
+          {sessions.length > 0 && (
+            <button
+              className={s.historyBtn}
+              onClick={() => setShowHistory(h => !h)}
+              title="Conversation history"
+            >
+              History ({sessions.length})
+            </button>
+          )}
         </div>
+
+        {/* Session history dropdown */}
+        {showHistory && (
+          <div className={s.historyPanel}>
+            <div className={s.historyHeader}>Recent Conversations</div>
+            {sessions.map(sess => (
+              <button
+                key={sess.session_id}
+                className={`${s.historyItem} ${sess.session_id === sessionId ? s.historyItemActive : ''}`}
+                onClick={() => loadSession(sess.session_id)}
+              >
+                <span className={s.historyTitle}>{sess.title || 'Conversation'}</span>
+                <span className={s.historyMeta}>
+                  {sess.message_count} msgs · {new Date(sess.last_active).toLocaleDateString()}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <p className={s.subtitle}>
           AI-powered Medicare data analysis — ask complex questions across cost, quality, safety, and geographic data
         </p>

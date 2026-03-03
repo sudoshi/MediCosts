@@ -13,6 +13,7 @@
 
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
+import db from '../db.js';
 import { buildSystemPrompt } from '../lib/abby-prompt.js';
 import { buildAnthropicTools, executeTool } from '../lib/abby-tools.js';
 
@@ -282,6 +283,141 @@ router.get('/suggestions', (_req, res) => {
     'Which pharmaceutical companies made the most payments to physicians last year?',
     'Find dialysis centers in Florida with the best mortality rates',
   ]);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * CONVERSATION MEMORY (Phase 4.3) — DB-persisted sessions per user
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * POST /api/abby/sessions — Create a new conversation session
+ */
+router.post('/sessions', async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Auth required' });
+
+    const { title } = req.body || {};
+    const r = await db.query(`
+      INSERT INTO abby_sessions (user_id, title)
+      VALUES ($1, $2)
+      RETURNING session_id, title, created_at, last_active, message_count
+    `, [userId, title || 'New Conversation']);
+
+    res.json(r.rows[0]);
+  } catch (err) { next(err); }
+});
+
+/**
+ * GET /api/abby/sessions — List user's recent sessions
+ */
+router.get('/sessions', async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Auth required' });
+
+    const r = await db.query(`
+      SELECT session_id, title, created_at, last_active, message_count
+      FROM abby_sessions
+      WHERE user_id = $1
+      ORDER BY last_active DESC
+      LIMIT 20
+    `, [userId]);
+
+    res.json({ sessions: r.rows });
+  } catch (err) { next(err); }
+});
+
+/**
+ * GET /api/abby/sessions/:id/messages — Load messages for a session
+ */
+router.get('/sessions/:id/messages', async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    // Verify session belongs to user
+    const sess = await db.query(
+      'SELECT session_id FROM abby_sessions WHERE session_id = $1 AND user_id = $2',
+      [id, userId]
+    );
+    if (!sess.rows.length) return res.status(404).json({ error: 'Session not found' });
+
+    const r = await db.query(`
+      SELECT id, role, content, tool_calls, created_at
+      FROM abby_messages
+      WHERE session_id = $1
+      ORDER BY created_at ASC
+    `, [id]);
+
+    res.json({ session_id: id, messages: r.rows });
+  } catch (err) { next(err); }
+});
+
+/**
+ * POST /api/abby/sessions/:id/messages — Save message pair to session
+ * Body: { messages: [{ role, content }] }
+ */
+router.post('/sessions/:id/messages', async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+    const { messages } = req.body || {};
+
+    if (!Array.isArray(messages) || !messages.length) {
+      return res.status(400).json({ error: 'messages array required' });
+    }
+
+    // Verify ownership
+    const sess = await db.query(
+      'SELECT session_id, message_count, title FROM abby_sessions WHERE session_id = $1 AND user_id = $2',
+      [id, userId]
+    );
+    if (!sess.rows.length) return res.status(404).json({ error: 'Session not found' });
+
+    // Insert messages
+    for (const msg of messages) {
+      if (!msg.role || !msg.content) continue;
+      await db.query(`
+        INSERT INTO abby_messages (session_id, role, content, tool_calls)
+        VALUES ($1, $2, $3, $4)
+      `, [id, msg.role, typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content), msg.tool_calls ?? null]);
+    }
+
+    // Auto-title from first user message if session still untitled
+    const session = sess.rows[0];
+    const userMsg = messages.find(m => m.role === 'user');
+    const autoTitle = session.title === 'New Conversation' && userMsg
+      ? String(userMsg.content).slice(0, 60) + (String(userMsg.content).length > 60 ? '…' : '')
+      : null;
+
+    await db.query(`
+      UPDATE abby_sessions
+      SET last_active = now(),
+          message_count = message_count + $2
+          ${autoTitle ? `, title = $3` : ''}
+      WHERE session_id = $1
+    `, autoTitle ? [id, messages.length, autoTitle] : [id, messages.length]);
+
+    res.json({ saved: messages.length });
+  } catch (err) { next(err); }
+});
+
+/**
+ * DELETE /api/abby/sessions/:id — Delete a session
+ */
+router.delete('/sessions/:id', async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    const r = await db.query(
+      'DELETE FROM abby_sessions WHERE session_id = $1 AND user_id = $2 RETURNING session_id',
+      [id, userId]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: 'Session not found' });
+    res.json({ deleted: true });
+  } catch (err) { next(err); }
 });
 
 export default router;

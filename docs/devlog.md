@@ -2237,3 +2237,30 @@ Active networks loaded (as of 2026-03-03):
 
 Total: ~2.1M deduplicated provider-network links
 
+
+---
+
+## Phase 4.3 — Abby Conversation Memory (2026-03-03)
+
+### DB Schema (auto-migrated via db-migrate.js)
+```sql
+abby_sessions (session_id UUID PK, user_id FK → users, title, created_at, last_active, message_count)
+abby_messages (id BIGSERIAL PK, session_id FK, role, content TEXT, tool_calls JSONB, created_at)
+```
+Both tables created at startup via `runMigrations()`. Sessions are scoped to the authenticated user.
+
+### Backend endpoints (server/routes/abby.js)
+- `POST /api/abby/sessions` — create session (auto-titles from first user message)
+- `GET /api/abby/sessions` — list user's 20 most recent sessions
+- `GET /api/abby/sessions/:id/messages` — load full message history
+- `POST /api/abby/sessions/:id/messages` — save message pair after each exchange
+- `DELETE /api/abby/sessions/:id` — delete session
+
+### Frontend (AbbyAnalytics.jsx)
+- On each completed exchange, saves {user, assistant} pair to DB via POST
+- "History (N)" button shows dropdown panel with session titles, message counts, dates
+- Clicking a session loads its messages from DB and sets as current context
+- "New Conversation" creates a fresh DB session + clears localStorage
+- Auto-title: first 60 chars of the first user message
+- Session ID persisted in localStorage between page reloads
+
