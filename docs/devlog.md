@@ -2279,3 +2279,79 @@ Both tables created at startup via `runMigrations()`. Sessions are scoped to the
 ### Production admin password
 Reset to `Admin2024!` (bcrypt hash updated directly in DB, Mar 3 2026)
 
+---
+
+## ClearNetwork: State-Level MRF Expansion — Multi-State BCBS Discovery (2026-03-03)
+
+### Summary
+
+Systematically expanded MRF coverage from 1 state (PA) to 10+ states by researching and probing BCBS affiliate MRF hosting patterns across the US. Created a persistent PostgreSQL knowledge base (`clearnetwork.mrf_research`) to track all research findings. Discovered the Sapphire MRF Hub platform and unlocked 3 new BCBS plans, split HCSC into 5 independent state entries, and upgraded BCBS NC from browser-required to direct JSON.
+
+### Key Discoveries
+
+**Sapphire MRF Hub** (`*.sapphiremrfhub.com`)
+- S3+CloudFront platform used by select BCBS affiliates for CMS-standard MRF hosting
+- Root page is a Gatsby SPA containing direct links to dated JSON index files
+- `/tocs/current/{slug}` redirects to latest dated index (evergreen URL)
+- 3 live subdomains found: `bcbsm` (MI), `bcbsla` (LA), `premera` (WA/AK)
+- 85 subdomains scanned — only these 3 resolve; others use EIN-search portals
+
+**HCSC Multi-State Azure Blob**
+- HCSC publishes separate index files per state at the same Azure blob endpoint
+- Key finding: date is **not** the 1st of month — HCSC publishes around the 24th
+- All 5 states confirmed: IL (29.6 MB), TX (25.1 MB), OK (6.2 MB), NM (3.0 MB), MT (1.6 MB)
+- Plan names discovered by scraping each state's individual BCBS website
+
+**BCBS NC Direct JSON**
+- `mrfmftprod.bcbsnc.com` hosts direct JSON indexes (no browser needed)
+- 2.4 GB index file — upgraded from `browser_required` to `dated_s3`
+
+### New Automatable Insurers Added
+
+| Insurer | State(s) | Index Type | Index Size | Test Crawl |
+|---------|----------|------------|------------|------------|
+| BCBS Michigan | MI | sapphire_hub | 264 KB | 77,162 providers |
+| BCBS Louisiana (LAHSIC) | LA | sapphire_hub | 326 KB | 43,301 providers |
+| HMO Louisiana | LA | sapphire_hub | 519 KB | — |
+| Premera Blue Cross | WA, AK | sapphire_hub | 1.7 MB | — |
+| BCBS Texas | TX | dated_azure | 25.1 MB | 97,005 providers |
+| BCBS Montana | MT | dated_azure | 1.6 MB | — |
+| BCBS Oklahoma | OK | dated_azure | 6.2 MB | — |
+| BCBS New Mexico | NM | dated_azure | 3.0 MB | — |
+| BCBS North Carolina | NC | dated_s3 | 2.4 GB | — |
+
+### Registry Changes
+
+- **Split HCSC** from 1 entry (IL-only) into 5 state-specific entries (IL, TX, MT, OK, NM)
+- **Upgraded BCBS MI** from `browser_required` to `sapphire_hub`
+- **Upgraded Premera** from `browser_required` to `sapphire_hub`
+- **Upgraded BCBS NC** from `browser_required` to `dated_s3`
+- **Added BCBS LA (LAHSIC)** and **HMO Louisiana** as new entries
+- Total insurers in registry: 29 (was 22)
+
+### Code Changes
+
+- `orchestrator.py`: Expanded `try_dated_urls()` from 7-day to 14-day lookback for YYYY-MM-DD patterns (HCSC publishes around the 24th)
+- `known_insurers.json`: 7 new entries, 3 type upgrades, 1 entry split into 5
+
+### Knowledge Base
+
+70 entries in `clearnetwork.mrf_research` covering research across all 50 states + DC:
+- **10 easy** (automatable, verified URLs, added to registry)
+- **17 browser_required** (EIN-search SPAs, no bulk access)
+- **6 hard** (pages exist but no direct index URLs)
+- **8 dead** (URLs return 404/connection errors)
+- **29 unknown** (from initial probe, need deeper investigation)
+
+### States Not Yet Accessible
+
+Most remaining BCBS affiliates use EIN-search portals (HealthSparq, custom SPAs) that require employer identification numbers to look up MRF files. These cannot be bulk-crawled without knowing specific EINs:
+- AR, KS, AL, SC, NJ, IA, NY (Excellus), TN, MA, and others
+
+### Nightly Cron Impact
+
+All new insurers are automatically picked up by the `--automatable-only` flag — no cron changes needed. The nightly crawl now covers:
+- **National**: UHC, Anthem, Cigna (dated patterns + blob API)
+- **Multi-state**: HCSC (IL, TX, MT, OK, NM)
+- **State-specific**: BCBS MN, BCBS MI, BCBS NC, BCBS LA (x2), Premera (WA/AK), UPMC (PA/WV)
+

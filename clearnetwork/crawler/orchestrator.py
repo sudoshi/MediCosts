@@ -122,8 +122,8 @@ async def try_dated_urls(url_template: str, date_pattern: str, session: aiohttp.
     dates_to_try = []
 
     if date_pattern == "YYYY-MM-DD":
-        # Try last 7 days
-        for i in range(7):
+        # Try last 14 days (HCSC publishes around the 24th of each month)
+        for i in range(14):
             d = now - timedelta(days=i)
             dates_to_try.append(d.strftime("%Y-%m-%d"))
     elif date_pattern == "YYYY-MM-01":

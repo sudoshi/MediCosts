@@ -74,12 +74,52 @@
     "index_type": "browser_required"
   },
   {
-    "legal_name": "HCSC (Health Care Service Corporation)",
-    "trade_names": ["Blue Cross Blue Shield of Illinois", "BCBS of Texas", "BCBS of Montana", "BCBS of Oklahoma", "BCBS of New Mexico"],
+    "legal_name": "Blue Cross and Blue Shield of Illinois",
+    "trade_names": ["BCBS Illinois", "BCBSIL", "HCSC Illinois"],
     "naic_code": "70110",
-    "states_licensed": ["IL", "TX", "MT", "OK", "NM"],
+    "states_licensed": ["IL"],
     "plan_types": ["HMO", "PPO", "EPO", "POS"],
     "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-Illinois_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD"
+  },
+  {
+    "legal_name": "Blue Cross and Blue Shield of Texas",
+    "trade_names": ["BCBS Texas", "BCBSTX", "HCSC Texas"],
+    "naic_code": "70110",
+    "states_licensed": ["TX"],
+    "plan_types": ["HMO", "PPO", "EPO", "POS"],
+    "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-Texas_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD"
+  },
+  {
+    "legal_name": "Blue Cross and Blue Shield of Montana",
+    "trade_names": ["BCBS Montana", "BCBSMT", "HCSC Montana"],
+    "naic_code": "70110",
+    "states_licensed": ["MT"],
+    "plan_types": ["HMO", "PPO"],
+    "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-Montana_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD"
+  },
+  {
+    "legal_name": "Blue Cross and Blue Shield of Oklahoma",
+    "trade_names": ["BCBS Oklahoma", "BCBSOK", "HCSC Oklahoma"],
+    "naic_code": "70110",
+    "states_licensed": ["OK"],
+    "plan_types": ["HMO", "PPO", "EPO"],
+    "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-Oklahoma_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD"
+  },
+  {
+    "legal_name": "Blue Cross and Blue Shield of New Mexico",
+    "trade_names": ["BCBS New Mexico", "BCBSNM", "HCSC New Mexico"],
+    "naic_code": "70110",
+    "states_licensed": ["NM"],
+    "plan_types": ["HMO", "PPO"],
+    "mrf_index_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-New-Mexico_index.json",
     "index_type": "dated_azure",
     "date_pattern": "YYYY-MM-DD"
   },
@@ -108,8 +148,8 @@
     "naic_code": "60131",
     "states_licensed": ["MI"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.bcbsm.com/content/dam/microsites/price-transparency/machine-readable-files/",
-    "index_type": "browser_required"
+    "mrf_index_url": "https://bcbsm.sapphiremrfhub.com/tocs/current/blue_cross_blue_shield_of_michigan",
+    "index_type": "sapphire_hub"
   },
   {
     "legal_name": "Independence Blue Cross",
@@ -126,8 +166,9 @@
     "naic_code": "54941",
     "states_licensed": ["NC"],
     "plan_types": ["HMO", "PPO"],
-    "mrf_index_url": "https://www.bluecrossnc.com/about-us/policies-and-best-practices/transparency-in-coverage",
-    "index_type": "browser_required"
+    "mrf_index_url": "https://mrfmftprod.bcbsnc.com/prod/etl/outbound/table-of-contents/non-aso/{date}_blue-cross-and-blue-shield-of-north-carolina_index.json",
+    "index_type": "dated_s3",
+    "date_pattern": "YYYY-MM-DD"
   },
   {
     "legal_name": "CareFirst BlueCross BlueShield",
@@ -189,8 +230,26 @@
     "naic_code": "67814",
     "states_licensed": ["WA", "AK"],
     "plan_types": ["HMO", "PPO", "EPO"],
-    "mrf_index_url": "https://www.premera.com/visitor/transparency-in-coverage",
-    "index_type": "browser_required"
+    "mrf_index_url": "https://premera.sapphiremrfhub.com/tocs/current/premera-blue-cross",
+    "index_type": "sapphire_hub"
+  },
+  {
+    "legal_name": "Louisiana Health Service & Indemnity Company",
+    "trade_names": ["BCBS Louisiana", "Blue Cross Louisiana", "LAHSIC"],
+    "naic_code": "62842",
+    "states_licensed": ["LA"],
+    "plan_types": ["PPO", "EPO", "POS"],
+    "mrf_index_url": "https://bcbsla.sapphiremrfhub.com/tocs/current/lahsic",
+    "index_type": "sapphire_hub"
+  },
+  {
+    "legal_name": "HMO Louisiana",
+    "trade_names": ["Blue Cross HMO Louisiana", "HMOLA"],
+    "naic_code": "95478",
+    "states_licensed": ["LA"],
+    "plan_types": ["HMO"],
+    "mrf_index_url": "https://bcbsla.sapphiremrfhub.com/tocs/current/hmola",
+    "index_type": "sapphire_hub"
   },
   {
     "legal_name": "Florida Blue (Blue Cross and Blue Shield of Florida)",
