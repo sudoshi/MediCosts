@@ -554,6 +554,47 @@ export const TOOLS = [
     },
     endpoint: '/api/payments/search',
   },
+
+  /* ── HRSA Shortage Areas ─────────────────────────────────────── */
+  {
+    name: 'get_shortage_areas',
+    description: 'Look up HRSA Health Professional Shortage Area (HPSA) designations for a ZIP code. Shows if the area has shortages in Primary Care, Dental Health, or Mental Health. Higher score (0-25) = more severe shortage. Use this to understand access-to-care challenges in a specific community.',
+    parameters: {
+      zip: { type: 'string', required: true, description: '5-digit US ZIP code' },
+    },
+    endpoint: '/api/shortage-areas',
+  },
+  {
+    name: 'get_shortage_summary_by_state',
+    description: 'Get a summary of all HRSA shortage area designations in a state — total designated areas, avg score, affected population, and healthcare professionals needed.',
+    parameters: {
+      state: { type: 'string', required: true, description: 'Two-letter state abbreviation, e.g. "TX"' },
+    },
+    endpoint: '/api/shortage-areas/state/:state',
+    pathParams: ['state'],
+  },
+
+  /* ── CDC PLACES Community Health ─────────────────────────────── */
+  {
+    name: 'get_community_health',
+    description: 'Get CDC PLACES community health statistics for a ZIP code — prevalence of chronic diseases (diabetes, obesity, heart disease, COPD, depression, etc.), risk behaviors (smoking, binge drinking, physical inactivity), and access measures (uninsured rate, annual checkup rate). Use this to understand the health burden of the community a hospital serves.',
+    parameters: {
+      zip: { type: 'string', required: true, description: '5-digit US ZIP code' },
+    },
+    endpoint: '/api/community-health/:zip',
+    pathParams: ['zip'],
+  },
+
+  /* ── Hospital Financials (HCRIS) ─────────────────────────────── */
+  {
+    name: 'get_hospital_financials',
+    description: 'Get HCRIS Cost Report financial data for a specific hospital — gross charges, inpatient charges, licensed beds, total inpatient days, occupancy rate, uncompensated care cost, and charity care details. Covers FY2023 and FY2024.',
+    parameters: {
+      ccn: { type: 'string', required: true, description: 'Hospital CCN (6-digit facility ID), e.g. "050454"' },
+    },
+    endpoint: '/api/financials/hospital/:ccn',
+    pathParams: ['ccn'],
+  },
 ];
 
 /**

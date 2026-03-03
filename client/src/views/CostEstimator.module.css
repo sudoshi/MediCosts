@@ -479,3 +479,25 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* ── Shortage warning banner ── */
+.shortageWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.shortageIcon {
+  font-size: 16px;
+  color: #fbbf24;
+  flex-shrink: 0;
+  margin-top: 1px;
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
@@ -101,6 +101,17 @@ export default function CostEstimator() {
   }, [sort, order]);
 
   const hasZip = locMode === 'zip' && zip.length === 5;
+
+  // Shortage area check for entered ZIP
+  const [shortageData, setShortageData] = useState(null);
+  useEffect(() => {
+    if (!hasZip) { setShortageData(null); return; }
+    const token = localStorage.getItem('authToken');
+    fetch(`${API}/shortage-areas?zip=${zip}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setShortageData(d?.shortage_areas?.length ? d : null))
+      .catch(() => {});
+  }, [zip, hasZip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function askAbby() {
     if (!results || results.length === 0 || !selectedDrg) return;
@@ -236,6 +247,18 @@ export default function CostEstimator() {
           <SummaryCard label="Range" value={`${fmtCurrency(summary.min_payment)} – ${fmtCurrency(summary.max_payment)}`} />
           <SummaryCard label="Hospitals" value={fmtNumber(summary.num_providers)} />
           <SummaryCard label="Total Cases" value={fmtNumber(summary.total_discharges)} />
+        </div>
+      )}
+
+      {/* Shortage Area Warning */}
+      {shortageData && (
+        <div className={s.shortageWarning}>
+          <span className={s.shortageIcon}>⚠</span>
+          <div>
+            <strong>Health Professional Shortage Area</strong> — ZIP {zip} is HRSA-designated for{' '}
+            {shortageData.shortage_areas.map(a => a.shortage_type).join(', ')}.
+            Provider availability may be limited — compare a wider radius for more options.
+          </div>
         </div>
       )}
 
