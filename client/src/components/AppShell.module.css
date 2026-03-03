@@ -52,9 +52,43 @@
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* ── Nav groups ── */
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 4px;
+}
+
+.navGroupLabel {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 10px 12px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.2s ease, height 0.2s ease;
+}
+.collapsed .navGroupLabel {
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.navDivider {
+  height: 1px;
+  background: var(--border-dim);
+  margin: 6px 8px;
 }
 .navItem {
   display: flex;

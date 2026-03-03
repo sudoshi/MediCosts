@@ -10,29 +10,71 @@ import {
 } from './icons/NavIcons';
 import s from './AppShell.module.css';
 
-const NAV_ITEMS = [
-  { path: '/overview',   label: 'Overview',             icon: LayoutDashboardIcon },
-  { path: '/quality',    label: 'Quality Command',      icon: ShieldCheckIcon },
-  { path: '/hospitals',  label: 'Hospital Explorer',    icon: BuildingIcon },
-  { path: '/geography',  label: 'Geographic Analysis',  icon: MapIcon },
-  { path: '/trends',     label: 'Cost Trends',          icon: TrendingUpIcon },
-  { path: '/post-acute', label: 'Post-Acute Care',      icon: HeartPulseIcon },
-  { path: '/spending',   label: 'Spending & Value',     icon: DollarIcon },
-  { path: '/clinicians', label: 'Clinician Directory',  icon: UsersIcon },
-  { path: '/payments',    label: 'Industry Payments',   icon: DollarIcon },
-  { path: '/drugs',      label: 'Drug Spending',        icon: PillIcon },
-  { path: '/financials', label: 'Hospital Financials',  icon: TrendingUpIcon },
-  { path: '/estimate',        label: 'Cost Estimator',       icon: SearchDollarIcon },
-  { path: '/for-patients',    label: 'For Patients',         icon: ClipboardHeartIcon },
-  { path: '/compare',         label: 'Compare',              icon: ScaleIcon },
-  { path: '/accountability',  label: 'Accountability',       icon: AlertTriangleIcon },
-  { path: '/physicians', label: 'Physician Analytics',  icon: StethoscopeIcon },
-  { path: '/abby',       label: 'Abby Analytics',        icon: SparklesIcon },
-  { path: '/connectors', label: 'Data Connectors',      icon: PlugIcon },
-  { path: '/settings',   label: 'Settings',             icon: GearIcon },
-  { path: '/blog',       label: 'Blog',                 icon: BookOpenIcon },
-  { path: '/about',      label: 'About & Data Sources', icon: InfoIcon },
+const NAV_GROUPS = [
+  {
+    label: null,
+    items: [
+      { path: '/overview', label: 'Overview', icon: LayoutDashboardIcon },
+    ],
+  },
+  {
+    label: 'Providers',
+    items: [
+      { path: '/hospitals',  label: 'Hospital Explorer',   icon: BuildingIcon },
+      { path: '/clinicians', label: 'Clinician Directory', icon: UsersIcon },
+      { path: '/post-acute', label: 'Post-Acute Care',     icon: HeartPulseIcon },
+      { path: '/physicians', label: 'Physician Analytics', icon: StethoscopeIcon },
+    ],
+  },
+  {
+    label: 'Quality & Safety',
+    items: [
+      { path: '/quality',       label: 'Quality Command',  icon: ShieldCheckIcon },
+      { path: '/accountability',label: 'Accountability',   icon: AlertTriangleIcon },
+      { path: '/compare',       label: 'Compare Hospitals',icon: ScaleIcon },
+    ],
+  },
+  {
+    label: 'Cost & Financials',
+    items: [
+      { path: '/trends',     label: 'Cost Trends',         icon: TrendingUpIcon },
+      { path: '/spending',   label: 'Spending & Value',    icon: DollarIcon },
+      { path: '/drugs',      label: 'Drug Spending',       icon: PillIcon },
+      { path: '/financials', label: 'Hospital Financials', icon: TrendingUpIcon },
+      { path: '/payments',   label: 'Industry Payments',   icon: DollarIcon },
+    ],
+  },
+  {
+    label: 'Geography',
+    items: [
+      { path: '/geography', label: 'Geographic Analysis', icon: MapIcon },
+    ],
+  },
+  {
+    label: 'Patient Tools',
+    items: [
+      { path: '/for-patients', label: 'For Patients',   icon: ClipboardHeartIcon },
+      { path: '/estimate',     label: 'Cost Estimator', icon: SearchDollarIcon },
+    ],
+  },
+  {
+    label: 'AI & Data',
+    items: [
+      { path: '/abby',       label: 'Abby Analytics',  icon: SparklesIcon },
+      { path: '/connectors', label: 'Data Connectors', icon: PlugIcon },
+    ],
+  },
+  {
+    label: null,
+    items: [
+      { path: '/settings', label: 'Settings',             icon: GearIcon },
+      { path: '/blog',     label: 'Blog',                 icon: BookOpenIcon },
+      { path: '/about',    label: 'About & Data Sources', icon: InfoIcon },
+    ],
+  },
 ];
+
+const NAV_FLAT = NAV_GROUPS.flatMap(g => g.items);
 
 export default function AppShell({ onLogout }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -42,7 +84,7 @@ export default function AppShell({ onLogout }) {
   // Close mobile sidebar on navigation
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  const current = NAV_ITEMS.find(i => location.pathname.startsWith(i.path));
+  const current = NAV_FLAT.find(i => location.pathname.startsWith(i.path));
 
   return (
     <div className={`${s.shell} ${collapsed ? s.shellCollapsed : ''}`}>
@@ -59,18 +101,28 @@ export default function AppShell({ onLogout }) {
         </div>
 
         <nav className={s.nav}>
-          {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
-            <NavLink
-              key={path}
-              to={path}
-              className={({ isActive }) =>
-                `${s.navItem} ${isActive ? s.active : ''}`
-              }
-              title={collapsed ? label : undefined}
-            >
-              <Icon />
-              {!collapsed && <span className={s.navLabel}>{label}</span>}
-            </NavLink>
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={gi} className={s.navGroup}>
+              {group.label && (
+                <span className={s.navGroupLabel}>{group.label}</span>
+              )}
+              {!group.label && gi > 0 && (
+                <div className={s.navDivider} />
+              )}
+              {group.items.map(({ path, label, icon: Icon }) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  className={({ isActive }) =>
+                    `${s.navItem} ${isActive ? s.active : ''}`
+                  }
+                  title={collapsed ? label : undefined}
+                >
+                  <Icon />
+                  {!collapsed && <span className={s.navLabel}>{label}</span>}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 
