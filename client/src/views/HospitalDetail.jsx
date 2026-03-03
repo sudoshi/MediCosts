@@ -31,6 +31,9 @@ export default function HospitalDetail() {
   const { data: hcahps } = useApi(`/quality/hcahps/hospital/${ccn}`, [ccn]);
   const { data: hospPayments } = useApi(`/payments/hospital/${ccn}`, [ccn]);
   const { data: financials } = useApi(`/financials/hospital/${ccn}`, [ccn]);
+  const zip = composite?.zip_code?.replace(/\D/g, '').slice(0, 5);
+  const { data: communityHealth } = useApi(zip ? `/community-health/${zip}` : null, [zip]);
+  const { data: shortageAreas } = useApi(zip ? `/shortage-areas?zip=${zip}` : null, [zip]);
 
   if (loadingComposite) {
     return (
@@ -443,6 +446,57 @@ export default function HospitalDetail() {
               </table>
             </div>
           )}
+        </Panel>
+      )}
+
+      {/* Shortage Area Alerts */}
+      {shortageAreas?.shortage_areas?.length > 0 && (
+        <Panel title="Health Professional Shortage Area (HRSA)">
+          <div className={s.shortageAlerts}>
+            {shortageAreas.shortage_areas.map((a, i) => (
+              <div key={i} className={s.shortageChip}>
+                <span className={s.shortageScore}>Score {a.hpsa_score ?? '—'}/25</span>
+                <span className={s.shortageType}>{a.shortage_type}</span>
+                {a.population_served && (
+                  <span className={s.shortageNote}>{Number(a.population_served).toLocaleString()} served</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className={s.shortageFooter}>
+            HRSA-designated shortage areas indicate insufficient healthcare professionals relative to community need.
+            Higher scores = more severe shortage.
+          </p>
+        </Panel>
+      )}
+
+      {/* Community Health Context (CDC PLACES) */}
+      {communityHealth && (
+        <Panel title={`Community Health — ZIP ${zip}`}>
+          <div className={s.kpiRow}>
+            {communityHealth.diabetes_pct != null && (
+              <KpiCard label="Diabetes" value={`${communityHealth.diabetes_pct}%`} />
+            )}
+            {communityHealth.obesity_pct != null && (
+              <KpiCard label="Obesity" value={`${communityHealth.obesity_pct}%`} />
+            )}
+            {communityHealth.heart_disease_pct != null && (
+              <KpiCard label="Heart Disease" value={`${communityHealth.heart_disease_pct}%`} />
+            )}
+            {communityHealth.uninsured_pct != null && (
+              <KpiCard label="Uninsured" value={`${communityHealth.uninsured_pct}%`} />
+            )}
+            {communityHealth.depression_pct != null && (
+              <KpiCard label="Depression" value={`${communityHealth.depression_pct}%`} />
+            )}
+            {communityHealth.smoking_pct != null && (
+              <KpiCard label="Smoking" value={`${communityHealth.smoking_pct}%`} />
+            )}
+          </div>
+          <p className={s.shortageFooter}>
+            Source: CDC PLACES {communityHealth.data_year} — crude prevalence estimates for adults 18+.
+            Population: {communityHealth.total_population?.toLocaleString() ?? '—'}.
+          </p>
         </Panel>
       )}
     </div>
