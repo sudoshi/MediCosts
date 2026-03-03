@@ -2264,3 +2264,18 @@ Both tables created at startup via `runMigrations()`. Sessions are scoped to the
 - Auto-title: first 60 chars of the first user message
 - Session ID persisted in localStorage between page reloads
 
+
+---
+
+## Session Wrap-Up (2026-03-03)
+
+### Completed this session
+- **Phase 3.1** — ClearNetwork MVP: NPI + hospital network lookups, insurance badges on HospitalDetail/ClinicianProfile, fixed `trust proxy` rate-limiter bug
+- **Phase 6.2** — SQL injection hardening: payments `/top` fully parameterized, post-acute `/landscape` fixed (removed missing `mv_post_acute_landscape` view)
+- **Phase 1.5** — Part D drug spending: 14K drugs + 1.38M prescribers, `/drugs` explorer page, ClinicianProfile Part D panel
+- **Phase 4.3** — Abby conversation memory: `abby_sessions` + `abby_messages` DB tables, 5 session endpoints, history dropdown in UI
+- **Phase 7.4** — README v1.0: complete rewrite for production platform
+
+### Production admin password
+Reset to `Admin2024!` (bcrypt hash updated directly in DB, Mar 3 2026)
+

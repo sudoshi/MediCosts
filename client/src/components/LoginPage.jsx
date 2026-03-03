@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import s from './LoginPage.module.css';
 
-const VALID_USER = 'admin';
-const VALID_PASS = 'admin';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /* ── Inline SVG icons ── */
 
@@ -70,50 +69,43 @@ function AlertCircleIcon() {
 
 /* ── Login page ── */
 
-export default function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('');
+export default function LoginPage({ onLogin, onRegister }) {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [exiting, setExiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const userRef = useRef(null);
 
-  function attempt(user, pass) {
-    if (user === VALID_USER && pass === VALID_PASS) {
-      setError('');
-      setExiting(true);
-      setTimeout(onLogin, 350);
-    } else {
-      setError('Invalid username or password');
-      setPassword('');
-    }
-  }
-
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    attempt(username, password);
-  }
-
-  async function handleQuickFill(user, pass) {
+    if (!email || !password) return;
     setBusy(true);
     setError('');
-    setUsername('');
-    setPassword('');
 
-    for (let i = 0; i <= user.length; i++) {
-      await delay(40);
-      setUsername(user.slice(0, i));
-    }
-    for (let i = 0; i <= pass.length; i++) {
-      await delay(40);
-      setPassword(pass.slice(0, i));
-    }
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
 
-    await delay(200);
-    setBusy(false);
-    attempt(user, pass);
+      if (res.status === 429) {
+        setError('Too many attempts. Try again in 15 minutes.');
+        setPassword('');
+      } else if (!res.ok) {
+        setError(data.error || 'Invalid credentials');
+        setPassword('');
+      } else {
+        setExiting(true);
+        setTimeout(() => onLogin(data.token, data.user), 350);
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -170,20 +162,19 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <form onSubmit={handleSubmit} autoComplete="on">
-            {/* Username */}
+            {/* Email */}
             <div className={s.field}>
-              <label className={s.label} htmlFor="login-user">Username</label>
+              <label className={s.label} htmlFor="login-email">Email</label>
               <div className={s.inputWrap}>
                 <input
-                  id="login-user"
-                  ref={userRef}
+                  id="login-email"
                   className={s.input}
-                  type="text"
-                  name="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
-                  autoComplete="username"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
                   disabled={busy}
                 />
               </div>
@@ -216,17 +207,6 @@ export default function LoginPage({ onLogin }) {
               </div>
             </div>
 
-            {/* Remember me */}
-            <label className={s.rememberRow}>
-              <input
-                type="checkbox"
-                className={s.checkbox}
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <span className={s.checkboxLabel}>Remember me on this device</span>
-            </label>
-
             {/* Error */}
             {error && (
               <div className={s.error}>
@@ -242,23 +222,16 @@ export default function LoginPage({ onLogin }) {
             </button>
           </form>
 
-          {/* Demo quick-fill */}
-          <div className={s.demoSection}>
-            <span className={s.demoLabel}>Quick demo login</span>
-            <div className={s.demoRow}>
-              <button
-                type="button"
-                className={s.demoBtn}
-                onClick={() => handleQuickFill('admin', 'admin')}
-                disabled={busy}
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-
           <div className={s.footer}>
             <div className={s.footerDivider} />
+            {onRegister && (
+              <p className={s.footerText} style={{ marginBottom: '12px' }}>
+                Need an account?{' '}
+                <button type="button" className={s.switchLink} onClick={onRegister}>
+                  Create one
+                </button>
+              </p>
+            )}
             <div className={s.cmsBadge}>
               <span className={s.cmsDot} />
               Powered by Acumenus Data Sciences
@@ -273,6 +246,3 @@ export default function LoginPage({ onLogin }) {
   );
 }
 
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}

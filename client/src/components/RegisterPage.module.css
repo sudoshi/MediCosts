@@ -1,9 +1,4 @@
-/* =============================================================================
-   MediCosts — Login Page
-   Split-screen design adapted from MindLog's "Observatory" pattern
-   ============================================================================= */
-
-/* ── LAYOUT ── */
+/* RegisterPage — mirrors LoginPage split-screen aesthetic */
 
 .page {
   display: grid;
@@ -19,7 +14,7 @@
   .hero { display: none; }
 }
 
-/* ── LEFT PANEL — HERO ── */
+/* ── HERO (identical to LoginPage) ── */
 
 .hero {
   position: relative;
@@ -32,7 +27,6 @@
   background: #08080a;
 }
 
-/* Subtle grid underlay */
 .hero::before {
   content: '';
   position: absolute;
@@ -45,7 +39,6 @@
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 80%);
 }
 
-/* Noise texture overlay */
 .hero::after {
   content: '';
   position: absolute;
@@ -55,8 +48,6 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
-
-/* ── LUMINOUS ORBS ── */
 
 .orb {
   position: absolute;
@@ -110,8 +101,6 @@
   0%, 100% { transform: translate(0, 0) scale(1); }
   50%      { transform: translate(20px, -15px) scale(1.06); }
 }
-
-/* ── HERO CONTENT ── */
 
 .heroContent {
   position: relative;
@@ -171,7 +160,6 @@
   margin: 0 0 40px;
 }
 
-/* Trust signals */
 .trustRow {
   display: flex;
   gap: 24px;
@@ -200,7 +188,7 @@
   opacity: 0.7;
 }
 
-/* ── RIGHT PANEL — FORM ── */
+/* ── FORM PANEL ── */
 
 .formPanel {
   display: flex;
@@ -210,7 +198,6 @@
   position: relative;
 }
 
-/* Left-edge separator on desktop */
 .formPanel::before {
   content: '';
   position: absolute;
@@ -230,14 +217,11 @@
 }
 
 @media (max-width: 960px) {
-  .formPanel {
-    min-height: 100vh;
-    padding: 32px 24px;
-  }
+  .formPanel { min-height: 100vh; padding: 32px 24px; }
   .formPanel::before { display: none; }
 }
 
-/* ── FORM CARD ── */
+/* ── CARD ── */
 
 .card {
   width: 100%;
@@ -250,15 +234,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.cardExit {
-  animation: cardLeave 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-@keyframes cardLeave {
-  to { opacity: 0; transform: translateY(-12px) scale(0.98); }
-}
-
-/* Mobile brand (shown when hero is hidden) */
 .mobileBrand {
   display: none;
   font-family: var(--font-display);
@@ -273,9 +248,7 @@
   .mobileBrand { display: block; }
 }
 
-.header {
-  margin-bottom: 40px;
-}
+.header { margin-bottom: 36px; }
 
 .title {
   font-family: var(--font-display);
@@ -293,16 +266,17 @@
   line-height: 1.5;
 }
 
-/* ── FORM FIELDS ── */
+/* ── FIELDS ── */
 
 .field {
   position: relative;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   animation: fieldReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .field:nth-child(1) { animation-delay: 0.15s; }
-.field:nth-child(2) { animation-delay: 0.25s; }
+.field:nth-child(2) { animation-delay: 0.22s; }
+.field:nth-child(3) { animation-delay: 0.29s; }
 
 @keyframes fieldReveal {
   from { opacity: 0; transform: translateY(12px); }
@@ -319,8 +293,12 @@
   margin-bottom: 8px;
 }
 
-.inputWrap {
-  position: relative;
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+  font-size: 11px;
 }
 
 .input {
@@ -340,7 +318,6 @@
 }
 
 .input::placeholder { color: var(--text-tertiary); }
-
 .input:hover:not(:disabled) { border-color: var(--text-tertiary); }
 
 .input:focus {
@@ -350,81 +327,6 @@
 }
 
 .input:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.inputHasToggle { padding-right: 44px; }
-
-/* Password toggle */
-.pwToggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: color 0.2s;
-}
-
-.pwToggle:hover { color: var(--text-secondary); }
-
-/* ── REMEMBER ME ── */
-
-.rememberRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
-  cursor: pointer;
-  animation: fieldReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: 0.35s;
-}
-
-.checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--border-mid);
-  border-radius: 5px;
-  background: rgba(255,255,255,0.04);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.checkbox:checked {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.checkbox:checked::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 5px;
-  height: 9px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.checkbox:focus-visible {
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-.checkboxLabel {
-  font-size: 13px;
-  color: var(--text-secondary);
-  user-select: none;
-}
 
 /* ── ERROR ── */
 
@@ -440,17 +342,8 @@
   animation: errorShake 0.4s ease-out;
 }
 
-.errorIcon {
-  color: var(--red);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.errorText {
-  font-size: 13px;
-  color: var(--red);
-  line-height: 1.5;
-}
+.errorIcon { color: var(--red); flex-shrink: 0; margin-top: 1px; }
+.errorText { font-size: 13px; color: var(--red); line-height: 1.5; }
 
 @keyframes errorShake {
   0%, 100% { transform: translateX(0); }
@@ -460,7 +353,7 @@
   80%      { transform: translateX(2px); }
 }
 
-/* ── SUBMIT BUTTON ── */
+/* ── SUBMIT ── */
 
 .submitBtn {
   display: flex;
@@ -485,21 +378,12 @@
   animation-delay: 0.4s;
 }
 
-/* Shimmer sweep on hover */
 .submitBtn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255,255,255,0.1) 50%,
-    transparent 100%
-  );
-  transition: none;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
 }
 
 .submitBtn:hover:not(:disabled)::before {
@@ -516,14 +400,9 @@
   transform: translateY(-1px);
 }
 
-.submitBtn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
+.submitBtn:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
 .submitBtn:disabled { cursor: not-allowed; opacity: 0.7; }
 
-/* Spinner inside button */
 .spinner {
   width: 18px;
   height: 18px;
@@ -535,94 +414,26 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── DEMO QUICK-FILL ── */
-
-.demoSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-top: 24px;
-  animation: fieldReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: 0.45s;
-}
-
-.demoLabel {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  letter-spacing: 0.3px;
-}
-
-.demoRow {
-  display: flex;
-  gap: 10px;
-}
-
-.demoBtn {
-  padding: 7px 20px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-mid);
-  border-radius: 8px;
-  color: var(--text-secondary);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-}
-
-.demoBtn:hover {
-  border-color: var(--accent);
-  color: var(--text-primary);
-  background: var(--accent-dim);
-}
-
-.demoBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ── FOOTER ── */
+/* ── FOOTER / SWITCH ── */
 
 .footer {
-  margin-top: 32px;
+  margin-top: 28px;
   text-align: center;
   animation: fieldReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: 0.5s;
+  animation-delay: 0.45s;
 }
 
 .footerDivider {
   width: 32px;
   height: 1px;
   background: var(--border-mid);
-  margin: 16px auto;
+  margin: 0 auto 16px;
 }
 
-.cmsBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-dim);
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+.switchText {
+  font-size: 13px;
   color: var(--text-secondary);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.cmsDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.25);
-}
-
-.footerText {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  line-height: 1.6;
-  margin-top: 12px;
+  margin: 0;
 }
 
 .switchLink {
@@ -631,7 +442,7 @@
   padding: 0;
   color: var(--accent-light);
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -640,3 +451,41 @@
 }
 
 .switchLink:hover { color: var(--accent); }
+
+/* ── SUCCESS STATE ── */
+
+.successState {
+  text-align: center;
+  animation: cardReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.successIcon {
+  color: var(--green, #22c55e);
+  margin-bottom: 4px;
+}
+
+.successTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.successText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 320px;
+}
+
+.successText strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
