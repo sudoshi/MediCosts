@@ -36,6 +36,7 @@ const DataConnectors = lazy(() => import('./views/DataConnectors'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
 const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
 const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
+const DrugSpending = lazy(() => import('./views/DrugSpending'));
 const AboutView = lazy(() => import('./views/AboutView'));
 
 function ViewLoader() {
@@ -166,6 +167,7 @@ export default function App() {
               <Route path="/abby" element={<ErrorBoundary><AbbyAnalytics /></ErrorBoundary>} />
               <Route path="/payments" element={<ErrorBoundary><PaymentsExplorer /></ErrorBoundary>} />
               <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
+              <Route path="/drugs" element={<ErrorBoundary><DrugSpending /></ErrorBoundary>} />
               <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />
               <Route path="/settings" element={<ErrorBoundary><SettingsView /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><AboutView /></ErrorBoundary>} />

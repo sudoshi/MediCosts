@@ -6,7 +6,7 @@ import {
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
   AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
-  InfoIcon,
+  InfoIcon, PillIcon,
 } from './icons/NavIcons';
 import s from './AppShell.module.css';
 
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { path: '/spending',   label: 'Spending & Value',     icon: DollarIcon },
   { path: '/clinicians', label: 'Clinician Directory',  icon: UsersIcon },
   { path: '/payments',    label: 'Industry Payments',   icon: DollarIcon },
+  { path: '/drugs',      label: 'Drug Spending',        icon: PillIcon },
   { path: '/financials', label: 'Hospital Financials',  icon: TrendingUpIcon },
   { path: '/estimate',        label: 'Cost Estimator',       icon: SearchDollarIcon },
   { path: '/for-patients',    label: 'For Patients',         icon: ClipboardHeartIcon },

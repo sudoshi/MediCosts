@@ -160,3 +160,11 @@ export const InfoIcon = icon(
     <line x1="12" y1="8" x2="12.01" y2="8" />
   </>
 );
+
+export const PillIcon = icon(
+  <>
+    <path d="M10.5 20H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v7" />
+    <path d="M16 19h6M19 16v6" />
+    <path d="M8 12h8M12 8v8" strokeWidth="1.5" />
+  </>
+);

@@ -15,6 +15,7 @@ export default function ClinicianProfile() {
   const { data: raw, loading } = useApi(`/clinicians/${npi}`, [npi]);
   const { data: payments } = useApi(`/payments/physician/${npi}`, [npi]);
   const { data: networkData } = useApi(`/network/check?npi=${npi}`, [npi]);
+  const { data: partD } = useApi(`/drugs/prescriber/${npi}`, [npi]);
 
   if (loading) {
     return (
@@ -167,6 +168,23 @@ export default function ClinicianProfile() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </Panel>
+      )}
+
+      {/* Part D Prescribing Summary */}
+      {partD && (
+        <Panel title="Medicare Part D Prescribing — 2023">
+          <div className={s.metricList}>
+            <MetricRow label="Total Drug Cost" value={partD.tot_drug_cost != null ? Number(partD.tot_drug_cost).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }) : '—'} />
+            <MetricRow label="Total Claims" value={partD.tot_claims != null ? Number(partD.tot_claims).toLocaleString() : '—'} />
+            <MetricRow label="Beneficiaries" value={partD.tot_benes != null ? Number(partD.tot_benes).toLocaleString() : '—'} />
+            <MetricRow label="Brand Claims" value={partD.brand_claims != null ? Number(partD.brand_claims).toLocaleString() : '—'} />
+            <MetricRow label="Generic Claims" value={partD.generic_claims != null ? Number(partD.generic_claims).toLocaleString() : '—'} />
+            {partD.opioid_claims > 0 && <MetricRow label="Opioid Claims" value={Number(partD.opioid_claims).toLocaleString()} />}
+            {partD.opioid_prescriber_rate != null && <MetricRow label="Opioid Prescriber Rate" value={`${Number(partD.opioid_prescriber_rate).toFixed(1)}%`} />}
+            {partD.antibiotic_claims > 0 && <MetricRow label="Antibiotic Claims" value={Number(partD.antibiotic_claims).toLocaleString()} />}
+            <MetricRow label="Avg Patient Age" value={partD.avg_patient_age != null ? `${Number(partD.avg_patient_age).toFixed(0)} yrs` : '—'} />
           </div>
         </Panel>
       )}
