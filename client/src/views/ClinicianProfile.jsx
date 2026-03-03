@@ -14,6 +14,7 @@ export default function ClinicianProfile() {
   const navigate = useNavigate();
   const { data: raw, loading } = useApi(`/clinicians/${npi}`, [npi]);
   const { data: payments } = useApi(`/payments/physician/${npi}`, [npi]);
+  const { data: networkData } = useApi(`/network/check?npi=${npi}`, [npi]);
 
   if (loading) {
     return (
@@ -169,6 +170,34 @@ export default function ClinicianProfile() {
           </div>
         </Panel>
       )}
+
+      {/* Insurance Networks (ClearNetwork) */}
+      {networkData && (networkData.networks?.length > 0 ? (
+        <Panel title="Insurance Networks — In-Network Status">
+          <div className={s.networkRow}>
+            {networkData.networks.map((n, i) => (
+              <div key={i} className={`${s.networkChip} ${s.networkIn}`}>
+                <span className={s.networkDot} />
+                <div className={s.networkInfo}>
+                  <span className={s.networkName}>{n.network_name}</span>
+                  {n.tier && <span className={s.networkTier}>Tier {n.tier}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className={s.networkNote}>
+            Source: ClearNetwork — {networkData.networks.length} network{networkData.networks.length !== 1 ? 's' : ''} verified.
+            Network status may change; confirm with your insurer before scheduling.
+          </p>
+        </Panel>
+      ) : (
+        <Panel title="Insurance Networks — In-Network Status">
+          <p className={s.networkNote}>
+            This provider was not found in any currently loaded insurance network directory.
+            Network participation data is available for BCBS MN, BCBS IL, Kaiser Permanente, and UnitedHealthcare.
+          </p>
+        </Panel>
+      ))}
 
       {/* Multiple Practice Locations */}
       {Array.isArray(raw) && raw.length > 1 && (

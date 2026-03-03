@@ -34,6 +34,7 @@ export default function HospitalDetail() {
   const zip = composite?.zip_code?.replace(/\D/g, '').slice(0, 5);
   const { data: communityHealth } = useApi(zip ? `/community-health/${zip}` : null, [zip]);
   const { data: shortageAreas } = useApi(zip ? `/shortage-areas?zip=${zip}` : null, [zip]);
+  const { data: networkData } = useApi(`/network/hospital/${ccn}`, [ccn]);
 
   if (loadingComposite) {
     return (
@@ -467,6 +468,37 @@ export default function HospitalDetail() {
             HRSA-designated shortage areas indicate insufficient healthcare professionals relative to community need.
             Higher scores = more severe shortage.
           </p>
+        </Panel>
+      )}
+
+      {/* Insurance Networks (ClearNetwork) */}
+      {networkData && (
+        <Panel title="Insurance Networks — In-Network Status">
+          {networkData.networks?.length > 0 ? (
+            <>
+              <div className={s.shortageAlerts}>
+                {networkData.networks.map((n, i) => (
+                  <div key={i} className={s.networkChip}>
+                    <span className={s.networkDot} />
+                    <div className={s.networkInfo}>
+                      <span className={s.networkName}>{n.network_name}</span>
+                      {n.tier && <span className={s.networkTier}>Tier {n.tier}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className={s.shortageFooter}>
+                {networkData.matched_name && <>Matched as: <em>{networkData.matched_name}</em> · </>}
+                Source: ClearNetwork — {networkData.networks.length} network{networkData.networks.length !== 1 ? 's' : ''} verified.
+                Confirm current status with your insurer before scheduling care.
+              </p>
+            </>
+          ) : (
+            <p className={s.shortageFooter}>
+              {networkData.matched ? 'This hospital was matched but has no active network links.' : 'This hospital was not found in any currently loaded insurance network directory.'}
+              {' '}Data available for BCBS MN, BCBS IL, Kaiser Permanente, and UnitedHealthcare.
+            </p>
+          )}
         </Panel>
       )}
 

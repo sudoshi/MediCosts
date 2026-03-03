@@ -29,11 +29,15 @@ import paymentsRouter from './routes/payments.js';
 import financialsRouter from './routes/financials.js';
 import shortageRouter from './routes/shortage.js';
 import communityHealthRouter from './routes/community-health.js';
+import networkRouter from './routes/network.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3090;
 const isProd = process.env.NODE_ENV === 'production';
+
+// Trust Apache reverse proxy (required for express-rate-limit X-Forwarded-For)
+app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
@@ -89,6 +93,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/financials', financialsRouter);
 app.use('/api/shortage-areas', shortageRouter);
 app.use('/api/community-health', communityHealthRouter);
+app.use('/api/network', networkRouter);
 
 if (isProd) {
   const clientBuild = path.join(__dirname, '../client/dist');
