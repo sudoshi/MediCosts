@@ -52,34 +52,34 @@ export default function OverviewView() {
         <div className={s.shockGrid}>
           {accountability ? (
             <>
-              <div className={s.shockCard}>
+              <button className={`${s.shockCard} ${s.shockCardLink}`} onClick={() => navigate('/accountability')}>
                 <span className={s.shockValue} style={{ color: '#ef4444' }}>
                   {accountability.national_markup ? `${accountability.national_markup}x` : '—'}
                 </span>
                 <span className={s.shockLabel}>Average Hospital Markup</span>
                 <span className={s.shockDesc}>What hospitals charge vs. what Medicare pays</span>
-              </div>
-              <div className={s.shockCard}>
+              </button>
+              <button className={`${s.shockCard} ${s.shockCardLink}`} onClick={() => navigate('/accountability')}>
                 <span className={s.shockValue} style={{ color: '#f59e0b' }}>
                   {fmtNumber(accountability.hospitals_penalized)}
                 </span>
                 <span className={s.shockLabel}>Hospitals Penalized</span>
                 <span className={s.shockDesc}>For sending patients back too soon</span>
-              </div>
-              <div className={s.shockCard}>
+              </button>
+              <button className={`${s.shockCard} ${s.shockCardLink}`} onClick={() => navigate('/accountability')}>
                 <span className={s.shockValue} style={{ color: '#ef4444' }}>
                   {fmtNumber(accountability.hac_penalized)}
                 </span>
                 <span className={s.shockLabel}>Safety Failures</span>
                 <span className={s.shockDesc}>Hospitals with HAC payment reductions</span>
-              </div>
-              <div className={s.shockCard}>
+              </button>
+              <button className={`${s.shockCard} ${s.shockCardLink}`} onClick={() => navigate('/quality')}>
                 <span className={s.shockValue} style={{ color: '#ec4899' }}>
                   {accountability.avg_patient_star ? `${accountability.avg_patient_star}/5` : '—'}
                 </span>
                 <span className={s.shockLabel}>Avg Patient Rating</span>
                 <span className={s.shockDesc}>National HCAHPS satisfaction score</span>
-              </div>
+              </button>
             </>
           ) : <Skeleton height={100} />}
         </div>

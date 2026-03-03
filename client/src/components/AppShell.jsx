@@ -6,7 +6,7 @@ import {
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
   AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
-  InfoIcon, PillIcon,
+  InfoIcon, PillIcon, BookOpenIcon,
 } from './icons/NavIcons';
 import s from './AppShell.module.css';
 
@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { path: '/abby',       label: 'Abby Analytics',        icon: SparklesIcon },
   { path: '/connectors', label: 'Data Connectors',      icon: PlugIcon },
   { path: '/settings',   label: 'Settings',             icon: GearIcon },
+  { path: '/blog',       label: 'Blog',                 icon: BookOpenIcon },
   { path: '/about',      label: 'About & Data Sources', icon: InfoIcon },
 ];
 

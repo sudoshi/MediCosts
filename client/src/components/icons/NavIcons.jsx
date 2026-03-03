@@ -161,6 +161,13 @@ export const InfoIcon = icon(
   </>
 );
 
+export const BookOpenIcon = icon(
+  <>
+    <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+  </>
+);
+
 export const PillIcon = icon(
   <>
     <path d="M10.5 20H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v7" />

@@ -1,0 +1,160 @@
+/* Article body — editorial dark-theme typography */
+.article {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1.72;
+  color: var(--text-primary);
+}
+
+.article p {
+  margin-bottom: 1.4rem;
+}
+
+.article p + p {
+  text-indent: 1.5em;
+}
+
+/* Reset indent after block elements */
+.article h2 + p,
+.chartContainer + p,
+.diagramContainer + p,
+.pullquote + p,
+.dataTable + p {
+  text-indent: 0;
+}
+
+/* Drop cap */
+.dropcap::first-letter {
+  float: left;
+  font-size: 4.4rem;
+  line-height: 0.78;
+  padding-right: 0.1em;
+  padding-top: 0.07em;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Section headers */
+.article h2 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin: 3.5rem 0 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+  clear: both;
+}
+
+/* Pullquote */
+.pullquote {
+  margin: 3rem 0;
+  padding: 0 1.5rem;
+  border-left: 3px solid var(--accent);
+  font-size: 1.2rem;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--text-primary);
+  clear: both;
+}
+
+/* Inline code */
+.article code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8em;
+  background: var(--bg-elevated);
+  color: var(--accent-light);
+  padding: 0.13em 0.38em;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Chart / diagram containers */
+.chartContainer,
+.diagramContainer {
+  margin: 2.5rem 0;
+  padding: 1.75rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-mid);
+  border-radius: 8px;
+  clear: both;
+}
+
+.chartTitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.3rem;
+  color: var(--text-primary);
+}
+
+.chartSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.chartContainer svg,
+.diagramContainer svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chartSource {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  margin-top: 0.75rem;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+/* Data table */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  clear: both;
+}
+
+.dataTable th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.63rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.dataTable td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border-dim);
+  vertical-align: top;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: 1px solid var(--border-mid);
+}
+
+@media (max-width: 640px) {
+  .article { font-size: 1rem; }
+  .pullquote { font-size: 1.05rem; margin: 2rem 0; }
+  .chartContainer, .diagramContainer {
+    padding: 1.1rem 0.9rem;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+  }
+}

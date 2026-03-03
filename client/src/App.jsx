@@ -38,6 +38,8 @@ const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
 const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
 const DrugSpending = lazy(() => import('./views/DrugSpending'));
 const AboutView = lazy(() => import('./views/AboutView'));
+const BlogIndex = lazy(() => import('./views/BlogIndex'));
+const BlogPost = lazy(() => import('./views/BlogPost'));
 
 function ViewLoader() {
   return (
@@ -138,6 +140,10 @@ export default function App() {
                   : <LoginPage onLogin={handleLogin} onRegister={() => setShowRegister(true)} />
             }
           />
+
+          {/* ── Public blog routes ── */}
+          <Route path="/blog" element={<ErrorBoundary><BlogIndex /></ErrorBoundary>} />
+          <Route path="/blog/:slug" element={<ErrorBoundary><BlogPost /></ErrorBoundary>} />
 
           {/* ── Protected app routes ── */}
           {isAuthenticated ? (

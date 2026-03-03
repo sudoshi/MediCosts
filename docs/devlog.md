@@ -2355,3 +2355,22 @@ All new insurers are automatically picked up by the `--automatable-only` flag �
 - **Multi-state**: HCSC (IL, TX, MT, OK, NM)
 - **State-specific**: BCBS MN, BCBS MI, BCBS NC, BCBS LA (x2), Premera (WA/AK), UPMC (PA/WV)
 
+---
+
+## Overview Shock-Card Drill-Down (2026-03-03)
+
+Made the 4 hero KPI cards on the Overview page clickable:
+
+| Card | Destination |
+|------|-------------|
+| Average Hospital Markup | `/accountability` |
+| Hospitals Penalized | `/accountability` |
+| Safety Failures | `/accountability` |
+| Avg Patient Rating | `/quality` |
+
+**Changes:**
+- `client/src/views/OverviewView.jsx` — converted `div.shockCard` to `button.shockCard.shockCardLink` with `onClick={() => navigate(...)}` for each card
+- `client/src/views/OverviewView.module.css` — added `.shockCardLink` rule: `cursor: pointer`, hover border highlight + 2px translateY lift
+
+**SOP established:** Deploy to production (`vite build && systemctl --user restart medicosts`) after every frontend change.
+

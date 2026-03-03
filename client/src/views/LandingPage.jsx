@@ -97,6 +97,7 @@ export default function LandingPage({ onLogin, onRegister }) {
         <div className={s.navActions}>
           <a href="#data" className={s.navLink}>Data Sources</a>
           <a href="#features" className={s.navLink}>Features</a>
+          <a href="/blog" className={s.navLink}>Blog</a>
           <button className={s.loginBtn} onClick={() => setShowLogin(true)}>Sign In</button>
         </div>
       </nav>
