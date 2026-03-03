@@ -10,6 +10,7 @@
 
 import express from 'express';
 import pg from 'pg';
+import { cache } from '../lib/cache.js';
 
 const router = express.Router();
 const pool = new pg.Pool(); // uses PG* env vars
@@ -216,13 +217,15 @@ router.get('/top', async (req, res) => {
     `;
   }
 
-  const result = await pool.query(query);
-  res.json({ by, year: year || 'all', results: result.rows });
+  const cacheKey = `payments:top:${by}:${year || 'all'}:${limit}`;
+  const rows = await cache(cacheKey, 600, () => pool.query(query).then(r => r.rows));
+  res.json({ by, year: year || 'all', results: rows });
 });
 
 // ── GET /summary ───────────────────────────────────────────────────────────
 
 router.get('/summary', async (req, res) => {
+  const data = await cache('payments:summary', 1800, async () => {
   const [totals, byYear, byNature, byState] = await Promise.all([
     pool.query(`
       SELECT
@@ -262,12 +265,14 @@ router.get('/summary', async (req, res) => {
     `),
   ]);
 
-  res.json({
+  return {
     totals: totals.rows[0],
     by_year: byYear.rows,
     by_nature: byNature.rows,
     by_state: byState.rows,
-  });
+  };
+  }); // end cache
+  res.json(data);
 });
 
 // ── GET /search ────────────────────────────────────────────────────────────

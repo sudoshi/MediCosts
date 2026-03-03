@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboardIcon, ShieldCheckIcon, BuildingIcon,
@@ -32,14 +32,23 @@ const NAV_ITEMS = [
 
 export default function AppShell({ onLogout }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+
+  // Close mobile sidebar on navigation
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   const current = NAV_ITEMS.find(i => location.pathname.startsWith(i.path));
 
   return (
     <div className={`${s.shell} ${collapsed ? s.shellCollapsed : ''}`}>
+      {/* ── Mobile overlay ── */}
+      {mobileOpen && (
+        <div className={s.mobileOverlay} onClick={() => setMobileOpen(false)} />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ''}`}>
+      <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ''} ${mobileOpen ? s.mobileOpen : ''}`}>
         <div className={s.logo}>
           <LogoMark />
           {!collapsed && <span className={s.wordmark}>MediCosts</span>}
@@ -83,6 +92,18 @@ export default function AppShell({ onLogout }) {
         {/* Top bar */}
         <header className={s.topbar}>
           <div className={s.breadcrumb}>
+            <button
+              className={s.hamburger}
+              onClick={() => setMobileOpen(o => !o)}
+              title="Open menu"
+              aria-label="Open menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <rect y="3" width="18" height="2" rx="1" fill="currentColor"/>
+                <rect y="8" width="18" height="2" rx="1" fill="currentColor"/>
+                <rect y="13" width="18" height="2" rx="1" fill="currentColor"/>
+              </svg>
+            </button>
             <span className={s.viewName}>{current?.label || 'Dashboard'}</span>
             <span className={s.dataYear}>Data Year 2023</span>
           </div>

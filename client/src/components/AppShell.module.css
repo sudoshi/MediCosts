@@ -218,6 +218,26 @@
   padding: 28px 32px 60px;
 }
 
+/* ── Hamburger (hidden on desktop) ── */
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.hamburger:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .shell { --_sidebar-w: 64px; }
@@ -234,6 +254,52 @@
 @media (max-width: 768px) {
   .topbar { padding: 0 16px; }
   .content { padding: 20px 16px 40px; }
+}
+
+/* ── Mobile (≤ 480px): sidebar slides off-screen, hamburger opens overlay ── */
+@media (max-width: 480px) {
+  .shell { --_sidebar-w: 0px; }
+
+  /* Sidebar slides off-screen by default */
+  .sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Open state — toggled via JS adding .mobileOpen class */
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+    width: 240px;
+  }
+  .sidebar.mobileOpen .navLabel {
+    opacity: 1;
+    width: auto;
+  }
+  .sidebar.mobileOpen .navItem {
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+  .sidebar.mobileOpen .wordmark { display: block; }
+
+  /* Overlay backdrop */
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 190;
+    backdrop-filter: blur(2px);
+  }
+
+  .main { margin-left: 0; }
+  .content { padding: 16px 12px 48px; }
+  .topbar { padding: 0 12px; }
+
+  /* Show hamburger button */
+  .hamburger { display: flex; }
 }
 
 /* Print layout — hide shell chrome */

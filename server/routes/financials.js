@@ -9,6 +9,7 @@
 
 import express from 'express';
 import pg from 'pg';
+import { cache } from '../lib/cache.js';
 
 const router = express.Router();
 const pool = new pg.Pool();
@@ -50,6 +51,7 @@ router.get('/hospital/:ccn', async (req, res) => {
 router.get('/summary', async (req, res) => {
   const year = req.query.year ? Number(req.query.year) : 2023;
 
+  const data = await cache(`financials:summary:${year}`, 1800, async () => {
   const [totals, byBedSize, uncompTop] = await Promise.all([
     pool.query(`
       SELECT
@@ -93,12 +95,14 @@ router.get('/summary', async (req, res) => {
     `, [year]),
   ]);
 
-  res.json({
+  return {
     year,
     totals: totals.rows[0],
     by_bed_size: byBedSize.rows,
     top_uncomp: uncompTop.rows,
-  });
+  };
+  }); // end cache
+  res.json(data);
 });
 
 // ── GET /top ───────────────────────────────────────────────────────
@@ -115,7 +119,8 @@ router.get('/top', async (req, res) => {
   else if (by === 'uncompensated') orderCol = 'uncompensated_care_cost DESC NULLS LAST';
   else orderCol = `(total_inpatient_days::NUMERIC / NULLIF(licensed_beds * 365, 0)) DESC NULLS LAST`;
 
-  const rows = await pool.query(`
+  const cacheKey = `financials:top:${year}:${by}:${limit}`;
+  const results = await cache(cacheKey, 600, () => pool.query(`
     SELECT
       hf.provider_ccn,
       hf.report_year, hf.fy_begin, hf.fy_end,
@@ -128,9 +133,9 @@ router.get('/top', async (req, res) => {
     WHERE report_year = $1
     ORDER BY ${orderCol}
     LIMIT $2
-  `, [year, limit]);
+  `, [year, limit]).then(r => r.rows));
 
-  res.json({ year, by, results: rows.rows });
+  res.json({ year, by, results });
 });
 
 // ── GET /uncompensated ─────────────────────────────────────────────
@@ -148,7 +153,8 @@ router.get('/uncompensated', async (req, res) => {
   }
 
   // Join to hospital quality table to get hospital name and state
-  const rows = await pool.query(`
+  const cacheKey = `financials:uncompensated:${year}:${state || 'all'}:${limit}`;
+  const results = await cache(cacheKey, 600, () => pool.query(`
     SELECT
       hf.provider_ccn,
       h.facility_name,
@@ -171,9 +177,9 @@ router.get('/uncompensated', async (req, res) => {
       ${stateClause}
     ORDER BY hf.uncompensated_care_cost DESC
     LIMIT $${params.length + 1}
-  `, [...params, limit]);
+  `, [...params, limit]).then(r => r.rows));
 
-  res.json({ year, state: state || 'all', results: rows.rows });
+  res.json({ year, state: state || 'all', results });
 });
 
 export default router;

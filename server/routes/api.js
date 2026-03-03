@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { cache } from '../lib/cache.js';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
 /* ------------------------------------------------------------------ */
 router.get('/drgs/top50', async (_req, res, next) => {
   try {
-    const { rows } = await pool.query(`
+    const rows = await cache('drgs:top50', 3600, () => pool.query(`
       SELECT
         drg_cd,
         drg_desc,
@@ -23,7 +24,7 @@ router.get('/drgs/top50', async (_req, res, next) => {
         num_providers::int
       FROM medicosts.mv_top50_drg
       ORDER BY weighted_avg_payment DESC
-    `);
+    `).then(r => r.rows));
     res.json(rows);
   } catch (err) { next(err); }
 });
@@ -396,7 +397,7 @@ router.get('/quality/hospital/:ccn', async (req, res, next) => {
 /* ------------------------------------------------------------------ */
 router.get('/quality/summary', async (_req, res, next) => {
   try {
-    const { rows } = await pool.query(`
+    const rows = await cache('quality:summary', 3600, () => pool.query(`
       SELECT
         star_rating,
         COUNT(*)::int                               AS num_hospitals,
@@ -407,7 +408,7 @@ router.get('/quality/summary', async (_req, res, next) => {
       FROM medicosts.mv_hospital_cost_quality
       GROUP BY star_rating
       ORDER BY star_rating
-    `);
+    `).then(r => r.rows));
 
     res.json(rows);
   } catch (err) { next(err); }

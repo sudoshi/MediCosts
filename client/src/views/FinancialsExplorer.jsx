@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
+import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './FinancialsExplorer.module.css';
 
 const fmt$ = (v) =>
@@ -58,6 +59,7 @@ export default function FinancialsExplorer() {
       </div>
 
       {/* Summary KPIs */}
+      {!summary && <Skeleton height={80} />}
       {totals.hospitals && (
         <div className={s.kpiRow}>
           <KpiCard label="Hospitals Reporting" value={fmtN(totals.hospitals)} />
@@ -146,9 +148,13 @@ export default function FinancialsExplorer() {
           </div>
         </div>
 
-        {topLoading && <p className={s.muted}>Loading…</p>}
+        {topLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            {Array.from({ length: 10 }, (_, i) => <Skeleton key={i} height={32} />)}
+          </div>
+        )}
 
-        {topData?.results && (
+        {!topLoading && topData?.results && (
           <div className={s.tableWrap}>
             <table className={s.table}>
               <thead>
