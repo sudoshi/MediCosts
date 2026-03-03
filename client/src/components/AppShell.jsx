@@ -18,15 +18,6 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: 'Providers',
-    items: [
-      { path: '/hospitals',  label: 'Hospital Explorer',   icon: BuildingIcon },
-      { path: '/clinicians', label: 'Clinician Directory', icon: UsersIcon },
-      { path: '/post-acute', label: 'Post-Acute Care',     icon: HeartPulseIcon },
-      { path: '/physicians', label: 'Physician Analytics', icon: StethoscopeIcon },
-    ],
-  },
-  {
     label: 'Quality & Safety',
     items: [
       { path: '/quality',       label: 'Quality Command',  icon: ShieldCheckIcon },
@@ -42,6 +33,15 @@ const NAV_GROUPS = [
       { path: '/drugs',      label: 'Drug Spending',       icon: PillIcon },
       { path: '/financials', label: 'Hospital Financials', icon: TrendingUpIcon },
       { path: '/payments',   label: 'Industry Payments',   icon: DollarIcon },
+    ],
+  },
+  {
+    label: 'Providers',
+    items: [
+      { path: '/hospitals',  label: 'Hospital Explorer',   icon: BuildingIcon },
+      { path: '/clinicians', label: 'Clinician Directory', icon: UsersIcon },
+      { path: '/post-acute', label: 'Post-Acute Care',     icon: HeartPulseIcon },
+      { path: '/physicians', label: 'Physician Analytics', icon: StethoscopeIcon },
     ],
   },
   {
