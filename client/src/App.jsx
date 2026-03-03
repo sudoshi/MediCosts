@@ -27,7 +27,6 @@ const HospiceDetail = lazy(() => import('./views/HospiceDetail'));
 const RehabDetail = lazy(() => import('./views/RehabDetail'));
 const ClinicianProfile = lazy(() => import('./views/ClinicianProfile'));
 const PhysicianAnalytics = lazy(() => import('./views/PhysicianAnalytics'));
-const AbbyAnalytics = lazy(() => import('./views/AbbyAnalytics'));
 const AccountabilityDashboard = lazy(() => import('./views/AccountabilityDashboard'));
 const HospitalCompare = lazy(() => import('./views/HospitalCompare'));
 const CostEstimator = lazy(() => import('./views/CostEstimator'));
@@ -172,7 +171,6 @@ export default function App() {
               <Route path="/clinicians" element={<ErrorBoundary><ClinicianDirectory /></ErrorBoundary>} />
               <Route path="/clinicians/:npi" element={<ErrorBoundary><ClinicianProfile /></ErrorBoundary>} />
               <Route path="/physicians" element={<ErrorBoundary><PhysicianAnalytics /></ErrorBoundary>} />
-              <Route path="/abby" element={<ErrorBoundary><AbbyAnalytics /></ErrorBoundary>} />
               <Route path="/payments" element={<ErrorBoundary><PaymentsExplorer /></ErrorBoundary>} />
               <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
               <Route path="/drugs" element={<ErrorBoundary><DrugSpending /></ErrorBoundary>} />

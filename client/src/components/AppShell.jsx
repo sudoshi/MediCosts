@@ -9,6 +9,7 @@ import {
   InfoIcon, PillIcon, BookOpenIcon, PlugIcon, AwardIcon,
 } from './icons/NavIcons';
 import useStats from '../hooks/useStats.js';
+import AbbyPanel from './AbbyPanel.jsx';
 import s from './AppShell.module.css';
 
 /* ── Nav definition — admin items removed from sidebar ── */
@@ -61,12 +62,6 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: 'AI & Data',
-    items: [
-      { path: '/abby', label: 'Abby Analytics', icon: SparklesIcon },
-    ],
-  },
-  {
     label: null,
     items: [
       { path: '/blog',  label: 'Blog',                 icon: BookOpenIcon },
@@ -82,6 +77,36 @@ const ADMIN_ITEMS = [
 ];
 
 const NAV_FLAT = NAV_GROUPS.flatMap(g => g.items);
+
+/* ── Page context labels for Abby ── */
+const PAGE_CONTEXT_MAP = [
+  ['/overview',       'Overview Dashboard'],
+  ['/quality',        'Quality Command Center'],
+  ['/excellence',     'Best of the Best'],
+  ['/accountability', 'Accountability Dashboard'],
+  ['/compare',        'Hospital Compare'],
+  ['/trends',         'Cost Trends'],
+  ['/spending',       'Spending & Value'],
+  ['/drugs',          'Drug Spending'],
+  ['/financials',     'Hospital Financials'],
+  ['/payments',       'Industry Payments'],
+  ['/hospitals',      'Hospital Explorer'],
+  ['/clinicians',     'Clinician Directory'],
+  ['/post-acute',     'Post-Acute Care'],
+  ['/physicians',     'Physician Analytics'],
+  ['/geography',      'Geographic Analysis'],
+  ['/for-patients',   'For Patients'],
+  ['/estimate',       'Cost Estimator'],
+  ['/about',          'About & Data Sources'],
+  ['/blog',           'Blog'],
+];
+
+function getPageContext(pathname) {
+  for (const [prefix, label] of PAGE_CONTEXT_MAP) {
+    if (pathname.startsWith(prefix)) return label;
+  }
+  return null;
+}
 
 const STORAGE_KEY = 'medicosts_nav_open_groups';
 
@@ -107,6 +132,7 @@ function groupForPath(pathname) {
 export default function AppShell({ onLogout, user }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [abbyOpen, setAbbyOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState(() => {
     const stored = loadOpenGroups();
     return stored.size ? stored : new Set();
@@ -262,6 +288,16 @@ export default function AppShell({ onLogout, user }) {
           <div className={s.topbarRight}>
             {fmt && <span className={s.dataBadge}>{fmt.totalRecords} Records</span>}
 
+            {/* Ask Abby button */}
+            <button
+              className={`${s.abbyBtn} ${abbyOpen ? s.abbyBtnActive : ''}`}
+              onClick={() => setAbbyOpen(o => !o)}
+              title="Ask Abby"
+            >
+              <SparklesIcon />
+              <span>Ask Abby</span>
+            </button>
+
             {/* Admin dropdown — only for admins */}
             {isAdmin && (
               <div className={s.adminDropdown} ref={adminRef}>
@@ -302,6 +338,13 @@ export default function AppShell({ onLogout, user }) {
           <Outlet />
         </div>
       </main>
+
+      {/* ── Abby slide-out panel ── */}
+      <AbbyPanel
+        isOpen={abbyOpen}
+        onClose={() => setAbbyOpen(false)}
+        pageContext={getPageContext(location.pathname)}
+      />
     </div>
   );
 }

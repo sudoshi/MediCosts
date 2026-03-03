@@ -152,12 +152,17 @@ router.post('/chat/stream', async (req, res) => {
   };
 
   try {
-    const { messages = [] } = req.body;
+    const { messages = [], pageContext } = req.body;
     if (!messages.length) {
       send('error', { message: 'messages required' });
       res.write('data: [DONE]\n\n');
       return res.end();
     }
+
+    // Build dynamic system prompt with page context if provided
+    const systemPrompt = pageContext
+      ? `${SYSTEM}\n\n## Current Page Context\nThe user is currently viewing the **${pageContext}** page of MediCosts. Tailor your response to be relevant to the data and questions typical for this page. If they ask about "this page" or "what I'm looking at", refer to the ${pageContext} view.`
+      : SYSTEM;
 
     const client = getClient();
     const chatMessages = toAnthropicMessages(messages);
@@ -169,7 +174,7 @@ router.post('/chat/stream', async (req, res) => {
       const response = await client.messages.create({
         model: MODEL_TOOL,
         max_tokens: 4096,
-        system: SYSTEM,
+        system: systemPrompt,
         tools: TOOLS,
         messages: chatMessages,
       });

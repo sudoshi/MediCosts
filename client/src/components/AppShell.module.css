@@ -287,6 +287,40 @@
   border-radius: 20px;
 }
 
+/* ── Ask Abby button ── */
+.abbyBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.abbyBtn:hover {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.abbyBtnActive {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+.abbyBtn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 /* ── Admin dropdown ── */
 .adminDropdown {
   position: relative;
