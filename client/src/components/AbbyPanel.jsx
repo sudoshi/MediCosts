@@ -254,9 +254,13 @@ export default function AbbyPanel({ isOpen, onClose, pageContext }) {
     setStatusText('Thinking...');
 
     try {
+      const token = localStorage.getItem('authToken');
       const resp = await fetch(`${API}/api/abby/chat/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
           pageContext: pageContext || null,
