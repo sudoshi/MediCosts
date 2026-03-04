@@ -724,19 +724,52 @@ router.get('/unplanned-visits/hospital/:ccn', async (req, res, next) => {
 });
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/value-composite/summary?state=XX                          */
+/*  Aggregate KPIs + national benchmarks                               */
+/* ------------------------------------------------------------------ */
+router.get('/value-composite/summary', async (req, res, next) => {
+  try {
+    const { state } = req.query;
+    const { rows } = await pool.query(`
+      SELECT
+        COUNT(*)::int AS hospital_count,
+        AVG(vbp_total_score)::numeric(5,1) AS avg_vbp_score,
+        AVG(mspb_score)::numeric(6,4) AS avg_mspb_score,
+        AVG(weighted_avg_payment)::numeric(14,0) AS avg_payment,
+        AVG(star_rating)::numeric(3,1) AS avg_star_rating,
+        AVG(psi_90_score)::numeric(6,4) AS avg_psi_90,
+        AVG(avg_excess_readm_ratio)::numeric(6,4) AS avg_readm_ratio,
+        AVG(avg_mortality_rate)::numeric(6,3) AS avg_mortality,
+        (SELECT AVG(vbp_total_score)::numeric(5,1) FROM medicosts.mv_hospital_value_composite) AS nat_avg_vbp,
+        (SELECT AVG(mspb_score)::numeric(6,4) FROM medicosts.mv_hospital_value_composite) AS nat_avg_mspb,
+        (SELECT AVG(weighted_avg_payment)::numeric(14,0) FROM medicosts.mv_hospital_value_composite) AS nat_avg_payment,
+        (SELECT AVG(psi_90_score)::numeric(6,4) FROM medicosts.mv_hospital_value_composite) AS nat_avg_psi_90,
+        (SELECT AVG(avg_excess_readm_ratio)::numeric(6,4) FROM medicosts.mv_hospital_value_composite) AS nat_avg_readm,
+        (SELECT AVG(avg_mortality_rate)::numeric(6,3) FROM medicosts.mv_hospital_value_composite) AS nat_avg_mortality
+      FROM medicosts.mv_hospital_value_composite
+      WHERE ($1::text IS NULL OR state = $1)
+    `, [state || null]);
+    res.json(rows[0] || {});
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/value-composite?state=XX                                  */
 /*  Hospital value composite (quality + cost + VBP + MSPB)             */
 /* ------------------------------------------------------------------ */
 router.get('/value-composite', async (req, res, next) => {
   try {
     const { state, limit } = req.query;
-    let query = `SELECT * FROM medicosts.mv_hospital_value_composite`;
+    let query = `
+      SELECT vc.*, hi.hospital_type, hi.hospital_ownership
+      FROM medicosts.mv_hospital_value_composite vc
+      LEFT JOIN medicosts.hospital_info hi ON vc.facility_id = hi.facility_id`;
     const params = [];
     if (state) {
       params.push(state);
-      query += ` WHERE state = $1`;
+      query += ` WHERE vc.state = $1`;
     }
-    query += ` ORDER BY vbp_total_score DESC NULLS LAST`;
+    query += ` ORDER BY vc.vbp_total_score DESC NULLS LAST`;
     if (limit) {
       params.push(parseInt(limit));
       query += ` LIMIT $${params.length}`;

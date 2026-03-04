@@ -23,10 +23,12 @@
   color: var(--text-secondary);
 }
 
+/* ── Toolbar ──────────────────────────────────────────────────────── */
 .toolbar {
   display: flex;
   gap: 12px;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .fieldGroup {
@@ -60,6 +62,90 @@
   border-color: var(--accent);
 }
 
+.searchInput {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  width: 260px;
+}
+
+.searchInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── KPI Row ─────────────────────────────────────────────────────── */
+.kpiRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-top: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kpiLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.kpiValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.kpiSub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.good { color: #22c55e; }
+.bad { color: #ef4444; }
+
+/* ── Export button ────────────────────────────────────────────────── */
+.exportBtn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.exportBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* ── Table ────────────────────────────────────────────────────────── */
 .tableWrap {
   overflow-x: auto;
 }
@@ -139,6 +225,125 @@
   letter-spacing: 1px;
 }
 
+/* ── Warning highlights ──────────────────────────────────────────── */
+.warnRed {
+  color: #ef4444 !important;
+}
+
+.warnAmber {
+  color: #f59e0b !important;
+}
+
+/* ── Efficiency Frontier ─────────────────────────────────────────── */
+.quadrantLabels {
+  padding: 0 20px;
+}
+
+.quadGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 0 4px;
+}
+
+.qLabel {
+  padding: 4px;
+}
+
+.scatterTip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  font-size: 12px;
+  max-width: 280px;
+}
+
+.scatterTip strong {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.scatterLegend {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  align-items: center;
+}
+
+.legendDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.frontierNote {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 8px 0 0;
+  margin: 0;
+}
+
+/* ── Correlation Matrix ──────────────────────────────────────────── */
+.corrWrap {
+  overflow-x: auto;
+}
+
+.corrTable {
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 0 auto;
+}
+
+.corrTable th {
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.corrRowLabel {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.corrCell {
+  padding: 8px 12px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  min-width: 56px;
+}
+
+.corrLegend {
+  display: flex;
+  gap: 20px;
+  padding: 10px 0 0;
+  font-size: 11px;
+  justify-content: center;
+}
+
+/* ── Misc ─────────────────────────────────────────────────────────── */
 .emptyMsg {
   font-size: 13px;
   color: var(--text-tertiary);
