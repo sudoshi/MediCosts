@@ -1,5 +1,41 @@
 # MediCosts Development Log
 
+## ClearNetwork: Dashboard & Crawler Hardening (2026-03-04)
+
+### Problem
+The nightly MRF crawl had two critical operational issues:
+1. **No per-insurer timeout** — UHC's multi-GB files caused a single crawl to run 32+ hours, blocking all other insurers from being crawled
+2. **Stale processes accumulating** — yesterday's crawl (PID 669271) was still running when today's 2 AM cron kicked off, leading to resource contention
+3. **No visibility** — the Settings page ClearNetwork panel existed but lacked MRF research findings and nightly crawl report views
+
+### Changes
+
+**Crawler hardening (`clearnetwork/crawler/orchestrator.py`):**
+- Added `--insurer-timeout` CLI argument (default 7200s = 2 hours)
+- Wrapped `crawl_insurer()` in `asyncio.wait_for()` so one slow insurer can't monopolize the entire run
+- On timeout, marks the crawl job as failed with error log and moves to next insurer
+- All existing insurers (Anthem, UHC, BCBS affiliates) will now get fair runtime allocation
+
+**Nightly script hardening (`clearnetwork/scripts/nightly-crawl.sh`):**
+- Added stale process detection: kills any `crawler.orchestrator` process older than 12 hours before starting
+- Added `--insurer-timeout=7200` flag to the crawl command
+
+**New API endpoints (`server/routes/clearnetwork-admin.js`):**
+- `GET /api/clearnetwork/mrf-research` — returns all 70 entries from the mrf_research knowledge base (50 states), sorted by state + market share rank
+- `GET /api/clearnetwork/nightly-summary` — returns last 14 nightly crawl runs grouped by date, with per-insurer breakdown (status, files, providers, errors, duration)
+
+**Settings page dashboard (`client/src/views/SettingsView.jsx`):**
+- Added **MRF Research** sub-tab — displays all state-level research findings with accessibility badges (easy/moderate/hard/blocked), index types, HTTP status, registry status, and notes
+- Added **Nightly Reports** sub-tab — expandable daily cards showing each crawl run with per-insurer breakdown table
+- Summary stats bar: states researched, accessibility distribution, registry and test coverage
+- All 6 sub-tabs now fully wired: Overview, Insurers, Crawl Jobs, Failures, MRF Research, Nightly Reports
+
+### Verification
+- Killed stale Mar 3 crawl (PID 669271)
+- All 6 API endpoints return correct data
+- Built and deployed to production
+- Settings page renders all sub-tabs correctly at medicosts.acumenus.net/settings
+
 ## Port Configuration (2026-02-28)
 
 Ports 3001 and 5173 are in use by other deployed applications on this machine (Apache virtual hosts). Updated to alternate ports:

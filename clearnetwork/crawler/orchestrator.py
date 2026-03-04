@@ -38,6 +38,8 @@ KNOWN_INSURERS_PATH = Path(__file__).parent / "known_insurers.json"
 
 # Default max in-network files per insurer (0 = unlimited)
 DEFAULT_MAX_FILES = 0
+# Default per-insurer timeout in seconds (2 hours)
+DEFAULT_INSURER_TIMEOUT = 7200
 
 
 async def get_db_conn():
@@ -324,6 +326,7 @@ async def main(
     max_files: int = DEFAULT_MAX_FILES,
     automatable_only: bool = False,
     include_browser: bool = False,
+    insurer_timeout: int = DEFAULT_INSURER_TIMEOUT,
 ):
     conn = await get_db_conn()
 
@@ -371,6 +374,8 @@ async def main(
     print(f"\nStep 2: Crawling {len(rows)} insurer(s)...")
     if max_files > 0:
         print(f"  Max files per insurer: {max_files}")
+    if insurer_timeout > 0:
+        print(f"  Per-insurer timeout: {insurer_timeout}s ({insurer_timeout // 3600}h {(insurer_timeout % 3600) // 60}m)")
     start = time.time()
 
     connector = aiohttp.TCPConnector(family=2)  # AF_INET (IPv4 only)
@@ -378,11 +383,34 @@ async def main(
         async with DownloadManager(MRF_CACHE_DIR) as downloader:
             for row in rows:
                 json_cfg = insurer_json_index.get(row["legal_name"])
-                await crawl_insurer(
-                    conn, row, session, downloader,
-                    max_files=max_files, insurer_json=json_cfg,
-                    include_browser=include_browser,
-                )
+                try:
+                    await asyncio.wait_for(
+                        crawl_insurer(
+                            conn, row, session, downloader,
+                            max_files=max_files, insurer_json=json_cfg,
+                            include_browser=include_browser,
+                        ),
+                        timeout=insurer_timeout,
+                    )
+                except asyncio.TimeoutError:
+                    insurer_name = row["legal_name"]
+                    logger.error(
+                        f"  [{insurer_name}] Timed out after {insurer_timeout}s — moving to next insurer"
+                    )
+                    # Try to mark the most recent running job as failed
+                    try:
+                        job_row = await conn.fetchrow(
+                            f"SELECT id FROM {SCHEMA}.crawl_jobs "
+                            f"WHERE insurer_id = $1 AND status = 'running' "
+                            f"ORDER BY started_at DESC LIMIT 1",
+                            row["id"],
+                        )
+                        if job_row:
+                            await update_crawl_job(
+                                conn, job_row["id"], "failed", error_log=[f"Timed out after {insurer_timeout}s"]
+                            )
+                    except Exception:
+                        pass
 
     elapsed = time.time() - start
     print(f"\nCrawl complete in {elapsed:.0f}s")
@@ -408,6 +436,8 @@ if __name__ == "__main__":
                         help="Skip insurers requiring browser automation")
     parser.add_argument("--include-browser", action="store_true",
                         help="Include browser-automated insurers (requires playwright)")
+    parser.add_argument("--insurer-timeout", type=int, default=DEFAULT_INSURER_TIMEOUT,
+                        help=f"Max seconds per insurer (default={DEFAULT_INSURER_TIMEOUT})")
     args = parser.parse_args()
 
     asyncio.run(main(
@@ -416,4 +446,5 @@ if __name__ == "__main__":
         max_files=args.max_files,
         automatable_only=args.automatable_only,
         include_browser=args.include_browser,
+        insurer_timeout=args.insurer_timeout,
     ))

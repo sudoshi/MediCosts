@@ -342,6 +342,86 @@
   font-size: 13px;
 }
 
+/* ---------- Research Tab ---------- */
+.stateCode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-light);
+}
+
+.monoSmall {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.notesCell {
+  font-size: 11px;
+  color: var(--text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Nightly Reports ---------- */
+.reportCard {
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.reportCard:hover { border-color: var(--border-mid); }
+
+.reportHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.reportHeader:hover { background: var(--bg-base); }
+
+.reportDate {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-light);
+  min-width: 100px;
+}
+
+.reportMeta {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.runningCount {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.expandIcon {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.reportBody {
+  border-top: 1px solid var(--border-dim);
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }

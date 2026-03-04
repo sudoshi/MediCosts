@@ -55,6 +55,26 @@ function statusBadge(status) {
   );
 }
 
+function accessBadge(level) {
+  const colors = {
+    easy: '#22c55e',
+    moderate: '#f59e0b',
+    hard: '#f97316',
+    blocked: '#ef4444',
+    dead: '#71717a',
+  };
+  const color = colors[level] || '#71717a';
+  return (
+    <span style={{
+      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+      background: `${color}18`, color, border: `1px solid ${color}33`,
+      fontSize: 11, fontWeight: 500, textTransform: 'capitalize',
+    }}>
+      {level || 'unknown'}
+    </span>
+  );
+}
+
 function durationFmt(seconds) {
   if (!seconds) return '\u2014';
   if (seconds < 60) return `${seconds}s`;
@@ -81,25 +101,32 @@ function ClearNetworkPanel() {
   const [jobs, setJobs] = useState([]);
   const [failures, setFailures] = useState([]);
   const [providerStats, setProviderStats] = useState(null);
+  const [research, setResearch] = useState([]);
+  const [nightlySummary, setNightlySummary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subTab, setSubTab] = useState('overview');
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [expandedReport, setExpandedReport] = useState(null);
 
   const fetchAll = useCallback(async () => {
     try {
-      const [st, ins, jb, fail, ps] = await Promise.all([
+      const [st, ins, jb, fail, ps, res, ns] = await Promise.all([
         fetch(`${API}/clearnetwork/status`).then(r => r.json()),
         fetch(`${API}/clearnetwork/insurers`).then(r => r.json()),
         fetch(`${API}/clearnetwork/crawl-jobs?limit=20`).then(r => r.json()),
         fetch(`${API}/clearnetwork/failures?limit=20`).then(r => r.json()),
         fetch(`${API}/clearnetwork/provider-stats`).then(r => r.json()),
+        fetch(`${API}/clearnetwork/mrf-research`).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch(`${API}/clearnetwork/nightly-summary`).then(r => r.ok ? r.json() : []).catch(() => []),
       ]);
       setStatus(st);
       setInsurers(ins);
       setJobs(jb);
       setFailures(fail);
       setProviderStats(ps);
+      setResearch(res);
+      setNightlySummary(ns);
       setError(null);
     } catch {
       setError('Failed to load ClearNetwork data. Is the clearnetwork schema set up?');
@@ -118,11 +145,14 @@ function ClearNetworkPanel() {
   if (loading) return <div className={s.loading}>Loading ClearNetwork status...</div>;
   if (error) return <div className={s.errorBox}>{error}</div>;
 
+  const researchStates = new Set(research.map(r => r.state));
   const SUB_TABS = [
     { id: 'overview', label: 'Overview' },
     { id: 'insurers', label: `Insurers (${insurers.length})` },
     { id: 'jobs', label: `Crawl Jobs (${jobs.length})` },
     { id: 'failures', label: `Failures (${failures.length})` },
+    { id: 'research', label: `MRF Research (${researchStates.size} states)` },
+    { id: 'reports', label: `Nightly Reports (${nightlySummary.length})` },
   ];
 
   return (
@@ -239,6 +269,92 @@ function ClearNetworkPanel() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {subTab === 'research' && (
+        <>
+          <div className={s.statsGrid}>
+            <StatCard label="States Researched" value={researchStates.size} />
+            <StatCard label="Total Entries" value={research.length} />
+            <StatCard label="Easy Access" value={research.filter(r => r.accessibility === 'easy').length} highlight />
+            <StatCard label="Hard / Blocked" value={research.filter(r => r.accessibility === 'hard' || r.accessibility === 'blocked').length} warn={research.filter(r => r.accessibility === 'hard' || r.accessibility === 'blocked').length > 0} />
+            <StatCard label="In Registry" value={research.filter(r => r.added_to_registry).length} />
+            <StatCard label="Crawl Tested" value={research.filter(r => r.crawl_tested).length} />
+          </div>
+          <div className={s.tableWrap}>
+            <table className={s.table}>
+              <thead><tr>
+                <th>State</th><th>Insurer</th><th>Access</th><th>Index Type</th>
+                <th>HTTP</th><th>Registry</th><th>Tested</th><th>Notes</th>
+              </tr></thead>
+              <tbody>
+                {research.map(r => (
+                  <tr key={r.id}>
+                    <td><span className={s.stateCode}>{r.state}</span></td>
+                    <td>
+                      <div className={s.insurerName}>{r.insurer_name}</div>
+                      {r.trade_names?.length > 0 && <div className={s.insurerMeta}>{r.trade_names.slice(0, 2).join(', ')}</div>}
+                    </td>
+                    <td>{accessBadge(r.accessibility)}</td>
+                    <td><span className={s.monoSmall}>{r.index_type || '\u2014'}</span></td>
+                    <td>{r.http_status || '\u2014'}</td>
+                    <td>{r.added_to_registry ? '\u2705' : '\u2014'}</td>
+                    <td>{r.crawl_tested ? '\u2705' : '\u2014'}</td>
+                    <td className={s.notesCell}>{r.notes?.slice(0, 80) || '\u2014'}</td>
+                  </tr>
+                ))}
+                {research.length === 0 && <tr><td colSpan={8} className={s.emptyRow}>No research entries found</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {subTab === 'reports' && (
+        <>
+          {nightlySummary.map((run, idx) => {
+            const dateStr = new Date(run.crawl_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            const isExpanded = expandedReport === idx;
+            return (
+              <div key={idx} className={s.reportCard}>
+                <button className={s.reportHeader} onClick={() => setExpandedReport(isExpanded ? null : idx)}>
+                  <span className={s.reportDate}>{dateStr}</span>
+                  <span className={s.reportMeta}>
+                    {run.insurers_crawled} insurers
+                    {' \u00b7 '}{fmt(run.total_files)} files
+                    {' \u00b7 '}{fmt(run.total_providers)} providers
+                    {run.total_errors > 0 && <span className={s.errorCount}> \u00b7 {run.total_errors} errors</span>}
+                    {run.still_running > 0 && <span className={s.runningCount}> \u00b7 {run.still_running} running</span>}
+                  </span>
+                  <span className={s.expandIcon}>{isExpanded ? '\u25B2' : '\u25BC'}</span>
+                </button>
+                {isExpanded && (
+                  <div className={s.reportBody}>
+                    <table className={s.table}>
+                      <thead><tr>
+                        <th>Insurer</th><th>Status</th><th>Files</th>
+                        <th>Providers</th><th>Errors</th><th>Duration</th>
+                      </tr></thead>
+                      <tbody>
+                        {(run.jobs || []).map((job, jIdx) => (
+                          <tr key={jIdx}>
+                            <td>{job.insurer}</td>
+                            <td>{statusBadge(job.status)}</td>
+                            <td>{fmt(job.files)}</td>
+                            <td>{fmt(job.providers)}</td>
+                            <td className={job.errors > 0 ? s.errorCount : ''}>{fmt(job.errors)}</td>
+                            <td>{durationFmt(job.duration)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {nightlySummary.length === 0 && <div className={s.emptyRow}>No nightly crawl reports found</div>}
+        </>
       )}
     </>
   );

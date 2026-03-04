@@ -171,4 +171,58 @@ router.get('/provider-stats', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/mrf-research                                 */
+/*  MRF research knowledge base entries                                */
+/* ------------------------------------------------------------------ */
+router.get('/mrf-research', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        id, state, insurer_name, trade_names, market_share_rank,
+        mrf_url, mrf_url_verified, index_type, date_pattern,
+        http_status, accessibility, notes,
+        added_to_registry, crawl_tested, crawl_result,
+        researched_at
+      FROM ${SCHEMA}.mrf_research
+      ORDER BY state, market_share_rank NULLS LAST, insurer_name
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/nightly-summary                              */
+/*  Last 14 nightly crawl runs grouped by date                         */
+/* ------------------------------------------------------------------ */
+router.get('/nightly-summary', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        date_trunc('day', cj.started_at) AS crawl_date,
+        count(*)::int AS insurers_crawled,
+        sum(cj.files_processed)::int AS total_files,
+        sum(cj.providers_found)::int AS total_providers,
+        sum(cj.errors)::int AS total_errors,
+        count(*) FILTER (WHERE cj.status = 'completed')::int AS succeeded,
+        count(*) FILTER (WHERE cj.status = 'failed')::int AS failed,
+        count(*) FILTER (WHERE cj.status = 'running')::int AS still_running,
+        json_agg(json_build_object(
+          'insurer', i.legal_name,
+          'status', cj.status,
+          'files', cj.files_processed,
+          'providers', cj.providers_found,
+          'errors', cj.errors,
+          'duration', EXTRACT(EPOCH FROM (coalesce(cj.completed_at, NOW()) - cj.started_at))::int
+        ) ORDER BY cj.started_at) AS jobs
+      FROM ${SCHEMA}.crawl_jobs cj
+      JOIN ${SCHEMA}.insurers i ON i.id = cj.insurer_id
+      GROUP BY crawl_date
+      ORDER BY crawl_date DESC
+      LIMIT 14
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
 export default router;
