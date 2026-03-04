@@ -109,16 +109,23 @@ function ClearNetworkPanel() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [expandedReport, setExpandedReport] = useState(null);
 
+  const authHeaders = useCallback(() => {
+    const token = localStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, []);
+
   const fetchAll = useCallback(async () => {
+    const h = authHeaders();
+    const af = (url) => fetch(url, { headers: h });
     try {
       const [st, ins, jb, fail, ps, res, ns] = await Promise.all([
-        fetch(`${API}/clearnetwork/status`).then(r => r.json()),
-        fetch(`${API}/clearnetwork/insurers`).then(r => r.json()),
-        fetch(`${API}/clearnetwork/crawl-jobs?limit=20`).then(r => r.json()),
-        fetch(`${API}/clearnetwork/failures?limit=20`).then(r => r.json()),
-        fetch(`${API}/clearnetwork/provider-stats`).then(r => r.json()),
-        fetch(`${API}/clearnetwork/mrf-research`).then(r => r.ok ? r.json() : []).catch(() => []),
-        fetch(`${API}/clearnetwork/nightly-summary`).then(r => r.ok ? r.json() : []).catch(() => []),
+        af(`${API}/clearnetwork/status`).then(r => r.json()),
+        af(`${API}/clearnetwork/insurers`).then(r => r.json()),
+        af(`${API}/clearnetwork/crawl-jobs?limit=20`).then(r => r.json()),
+        af(`${API}/clearnetwork/failures?limit=20`).then(r => r.json()),
+        af(`${API}/clearnetwork/provider-stats`).then(r => r.json()),
+        af(`${API}/clearnetwork/mrf-research`).then(r => r.ok ? r.json() : []).catch(() => []),
+        af(`${API}/clearnetwork/nightly-summary`).then(r => r.ok ? r.json() : []).catch(() => []),
       ]);
       setStatus(st);
       setInsurers(ins);
@@ -370,7 +377,11 @@ export default function SettingsView() {
     setRefreshing(true);
     setRefreshMsg('');
     try {
-      const res = await fetch(`${API}/admin/refresh-views`, { method: 'POST' });
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API}/admin/refresh-views`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const json = await res.json();
       setRefreshMsg(json.message || 'Views refreshed successfully');
     } catch {
