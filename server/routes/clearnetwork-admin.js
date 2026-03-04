@@ -14,9 +14,9 @@ router.get('/status', async (_req, res, next) => {
       SELECT
         (SELECT count(*) FROM ${SCHEMA}.insurers)::int AS insurers,
         (SELECT count(*) FROM ${SCHEMA}.networks)::int AS networks,
-        (SELECT count(*) FROM ${SCHEMA}.plans)::int AS plans,
-        (SELECT count(*) FROM ${SCHEMA}.canonical_providers)::int AS providers,
-        (SELECT count(*) FROM ${SCHEMA}.network_providers)::int AS network_links,
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'plans')::int AS plans,
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'canonical_providers')::int AS providers,
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'network_providers')::int AS network_links,
         (SELECT count(*) FROM ${SCHEMA}.crawl_jobs)::int AS total_crawls,
         (SELECT count(*) FROM ${SCHEMA}.crawl_jobs WHERE status = 'running')::int AS active_crawls,
         (SELECT count(*) FROM ${SCHEMA}.crawl_failures)::int AS total_failures,
@@ -37,9 +37,9 @@ router.get('/insurers', async (_req, res, next) => {
         i.id, i.legal_name, i.trade_names, i.naic_code,
         i.states_licensed, i.plan_types, i.mrf_index_url,
         i.last_crawled,
-        (SELECT count(*) FROM ${SCHEMA}.networks n WHERE n.insurer_id = i.id)::int AS network_count,
-        (SELECT count(*) FROM ${SCHEMA}.plans p WHERE p.insurer_id = i.id)::int AS plan_count,
-        (SELECT coalesce(sum(n.provider_count), 0) FROM ${SCHEMA}.networks n WHERE n.insurer_id = i.id)::int AS provider_count,
+        coalesce(nc.network_count, 0)::int AS network_count,
+        coalesce(nc.plan_count, 0)::int AS plan_count,
+        coalesce(nc.provider_count, 0)::int AS provider_count,
         cj.status AS last_crawl_status,
         cj.files_processed AS last_crawl_files,
         cj.providers_found AS last_crawl_providers,
@@ -53,6 +53,13 @@ router.get('/insurers', async (_req, res, next) => {
         ORDER BY cj.started_at DESC
         LIMIT 1
       ) cj ON true
+      LEFT JOIN LATERAL (
+        SELECT
+          count(*) AS network_count,
+          coalesce(sum(n.provider_count), 0) AS provider_count,
+          (SELECT count(*) FROM ${SCHEMA}.plans p WHERE p.insurer_id = i.id) AS plan_count
+        FROM ${SCHEMA}.networks n WHERE n.insurer_id = i.id
+      ) nc ON true
       ORDER BY i.legal_name
     `);
     res.json(rows);
@@ -157,15 +164,13 @@ router.get('/failures', async (req, res, next) => {
 /* ------------------------------------------------------------------ */
 router.get('/provider-stats', async (_req, res, next) => {
   try {
+    // Use pg_class/pg_stats estimates for large tables (9M+ rows) — exact counts take 7+ seconds
     const { rows } = await pool.query(`
       SELECT
-        (SELECT count(*) FROM ${SCHEMA}.canonical_providers)::int AS total_providers,
-        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE entity_type = 'individual')::int AS individuals,
-        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE entity_type = 'facility')::int AS facilities,
-        (SELECT count(*) FROM ${SCHEMA}.canonical_providers WHERE lat IS NOT NULL)::int AS geocoded,
-        (SELECT count(DISTINCT canonical_provider_id) FROM ${SCHEMA}.network_providers)::int AS in_any_network,
-        (SELECT count(DISTINCT specialty_primary) FROM ${SCHEMA}.canonical_providers WHERE specialty_primary IS NOT NULL)::int AS unique_specialties,
-        (SELECT count(DISTINCT address_state) FROM ${SCHEMA}.canonical_providers WHERE address_state IS NOT NULL)::int AS states_covered
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'canonical_providers')::int AS total_providers,
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'network_providers')::int AS in_any_network,
+        (SELECT abs(n_distinct)::int FROM pg_stats WHERE tablename = 'canonical_providers' AND attname = 'specialty_primary')::int AS unique_specialties,
+        (SELECT abs(n_distinct)::int FROM pg_stats WHERE tablename = 'canonical_providers' AND attname = 'address_state')::int AS states_covered
     `);
     res.json(rows[0]);
   } catch (err) { next(err); }

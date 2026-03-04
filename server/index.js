@@ -105,7 +105,9 @@ app.use('/api/drugs', drugsRouter);
 
 if (isProd) {
   const clientBuild = path.join(__dirname, '../client/dist');
-  app.use(express.static(clientBuild, { maxAge: '1y', immutable: true }));
+  // Cache hashed assets aggressively; index.html uses default (no-cache)
+  app.use('/assets', express.static(path.join(clientBuild, 'assets'), { maxAge: '1y', immutable: true }));
+  app.use(express.static(clientBuild));
   // SPA fallback — only for navigation requests, not missing assets
   app.get('*', (req, res) => {
     if (req.path.startsWith('/assets/') || req.path.match(/\.(js|css|map|woff2?|png|jpg|svg|ico)$/)) {
