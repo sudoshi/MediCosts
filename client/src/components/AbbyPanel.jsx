@@ -156,8 +156,11 @@ export default function AbbyPanel({ isOpen, onClose, pageContext }) {
 
   // Load suggestions on mount
   useEffect(() => {
-    fetch(`${API}/api/abby/suggestions`)
-      .then(r => r.json())
+    const token = localStorage.getItem('authToken');
+    fetch(`${API}/api/abby/suggestions`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.ok ? r.json() : [])
       .then(setSuggestions)
       .catch(() => {});
   }, []);

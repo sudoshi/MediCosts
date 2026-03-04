@@ -32,6 +32,7 @@ import communityHealthRouter from './routes/community-health.js';
 import networkRouter from './routes/network.js';
 import drugsRouter from './routes/drugs.js';
 import statsRouter from './routes/stats.js';
+import aiProvidersRouter from './routes/ai-providers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -94,6 +95,7 @@ app.use('/api/trends', trendsRouter);
 app.use('/api/post-acute', postAcuteRouter);
 app.use('/api/facilities', facilitiesRouter);
 app.use('/api/clearnetwork', requireAdmin, clearnetworkAdminRouter);
+app.use('/api/ai-providers', requireAdmin, aiProvidersRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/financials', financialsRouter);
 app.use('/api/shortage-areas', shortageRouter);

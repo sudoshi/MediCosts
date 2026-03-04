@@ -6,7 +6,7 @@ import {
   LogoMark, ChevronLeft, ChevronRight, LogOutIcon,
   TrendingUpIcon, HeartPulseIcon, DollarIcon, UsersIcon,
   AlertTriangleIcon, ScaleIcon, ClipboardHeartIcon, SearchDollarIcon,
-  InfoIcon, PillIcon, BookOpenIcon, PlugIcon, AwardIcon,
+  InfoIcon, PillIcon, BookOpenIcon, PlugIcon, AwardIcon, CpuIcon,
 } from './icons/NavIcons';
 import useStats from '../hooks/useStats.js';
 import AbbyPanel from './AbbyPanel.jsx';
@@ -72,8 +72,9 @@ const NAV_GROUPS = [
 
 /* Admin-only items that appear in the topbar dropdown */
 const ADMIN_ITEMS = [
-  { path: '/connectors', label: 'Data Connectors', icon: PlugIcon },
-  { path: '/settings',   label: 'Settings',        icon: GearIcon },
+  { path: '/connectors',    label: 'Data Connectors', icon: PlugIcon },
+  { path: '/ai-providers',  label: 'AI Providers',    icon: CpuIcon },
+  { path: '/settings',      label: 'Settings',        icon: GearIcon },
 ];
 
 const NAV_FLAT = NAV_GROUPS.flatMap(g => g.items);

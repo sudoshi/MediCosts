@@ -1,14 +1,13 @@
 /**
- * Abby Analytics — Express Router (Claude API backend)
+ * Abby Analytics — Express Router (multi-provider AI backend)
  *
  * POST /api/abby/chat         — Synchronous chat (for testing)
  * POST /api/abby/chat/stream  — SSE streaming chat (primary)
  * GET  /api/abby/health       — API connectivity check
  * GET  /api/abby/suggestions  — Starter prompt suggestions
  *
- * Uses Anthropic Claude API with native tool_use blocks.
- * - claude-haiku-4-5-20251001 for tool orchestration rounds (fast + cheap)
- * - claude-sonnet-4-6 for final synthesis when explicitly needed
+ * Supports Anthropic, OpenAI, Google Gemini (OpenAI-compatible), and Ollama.
+ * Active provider is read from DB via getActiveProvider() with 1-min cache.
  */
 
 import { Router } from 'express';
@@ -16,23 +15,17 @@ import Anthropic from '@anthropic-ai/sdk';
 import db from '../db.js';
 import { buildSystemPrompt } from '../lib/abby-prompt.js';
 import { buildAnthropicTools, executeTool } from '../lib/abby-tools.js';
+import { getActiveProvider } from '../lib/ai-provider.js';
+import { streamOpenAI } from '../lib/abby-openai.js';
+import { PAGE_DESCRIPTIONS } from '../lib/abby-context.js';
 
 const router = Router();
 
 const MAX_TOOL_ROUNDS = 5;
 
-// Model selection: haiku for tool-heavy orchestration, sonnet available for synthesis
-const MODEL_TOOL  = process.env.ABBY_MODEL_TOOL  || 'claude-haiku-4-5-20251001';
-const MODEL_SYNTH = process.env.ABBY_MODEL_SYNTH || 'claude-haiku-4-5-20251001';
-
-let anthropic;
-function getClient() {
-  if (!anthropic) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set in environment');
-    anthropic = new Anthropic({ apiKey });
-  }
-  return anthropic;
+function getAnthropicClient(apiKey) {
+  if (!apiKey) throw new Error('No API key configured for Anthropic');
+  return new Anthropic({ apiKey });
 }
 
 const TOOLS = buildAnthropicTools();
@@ -40,10 +33,6 @@ const SYSTEM = buildSystemPrompt();
 
 /* ── Message format helpers ───────────────────────────────────────── */
 
-/**
- * Convert frontend message format [{role, content}] to Anthropic format.
- * Anthropic requires alternating user/assistant roles.
- */
 function toAnthropicMessages(messages) {
   return messages.map(m => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -51,35 +40,34 @@ function toAnthropicMessages(messages) {
   }));
 }
 
-/* ── Orchestration loop (non-streaming) ───────────────────────────── */
+function buildSystemPrompt_withContext(pageContext) {
+  const pageDesc = pageContext ? PAGE_DESCRIPTIONS[pageContext] : null;
+  if (!pageDesc) return SYSTEM;
+  return `${SYSTEM}\n\n## Current Page Context\nThe user is on the **${pageContext}** page.\n${pageDesc}\nTailor answers to this context. When asked "what am I looking at" or "explain this page", describe it using the above.`;
+}
 
-async function orchestrate(userMessages) {
-  const client = getClient();
+/* ── Orchestration loop (non-streaming, Anthropic) ────────────────── */
+
+async function orchestrate(userMessages, systemPrompt, providerConfig) {
+  const client = getAnthropicClient(providerConfig.apiKey);
   const messages = toAnthropicMessages(userMessages);
+  const { modelTool: MODEL_TOOL, modelSynth: MODEL_SYNTH } = providerConfig;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const response = await client.messages.create({
       model: MODEL_TOOL,
       max_tokens: 4096,
-      system: SYSTEM,
+      system: systemPrompt,
       tools: TOOLS,
       messages,
     });
 
-    // Check stop reason
     if (response.stop_reason === 'end_turn') {
-      const text = response.content
-        .filter(b => b.type === 'text')
-        .map(b => b.text)
-        .join('');
-      return text;
+      return response.content.filter(b => b.type === 'text').map(b => b.text).join('');
     }
 
     if (response.stop_reason === 'tool_use') {
-      // Add assistant turn (with tool_use blocks)
       messages.push({ role: 'assistant', content: response.content });
-
-      // Execute each tool
       const toolResults = [];
       for (const block of response.content) {
         if (block.type !== 'tool_use') continue;
@@ -90,22 +78,18 @@ async function orchestrate(userMessages) {
           content: JSON.stringify(result.data),
         });
       }
-
-      // Add user turn with tool results
       messages.push({ role: 'user', content: toolResults });
       continue;
     }
 
-    // stop_reason = 'max_tokens' or other — extract whatever text exists
     break;
   }
 
-  // Exceeded rounds — ask for final answer without tools
   messages.push({ role: 'user', content: 'Please provide your final answer now based on the data you have collected.' });
   const finalResp = await client.messages.create({
     model: MODEL_SYNTH,
     max_tokens: 4096,
-    system: SYSTEM,
+    system: systemPrompt,
     messages,
   });
   return finalResp.content.filter(b => b.type === 'text').map(b => b.text).join('');
@@ -114,14 +98,16 @@ async function orchestrate(userMessages) {
 /* ── Routes ──────────────────────────────────────────────────────── */
 
 /**
- * POST /api/abby/chat — Synchronous (for testing)
+ * POST /api/abby/chat — Synchronous (for testing, Anthropic only)
  */
 router.post('/chat', async (req, res) => {
   try {
-    const { messages = [] } = req.body;
+    const { messages = [], pageContext } = req.body;
     if (!messages.length) return res.status(400).json({ error: 'messages required' });
 
-    const content = await orchestrate(messages);
+    const providerConfig = await getActiveProvider();
+    const systemPrompt = buildSystemPrompt_withContext(pageContext);
+    const content = await orchestrate(messages, systemPrompt, providerConfig);
     res.json({ role: 'assistant', content });
   } catch (err) {
     console.error('[Abby] chat error:', err.message);
@@ -159,81 +145,66 @@ router.post('/chat/stream', async (req, res) => {
       return res.end();
     }
 
-    // Build dynamic system prompt with page context if provided
-    const systemPrompt = pageContext
-      ? `${SYSTEM}\n\n## Current Page Context\nThe user is currently viewing the **${pageContext}** page of MediCosts. Tailor your response to be relevant to the data and questions typical for this page. If they ask about "this page" or "what I'm looking at", refer to the ${pageContext} view.`
-      : SYSTEM;
-
-    const client = getClient();
+    const systemPrompt = buildSystemPrompt_withContext(pageContext);
+    const providerConfig = await getActiveProvider();
     const chatMessages = toAnthropicMessages(messages);
 
-    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-      send('status', { text: round === 0 ? 'Thinking...' : 'Analyzing new data...' });
+    if (providerConfig.provider === 'anthropic') {
+      // ── Anthropic native SDK path ───────────────────────────────────
+      const client = getAnthropicClient(providerConfig.apiKey);
+      const { modelTool: MODEL_TOOL } = providerConfig;
 
-      // Use streaming for the final text response, non-streaming for tool rounds
-      const response = await client.messages.create({
-        model: MODEL_TOOL,
-        max_tokens: 4096,
-        system: systemPrompt,
-        tools: TOOLS,
-        messages: chatMessages,
-      });
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        send('status', { text: round === 0 ? 'Thinking...' : 'Analyzing new data...' });
 
-      if (response.stop_reason === 'end_turn') {
-        // Stream the text response token by token
-        const text = response.content
-          .filter(b => b.type === 'text')
-          .map(b => b.text)
-          .join('');
+        const response = await client.messages.create({
+          model: MODEL_TOOL,
+          max_tokens: 4096,
+          system: systemPrompt,
+          tools: TOOLS,
+          messages: chatMessages,
+        });
 
-        // Emit tokens in word-sized chunks for smooth rendering
-        const words = text.match(/\S+|\s+/g) || [];
-        for (const chunk of words) {
-          send('token', { content: chunk });
+        if (response.stop_reason === 'end_turn') {
+          const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
+          const words = text.match(/\S+|\s+/g) || [];
+          for (const chunk of words) send('token', { content: chunk });
+          break;
+        }
+
+        if (response.stop_reason === 'tool_use') {
+          chatMessages.push({ role: 'assistant', content: response.content });
+          const textBefore = response.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+          if (textBefore) send('status', { text: textBefore });
+
+          const toolResults = [];
+          for (const block of response.content) {
+            if (block.type !== 'tool_use') continue;
+            const label = block.name.replace(/_/g, ' ');
+            send('tool', { name: block.name, label });
+            send('status', { text: `Looking up: ${label}...` });
+            const result = await executeTool(block.name, block.input || {});
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: JSON.stringify(result.data),
+            });
+          }
+          chatMessages.push({ role: 'user', content: toolResults });
+          send('status', { text: 'Analyzing results...' });
+          continue;
+        }
+
+        const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        if (text) {
+          const words = text.match(/\S+|\s+/g) || [];
+          for (const chunk of words) send('token', { content: chunk });
         }
         break;
       }
-
-      if (response.stop_reason === 'tool_use') {
-        // Add assistant turn
-        chatMessages.push({ role: 'assistant', content: response.content });
-
-        // Emit any text content before tools
-        const textBefore = response.content
-          .filter(b => b.type === 'text')
-          .map(b => b.text)
-          .join('').trim();
-        if (textBefore) send('status', { text: textBefore });
-
-        // Execute tool calls
-        const toolResults = [];
-        for (const block of response.content) {
-          if (block.type !== 'tool_use') continue;
-
-          const label = block.name.replace(/_/g, ' ');
-          send('tool', { name: block.name, label });
-          send('status', { text: `Looking up: ${label}...` });
-
-          const result = await executeTool(block.name, block.input || {});
-          toolResults.push({
-            type: 'tool_result',
-            tool_use_id: block.id,
-            content: JSON.stringify(result.data),
-          });
-        }
-
-        chatMessages.push({ role: 'user', content: toolResults });
-        send('status', { text: 'Analyzing results...' });
-        continue;
-      }
-
-      // Unexpected stop reason — emit whatever text we have
-      const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      if (text) {
-        const words = text.match(/\S+|\s+/g) || [];
-        for (const chunk of words) send('token', { content: chunk });
-      }
-      break;
+    } else {
+      // ── OpenAI-compatible path (openai / google / ollama) ──────────
+      await streamOpenAI({ res, send, chatMessages, systemPrompt, providerConfig, MAX_TOOL_ROUNDS, pageContext });
     }
 
     res.write('data: [DONE]\n\n');
@@ -247,30 +218,34 @@ router.post('/chat/stream', async (req, res) => {
 });
 
 /**
- * GET /api/abby/health — Check Anthropic API connectivity
+ * GET /api/abby/health — Check active AI provider connectivity
  */
 router.get('/health', async (_req, res) => {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    const providerConfig = await getActiveProvider();
+
+    if (!providerConfig.apiKey && providerConfig.provider !== 'ollama') {
       return res.json({
         status: 'degraded',
-        model: MODEL_TOOL,
-        error: 'ANTHROPIC_API_KEY not set',
+        provider: providerConfig.provider,
+        model: providerConfig.modelTool,
+        error: 'No API key configured',
       });
     }
 
-    // Lightweight ping: send a minimal message
-    const client = getClient();
-    await client.messages.create({
-      model: MODEL_TOOL,
-      max_tokens: 5,
-      messages: [{ role: 'user', content: 'hi' }],
-    });
+    if (providerConfig.provider === 'anthropic') {
+      const client = getAnthropicClient(providerConfig.apiKey);
+      await client.messages.create({
+        model: providerConfig.modelTool,
+        max_tokens: 5,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+    }
+    // For other providers, just report config (skip live ping)
 
-    res.json({ status: 'ok', model: MODEL_TOOL });
+    res.json({ status: 'ok', provider: providerConfig.provider, model: providerConfig.modelTool });
   } catch (err) {
-    res.json({ status: 'error', model: MODEL_TOOL, error: err.message });
+    res.json({ status: 'error', error: err.message });
   }
 });
 

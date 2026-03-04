@@ -48,4 +48,42 @@ export async function runMigrations() {
     CREATE INDEX IF NOT EXISTS abby_messages_session_idx ON abby_messages (session_id, created_at ASC);
   `);
   console.log('✦ abby_sessions + abby_messages tables ready');
+
+  // AI Provider settings (multi-provider Abby)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ai_providers (
+      id          SERIAL PRIMARY KEY,
+      provider    TEXT NOT NULL UNIQUE,
+      label       TEXT NOT NULL,
+      api_key_enc TEXT,
+      model_tool  TEXT NOT NULL DEFAULT '',
+      model_synth TEXT NOT NULL DEFAULT '',
+      is_active   BOOLEAN NOT NULL DEFAULT false,
+      is_enabled  BOOLEAN NOT NULL DEFAULT false,
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+
+  // Seed default providers
+  await pool.query(`
+    INSERT INTO ai_providers (provider, label, model_tool, model_synth, is_active, is_enabled)
+    VALUES
+      ('anthropic', 'Anthropic Claude', 'claude-haiku-4-5-20251001', 'claude-sonnet-4-6', true,  true),
+      ('openai',    'OpenAI GPT',       'gpt-4o-mini',               'gpt-4o',            false, false),
+      ('google',    'Google Gemini',    'gemini-1.5-flash',          'gemini-1.5-pro',    false, false),
+      ('ollama',    'Ollama (Local)',    'llama3.2',                  'llama3.2',          false, true)
+    ON CONFLICT (provider) DO NOTHING;
+  `);
+
+  // Seed existing ANTHROPIC_API_KEY into DB if not yet stored
+  if (process.env.ANTHROPIC_API_KEY) {
+    const { encrypt } = await import('./crypto.js');
+    const enc = encrypt(process.env.ANTHROPIC_API_KEY);
+    await pool.query(`
+      UPDATE ai_providers SET api_key_enc = $1, updated_at = now()
+      WHERE provider = 'anthropic' AND api_key_enc IS NULL
+    `, [enc]);
+  }
+
+  console.log('✦ ai_providers table ready');
 }

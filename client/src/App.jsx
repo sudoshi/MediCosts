@@ -40,6 +40,7 @@ const AboutView = lazy(() => import('./views/AboutView'));
 const ExcellenceView = lazy(() => import('./views/ExcellenceView'));
 const BlogIndex = lazy(() => import('./views/BlogIndex'));
 const BlogPost = lazy(() => import('./views/BlogPost'));
+const AIProvidersView = lazy(() => import('./views/AIProvidersView'));
 
 function ViewLoader() {
   return (
@@ -175,6 +176,7 @@ export default function App() {
               <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
               <Route path="/drugs" element={<ErrorBoundary><DrugSpending /></ErrorBoundary>} />
               <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />
+              <Route path="/ai-providers" element={<ErrorBoundary><AIProvidersView /></ErrorBoundary>} />
               <Route path="/settings" element={<ErrorBoundary><SettingsView /></ErrorBoundary>} />
               <Route path="/about" element={<ErrorBoundary><AboutView /></ErrorBoundary>} />
               <Route path="*" element={<Navigate to="/overview" replace />} />

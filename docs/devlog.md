@@ -2432,6 +2432,54 @@ Composite excellence score computed client-side via percentile ranking across al
 
 ---
 
+## Multi-Provider AI + Context-Aware Abby (2026-03-03)
+
+### Problem
+Anthropic API credits ran out, taking Abby offline. No fallback, no admin UI to swap providers, no way to recover without a code change + redeploy. Abby also lacked true page context — it knew the page name but had no real description of the data being shown.
+
+### Solution: Phase 8 — AI Provider Settings + Rich Context
+
+**New server files:**
+
+| File | Purpose |
+|------|---------|
+| `server/lib/crypto.js` | AES-256-GCM encrypt/decrypt for API keys — key derived from `JWT_SECRET`, no extra env var |
+| `server/lib/ai-provider.js` | `getActiveProvider()` with 1-min cache; resolves active provider from DB |
+| `server/lib/abby-openai.js` | OpenAI-compatible orchestration loop (OpenAI, Google Gemini, Ollama) |
+| `server/lib/abby-context.js` | 17 rich page descriptions injected into Abby's system prompt |
+| `server/lib/abby-prefetch.js` | Pre-fetches live DB data per page when model lacks tool support |
+| `server/routes/ai-providers.js` | Admin CRUD: list, save key, activate, update models, proxy Ollama tags |
+
+**DB migration:** `ai_providers` table — 4 seeded rows (Anthropic, OpenAI, Google, Ollama). Existing `ANTHROPIC_API_KEY` from `.env` is automatically encrypted and stored at startup so no manual re-entry is required.
+
+**Updated files:**
+- `server/lib/db-migrate.js` — `ai_providers` table + seed
+- `server/routes/abby.js` — provider-aware stream handler; Anthropic path unchanged, non-Anthropic routes through `streamOpenAI`; rich page context via `PAGE_DESCRIPTIONS`
+- `server/index.js` — registered `/api/ai-providers` with `requireAdmin`
+- `client/src/components/AbbyPanel.jsx` — fixed missing auth header on `/api/abby/suggestions` (was returning 401)
+
+**Frontend — AI Providers admin page** (`/ai-providers`):
+- 4 provider cards: Anthropic (amber), OpenAI (green), Google (blue), Ollama (purple)
+- Active card: color-matched border + "ACTIVE" badge
+- Per-card: encrypted API key input (masked), model name fields with datalist hints, "Set as Active" button
+- Ollama card: no key field; shows live model list from local Ollama API; dropdown selectors
+- Toast notifications, spinner on activate
+- Accessible via Admin dropdown → "AI Providers" (admin-only)
+- `CpuIcon` added to `NavIcons.jsx`
+
+**Tool-less model fallback (Ollama/MedGemma):**
+
+Many local models (including MedGemma) don't support function calling. `abby-openai.js` probes with tools on the first request. On a 400 "does not support tools" error:
+1. Fires `prefetchPageData(pageContext)` — executes 2–4 pre-mapped tool calls in parallel for the current page
+2. Injects the live JSON results into the system prompt as a `## Live Data from MediCosts Database` block
+3. Retries without tools — model answers using real data even without function calling
+
+Page → prefetch map covers all 15+ pages. Example: **Industry Payments** pre-fetches payment summary + top 15 physician recipients + top 15 payers; **Overview Dashboard** pre-fetches national trend + PSI summary + readmission summary + mortality summary.
+
+**Currently active:** Ollama → `MedAIBase/MedGemma1.5:4b` (local, no API cost)
+
+---
+
 ## Overview Shock-Card Drill-Down (2026-03-03)
 
 Made the 4 hero KPI cards on the Overview page clickable:
