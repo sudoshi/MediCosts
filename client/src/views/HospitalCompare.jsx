@@ -11,6 +11,10 @@ import {
 import s from './HospitalCompare.module.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+function authHeaders() {
+  const t = localStorage.getItem('authToken');
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
 const COLORS = ['#3b82f6', '#22d3ee', '#a855f7'];
 const COLOR_NAMES = ['Blue', 'Cyan', 'Purple'];
 
@@ -108,7 +112,7 @@ export default function HospitalCompare() {
     const allIds = [...new Set([...ids, ...(addId ? [addId] : [])])].slice(0, 3);
     if (!allIds.length) return;
     Promise.all(allIds.map(id =>
-      fetch(`${API_BASE}/quality/composite/${id}`)
+      fetch(`${API_BASE}/quality/composite/${id}`, { headers: authHeaders() })
         .then(r => r.ok ? r.json() : null).catch(() => null)
     )).then(results => {
       const hospitals = results.filter(Boolean).map(c => ({
@@ -133,7 +137,7 @@ export default function HospitalCompare() {
     clearTimeout(debounceRef.current);
     if (!search || search.length < 2) { setSuggestions([]); return; }
     debounceRef.current = setTimeout(() => {
-      fetch(`${API_BASE}/quality/search?q=${encodeURIComponent(search)}&limit=10`)
+      fetch(`${API_BASE}/quality/search?q=${encodeURIComponent(search)}&limit=10`, { headers: authHeaders() })
         .then(r => r.json()).then(setSuggestions).catch(() => setSuggestions([]));
     }, 250);
     return () => clearTimeout(debounceRef.current);
@@ -157,7 +161,7 @@ export default function HospitalCompare() {
 
   function loadSuggested(set) {
     Promise.all(set.ids.map(id =>
-      fetch(`${API_BASE}/quality/composite/${id}`)
+      fetch(`${API_BASE}/quality/composite/${id}`, { headers: authHeaders() })
         .then(r => r.ok ? r.json() : null).catch(() => null)
     )).then(results => {
       const hospitals = results.filter(Boolean).map(c => ({

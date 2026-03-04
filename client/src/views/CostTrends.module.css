@@ -9,6 +9,21 @@
   animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerControls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .title {
   font-family: var(--font-display);
   font-size: 28px;
@@ -23,11 +38,112 @@
   color: var(--text-secondary);
 }
 
+.inflBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Inflation toggle ────────────────────────────────────────────── */
+.toggleWrap {
+  display: flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.toggleBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggleBtn:hover {
+  color: var(--text-primary);
+}
+
+.toggleActive {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── KPI row ─────────────────────────────────────────────────────── */
+.kpiRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-top: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kpiLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.kpiValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.kpiDelta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.deltaRed { color: #ef4444; }
+.deltaGreen { color: #22c55e; }
+
+/* ── Trend annotations ──────────────────────────────────────────── */
+.trendAnnotation {
+  display: flex;
+  gap: 20px;
+  padding: 10px 0 2px;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-secondary);
+}
+
+.trendAnnotation span span {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+/* ── Controls ────────────────────────────────────────────────────── */
 .controls {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
   align-items: flex-end;
+  margin-bottom: 8px;
 }
 
 .fieldGroup {
@@ -124,6 +240,7 @@
   color: var(--text-tertiary);
 }
 
+/* ── Legend ───────────────────────────────────────────────────────── */
 .legend {
   display: flex;
   gap: 16px;
@@ -141,6 +258,176 @@
   vertical-align: middle;
 }
 
+.compareLegend {
+  display: flex;
+  gap: 24px;
+  padding: 6px 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ── Compare toggle ──────────────────────────────────────────────── */
+.compareToggle {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.compareToggle:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.compareActive {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ── Comparison table ────────────────────────────────────────────── */
+.compTable {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.compTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.compTable th, .compTable td {
+  padding: 6px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-dim);
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-primary);
+}
+
+.compTable th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+.compTable th:first-child,
+.compTable td:first-child {
+  text-align: left;
+}
+
+.compLabel {
+  font-family: 'Inter', sans-serif !important;
+  color: var(--text-secondary) !important;
+  font-size: 11px;
+}
+
+/* ── Export button ────────────────────────────────────────────────── */
+.exportBtn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.exportBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* ── Top Movers ──────────────────────────────────────────────────── */
+.moversGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .moversGrid { grid-template-columns: 1fr; }
+}
+
+.moversCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.moversHeading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.moverRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer;
+  transition: background 0.1s;
+  text-align: left;
+  font-family: var(--font-body);
+  width: 100%;
+}
+
+.moverRow:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.moverRank {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  min-width: 18px;
+}
+
+.moverDrg {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-light);
+  min-width: 40px;
+}
+
+.moverDesc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moverCagr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Misc ────────────────────────────────────────────────────────── */
 .detailLink {
   display: inline-block;
   margin-top: 12px;
