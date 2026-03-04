@@ -56,6 +56,28 @@ router.get('/drgs/search', async (req, res, next) => {
 /*  GET /api/drgs/:code/summary                                        */
 /*  National stats for a single DRG                                    */
 /* ------------------------------------------------------------------ */
+/* GET /api/drgs/:code/hospitals?ccns=111111,222222,333333 */
+router.get('/drgs/:code/hospitals', async (req, res, next) => {
+  try {
+    const code = req.params.code;
+    const ccns = (req.query.ccns || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
+    if (!ccns.length) return res.json([]);
+    const placeholders = ccns.map((_, i) => `$${i + 2}`).join(',');
+    const { rows } = await pool.query(
+      `SELECT provider_ccn, MAX(provider_name) AS facility_name,
+              SUM(total_discharges)::int AS total_discharges,
+              AVG(avg_covered_charges)::numeric(14,0) AS avg_charges,
+              AVG(avg_total_payments)::numeric(14,0) AS avg_payment,
+              AVG(avg_medicare_payments)::numeric(14,0) AS avg_medicare_payment
+       FROM medicosts.medicare_inpatient
+       WHERE drg_cd = $1 AND provider_ccn IN (${placeholders})
+       GROUP BY provider_ccn`,
+      [code, ...ccns]
+    );
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
 router.get('/drgs/:code/summary', async (req, res, next) => {
   try {
     const code = req.params.code;
