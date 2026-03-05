@@ -171,7 +171,7 @@ router.get('/uncompensated', async (req, res) => {
         THEN ROUND((hf.uncompensated_care_charges::NUMERIC / hf.total_patient_charges) * 100, 2)
         ELSE NULL END AS uncomp_pct
     FROM medicosts.hospital_financials hf
-    LEFT JOIN medicosts.mv_hospital_quality h ON h.facility_id = hf.provider_ccn
+    LEFT JOIN medicosts.hospital_info h ON h.facility_id = hf.provider_ccn
     WHERE hf.report_year = $1
       AND hf.uncompensated_care_cost > 0
       ${stateClause}

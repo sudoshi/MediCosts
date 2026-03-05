@@ -77,8 +77,12 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/abby/', abbyLimiter);
 
-// Auth routes — public
-app.use('/api/auth', authLimiter, authRouter);
+// Auth routes — apply strict limiter only to mutating endpoints (login, register, change-password)
+// GET /api/auth/me is read-only JWT validation and needs higher throughput (called on every page load)
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/change-password', authLimiter);
+app.use('/api/auth', authRouter);
 
 // Stats route — public (no auth, cached 24h, used by landing/login pages)
 app.use('/api/stats', statsRouter);

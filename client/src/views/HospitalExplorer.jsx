@@ -7,6 +7,7 @@ import s from './HospitalExplorer.module.css';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem('authToken')}` });
 
 function exportCsv(rows, filename) {
   if (!rows.length) return;
@@ -40,7 +41,7 @@ export default function HospitalExplorer() {
       const params = new URLSearchParams({ page, per_page: perPage, sort, order });
       if (stateFilter) params.set('state', stateFilter);
       if (minStars > 0) params.set('min_stars', minStars);
-      const res = await fetch(`${API}/quality/hospitals?${params}`);
+      const res = await fetch(`${API}/quality/hospitals?${params}`, { headers: authHeader() });
       const json = await res.json();
       setData(json);
     } catch { setData(null); }
@@ -52,7 +53,7 @@ export default function HospitalExplorer() {
   // Fetch HCAHPS data for current state filter
   useEffect(() => {
     const params = stateFilter ? `?state=${stateFilter}` : '';
-    fetch(`${API}/quality/hcahps/by-hospital${params}`)
+    fetch(`${API}/quality/hcahps/by-hospital${params}`, { headers: authHeader() })
       .then(r => r.json())
       .then(rows => {
         const map = {};
@@ -66,7 +67,7 @@ export default function HospitalExplorer() {
   useEffect(() => {
     if (!search || search.length < 2) { setSearchResults(null); return; }
     const controller = new AbortController();
-    fetch(`${API}/quality/search?q=${encodeURIComponent(search)}&limit=20`, { signal: controller.signal })
+    fetch(`${API}/quality/search?q=${encodeURIComponent(search)}&limit=20`, { signal: controller.signal, headers: authHeader() })
       .then((r) => r.json())
       .then(setSearchResults)
       .catch(() => {});
