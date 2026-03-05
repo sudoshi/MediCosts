@@ -37,6 +37,7 @@ One file per page. Each file tracks: purpose, sections, data sources, navigation
 ### AI & Data
 - [Abby Analytics](./abby-analytics.md) — `/abby`
 - [Data Connectors](./data-connectors.md) — `/connectors`
+- [Transparency Scorecard](./transparency-scorecard.md) — `/transparency` *(admin)*
 
 ### Utility
 - [Settings](./settings.md) — `/settings`

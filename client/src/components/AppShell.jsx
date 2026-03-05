@@ -72,6 +72,7 @@ const NAV_GROUPS = [
 
 /* Admin-only items that appear in the topbar dropdown */
 const ADMIN_ITEMS = [
+  { path: '/transparency',  label: 'Transparency Scorecard', icon: ShieldCheckIcon },
   { path: '/connectors',    label: 'Data Connectors', icon: PlugIcon },
   { path: '/ai-providers',  label: 'AI Providers',    icon: CpuIcon },
   { path: '/settings',      label: 'Settings',        icon: GearIcon },
@@ -100,6 +101,7 @@ const PAGE_CONTEXT_MAP = [
   ['/estimate',       'Cost Estimator'],
   ['/about',          'About & Data Sources'],
   ['/blog',           'Blog'],
+  ['/transparency',   'Transparency Scorecard'],
 ];
 
 function getPageContext(pathname) {
