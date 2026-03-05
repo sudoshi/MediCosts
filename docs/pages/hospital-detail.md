@@ -36,3 +36,4 @@ Full profile for a single hospital, identified by CMS Certification Number (CCN)
 | 2026-02-28 | Initial build — quality + DRG cost panels |
 | 2026-03-02 | Added industry payments panel, hospital financials panel |
 | 2026-03-03 | Added insurance network badges via ClearNetwork |
+| 2026-03-04 | Phase 8: Tab-based lazy loading — 3 tabs (Quality & Safety, Cost & Spending, Community & Networks) reduce initial API calls from 17 to 1 |

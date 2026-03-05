@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
+import Tabs from '../components/ui/Tabs.jsx';
 import { fmtCurrency, fmtCompact, fmtNumber, fmtStars, fmtSIR, fmtRatio } from '../utils/format.js';
 import { comparisonBadge, sirColor } from '../utils/qualityColors.js';
 import {
@@ -14,27 +16,42 @@ import s from './HospitalDetail.module.css';
 const TT_STYLE = { background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 };
 const AXIS_TICK = { fill: '#71717a', fontFamily: 'Inter, sans-serif', fontSize: 10 };
 
+const DETAIL_TABS = [
+  { id: 'quality',    label: 'Quality & Safety' },
+  { id: 'cost',       label: 'Cost & Spending' },
+  { id: 'community',  label: 'Community & Networks' },
+];
+
 export default function HospitalDetail() {
   const { ccn } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('quality');
+
+  // Always load — core header data
   const { data: composite, loading: loadingComposite } = useApi(`/quality/composite/${ccn}`, [ccn]);
-  const { data: hai } = useApi(`/quality/hai/hospital/${ccn}`, [ccn]);
-  const { data: readm } = useApi(`/quality/readmissions/hospital/${ccn}`, [ccn]);
-  const { data: psi } = useApi(`/quality/psi/hospital/${ccn}`, [ccn]);
-  const { data: mortality } = useApi(`/quality/mortality/hospital/${ccn}`, [ccn]);
-  const { data: timelyCare } = useApi(`/quality/timely-care/hospital/${ccn}`, [ccn]);
-  const { data: vbp } = useApi(`/vbp/hospital/${ccn}`, [ccn]);
-  const { data: spending } = useApi(`/spending/episode/${ccn}`, [ccn]);
-  const { data: unplanned } = useApi(`/unplanned-visits/hospital/${ccn}`, [ccn]);
-  const { data: trendRaw } = useApi(`/trends/provider?ccn=${ccn}`, [ccn]);
-  const { data: outpatient } = useApi(`/outpatient/provider/${ccn}`, [ccn]);
-  const { data: hcahps } = useApi(`/quality/hcahps/hospital/${ccn}`, [ccn]);
-  const { data: hospPayments } = useApi(`/payments/hospital/${ccn}`, [ccn]);
-  const { data: financials } = useApi(`/financials/hospital/${ccn}`, [ccn]);
+
+  // Quality tab — only load when tab is active
+  const { data: hai }       = useApi(activeTab === 'quality' ? `/quality/hai/hospital/${ccn}` : null,         [ccn, activeTab]);
+  const { data: readm }     = useApi(activeTab === 'quality' ? `/quality/readmissions/hospital/${ccn}` : null, [ccn, activeTab]);
+  const { data: psi }       = useApi(activeTab === 'quality' ? `/quality/psi/hospital/${ccn}` : null,         [ccn, activeTab]);
+  const { data: mortality }  = useApi(activeTab === 'quality' ? `/quality/mortality/hospital/${ccn}` : null,   [ccn, activeTab]);
+  const { data: timelyCare } = useApi(activeTab === 'quality' ? `/quality/timely-care/hospital/${ccn}` : null, [ccn, activeTab]);
+  const { data: vbp }        = useApi(activeTab === 'quality' ? `/vbp/hospital/${ccn}` : null,                 [ccn, activeTab]);
+  const { data: hcahps }     = useApi(activeTab === 'quality' ? `/quality/hcahps/hospital/${ccn}` : null,      [ccn, activeTab]);
+  const { data: unplanned }  = useApi(activeTab === 'quality' ? `/unplanned-visits/hospital/${ccn}` : null,    [ccn, activeTab]);
+
+  // Cost tab — only load when tab is active
+  const { data: spending }   = useApi(activeTab === 'cost' ? `/spending/episode/${ccn}` : null,       [ccn, activeTab]);
+  const { data: trendRaw }   = useApi(activeTab === 'cost' ? `/trends/provider?ccn=${ccn}` : null,   [ccn, activeTab]);
+  const { data: outpatient } = useApi(activeTab === 'cost' ? `/outpatient/provider/${ccn}` : null,   [ccn, activeTab]);
+  const { data: financials } = useApi(activeTab === 'cost' ? `/financials/hospital/${ccn}` : null,   [ccn, activeTab]);
+
+  // Community tab — only load when tab is active
   const zip = composite?.zip_code?.replace(/\D/g, '').slice(0, 5);
-  const { data: communityHealth } = useApi(zip ? `/community-health/${zip}` : null, [zip]);
-  const { data: shortageAreas } = useApi(zip ? `/shortage-areas?zip=${zip}` : null, [zip]);
-  const { data: networkData } = useApi(`/network/hospital/${ccn}`, [ccn]);
+  const { data: communityHealth } = useApi(activeTab === 'community' && zip ? `/community-health/${zip}` : null,  [ccn, activeTab, zip]);
+  const { data: shortageAreas }   = useApi(activeTab === 'community' && zip ? `/shortage-areas?zip=${zip}` : null, [ccn, activeTab, zip]);
+  const { data: networkData }     = useApi(activeTab === 'community' ? `/network/hospital/${ccn}` : null,           [ccn, activeTab]);
+  const { data: hospPayments }    = useApi(activeTab === 'community' ? `/payments/hospital/${ccn}` : null,          [ccn, activeTab]);
 
   if (loadingComposite) {
     return (
@@ -99,9 +116,11 @@ export default function HospitalDetail() {
         <KpiCard label="HAC Penalty" value={h.hac_payment_reduction || '—'} color={h.hac_payment_reduction === 'Yes' ? '#ef4444' : undefined} />
       </div>
 
+      <Tabs tabs={DETAIL_TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+
       <div className={s.grid}>
-        {/* HAI Section */}
-        {sirMeasures.length > 0 && (
+        {/* ── Quality & Safety tab ── */}
+        {activeTab === 'quality' && sirMeasures.length > 0 && (
           <Panel title="Healthcare-Associated Infections">
             <div className={s.metricList}>
               {sirMeasures.map((r) => {
@@ -121,7 +140,7 @@ export default function HospitalDetail() {
         )}
 
         {/* PSI Section */}
-        {psi && (
+        {activeTab === 'quality' && psi && (
           <Panel title="Patient Safety Indicators">
             <div className={s.metricList}>
               {[
@@ -149,7 +168,7 @@ export default function HospitalDetail() {
         )}
 
         {/* Readmissions */}
-        {readm?.length > 0 && (
+        {activeTab === 'quality' && readm?.length > 0 && (
           <Panel title="Readmission Rates (HRRP)">
             <div className={s.metricList}>
               {readm.map((r, i) => (
@@ -168,7 +187,7 @@ export default function HospitalDetail() {
         )}
 
         {/* Mortality */}
-        {mortality?.length > 0 && (
+        {activeTab === 'quality' && mortality?.length > 0 && (
           <Panel title="Complications & Mortality">
             <div className={s.metricList}>
               {mortality.filter((r) => r.measure_id?.startsWith('MORT_')).map((r) => {
@@ -186,7 +205,7 @@ export default function HospitalDetail() {
         )}
 
         {/* Timely Care */}
-        {timelyCare?.length > 0 && (
+        {activeTab === 'quality' && timelyCare?.length > 0 && (
           <Panel title="Timely & Effective Care">
             <div className={s.metricList}>
               {timelyCare.filter((r) => ['ED_1b', 'ED_2b', 'OP_18b'].includes(r.measure_id)).map((r) => (
@@ -200,7 +219,7 @@ export default function HospitalDetail() {
         )}
 
         {/* VBP Domain Scores */}
-        {vbp && (
+        {activeTab === 'quality' && vbp && (
           <Panel title="Value-Based Purchasing">
             <div className={s.metricList}>
               {[
@@ -240,7 +259,7 @@ export default function HospitalDetail() {
         )}
 
         {/* Unplanned Visits */}
-        {unplanned?.length > 0 && (
+        {activeTab === 'quality' && unplanned?.length > 0 && (
           <Panel title="Unplanned Hospital Visits">
             <div className={s.metricList}>
               {unplanned.map((r, i) => {
@@ -258,7 +277,7 @@ export default function HospitalDetail() {
         )}
 
         {/* Patient Experience (HCAHPS) */}
-        {hcahps && (
+        {activeTab === 'quality' && hcahps && (
           <Panel title="Patient Experience (HCAHPS)">
             <div className={s.hcahpsGrid}>
               {[
@@ -287,7 +306,7 @@ export default function HospitalDetail() {
       </div>
 
       {/* Episode Spending (full width) */}
-      {spending?.length > 0 && (() => {
+      {activeTab === 'cost' && spending?.length > 0 && (() => {
         const complete = spending.filter(r => r.period?.includes('Complete'));
         return (
           <Panel title="Episode Spending by Claim Type">
@@ -318,7 +337,7 @@ export default function HospitalDetail() {
       })()}
 
       {/* Historical Cost Trend */}
-      {trendRaw?.length > 0 && (() => {
+      {activeTab === 'cost' && trendRaw?.length > 0 && (() => {
         const trend = (Array.isArray(trendRaw) ? trendRaw : trendRaw.results || [])
           .map(r => ({ ...r, year: Number(r.data_year), payment: Number(r.weighted_avg_payment), charges: Number(r.weighted_avg_charges) }))
           .sort((a, b) => a.year - b.year);
@@ -341,7 +360,7 @@ export default function HospitalDetail() {
       })()}
 
       {/* Top Outpatient Services */}
-      {outpatient?.length > 0 && (
+      {activeTab === 'cost' && outpatient?.length > 0 && (
         <Panel title="Top Outpatient Services">
           <div className={s.tableWrap}>
             <table className={s.spendTable}>
@@ -371,7 +390,7 @@ export default function HospitalDetail() {
       )}
 
       {/* Hospital Financials (HCRIS Cost Report) */}
-      {financials?.financials?.length > 0 && (() => {
+      {activeTab === 'cost' && financials?.financials?.length > 0 && (() => {
         const f = financials.financials[0]; // latest year
         return (
           <Panel title={`Cost Report Financials — FY ${f.report_year}`}>
@@ -415,7 +434,7 @@ export default function HospitalDetail() {
       })()}
 
       {/* Industry Payments (Open Payments / Sunshine Act) */}
-      {hospPayments?.summary?.total_payments > 0 && (
+      {activeTab === 'community' && hospPayments?.summary?.total_payments > 0 && (
         <Panel title="Industry Payments — Sunshine Act">
           <div className={s.kpiRow}>
             <KpiCard label="Total Payments" value={fmtNumber(hospPayments.summary.total_payments)} />
@@ -451,7 +470,7 @@ export default function HospitalDetail() {
       )}
 
       {/* Shortage Area Alerts */}
-      {shortageAreas?.shortage_areas?.length > 0 && (
+      {activeTab === 'community' && shortageAreas?.shortage_areas?.length > 0 && (
         <Panel title="Health Professional Shortage Area (HRSA)">
           <div className={s.shortageAlerts}>
             {shortageAreas.shortage_areas.map((a, i) => (
@@ -472,7 +491,7 @@ export default function HospitalDetail() {
       )}
 
       {/* Insurance Networks (ClearNetwork) */}
-      {networkData && (
+      {activeTab === 'community' && networkData && (
         <Panel title="Insurance Networks — In-Network Status">
           {networkData.networks?.length > 0 ? (
             <>
@@ -503,7 +522,7 @@ export default function HospitalDetail() {
       )}
 
       {/* Community Health Context (CDC PLACES) */}
-      {communityHealth && (
+      {activeTab === 'community' && communityHealth && (
         <Panel title={`Community Health — ZIP ${zip}`}>
           <div className={s.kpiRow}>
             {communityHealth.diabetes_pct != null && (

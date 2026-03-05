@@ -117,23 +117,23 @@ export default function PostAcuteCare() {
                   <tr>
                     <th className={s.thLeft}>State</th>
                     <th>Nursing Homes</th>
-                    <th>Avg NH Rating</th>
                     <th>Home Health</th>
-                    <th>Avg HH Stars</th>
                     <th>Dialysis</th>
-                    <th>Avg Dialysis Stars</th>
+                    <th>Hospice</th>
+                    <th>IRF</th>
+                    <th>LTCH</th>
                   </tr>
                 </thead>
                 <tbody>
                   {landscape.map(r => (
                     <tr key={r.state}>
                       <td className={s.name}>{r.state}</td>
-                      <td className={s.mono}>{fmtNumber(r.num_nursing_homes)}</td>
-                      <td className={s.stars}>{fmtStars(r.avg_nh_overall_rating)}</td>
-                      <td className={s.mono}>{fmtNumber(r.num_hh_agencies)}</td>
-                      <td className={s.stars}>{fmtStars(r.avg_hh_quality_star)}</td>
-                      <td className={s.mono}>{fmtNumber(r.num_dialysis_facilities)}</td>
-                      <td className={s.stars}>{fmtStars(r.avg_dialysis_star)}</td>
+                      <td className={s.mono}>{fmtNumber(r.nursing_homes)}</td>
+                      <td className={s.mono}>{fmtNumber(r.home_health_agencies)}</td>
+                      <td className={s.mono}>{fmtNumber(r.dialysis_facilities)}</td>
+                      <td className={s.mono}>{fmtNumber(r.hospice_providers)}</td>
+                      <td className={s.mono}>{fmtNumber(r.irf_facilities)}</td>
+                      <td className={s.mono}>{fmtNumber(r.ltch_facilities)}</td>
                     </tr>
                   ))}
                 </tbody>
