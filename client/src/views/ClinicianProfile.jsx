@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
@@ -6,6 +7,7 @@ import Badge from '../components/ui/Badge.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianProfile.module.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const TOOLTIP_STYLE = { background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 };
 
 const fmt$ = (v) =>
@@ -16,9 +18,34 @@ export default function ClinicianProfile() {
   const { npi } = useParams();
   const navigate = useNavigate();
   const { data: raw, loading } = useApi(`/clinicians/${npi}`, [npi]);
-  const { data: payments } = useApi(`/payments/physician/${npi}`, [npi]);
   const { data: networkData } = useApi(`/network/check?npi=${npi}`, [npi]);
   const { data: partD } = useApi(`/drugs/prescriber/${npi}`, [npi]);
+
+  // Payments with pagination
+  const [payments, setPayments] = useState(null);
+  const [payPage, setPayPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setPayments(null);
+    setPayPage(1);
+    const token = localStorage.getItem('authToken');
+    fetch(`${API_BASE}/payments/physician/${npi}?page=1&limit=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.json()).then(setPayments).catch(() => setPayments({ summary: {}, payments: [], by_year: [] }));
+  }, [npi]);
+
+  const loadMorePayments = useCallback(() => {
+    const nextPage = payPage + 1;
+    setLoadingMore(true);
+    const token = localStorage.getItem('authToken');
+    fetch(`${API_BASE}/payments/physician/${npi}?page=${nextPage}&limit=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.json()).then(data => {
+      setPayments(prev => ({ ...prev, payments: [...(prev?.payments || []), ...(data.payments || [])] }));
+      setPayPage(nextPage);
+    }).catch(() => {}).finally(() => setLoadingMore(false));
+  }, [npi, payPage]);
 
   if (loading) {
     return (
@@ -173,7 +200,7 @@ export default function ClinicianProfile() {
                 </tr>
               </thead>
               <tbody>
-                {(payments.payments || []).slice(0, 50).map((p) => (
+                {(payments.payments || []).map((p) => (
                   <tr key={p.id}>
                     <td className={s.metricValue}>{p.payment_date ? new Date(p.payment_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '—'}</td>
                     <td className={s.metricName}>{p.payer_name || '—'}</td>
@@ -185,6 +212,15 @@ export default function ClinicianProfile() {
               </tbody>
             </table>
           </div>
+          {payments.payments?.length < payments.summary?.total_payments && (
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12 }}>
+              <button
+                onClick={loadMorePayments}
+                disabled={loadingMore}
+                style={{ padding: '6px 20px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+              >{loadingMore ? 'Loading…' : `Load more (${payments.summary.total_payments - payments.payments.length} remaining)`}</button>
+            </div>
+          )}
         </Panel>
       )}
 

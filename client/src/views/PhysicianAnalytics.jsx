@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
@@ -8,6 +9,7 @@ import { fmtCurrency, fmtNumber } from '../utils/format.js';
 import s from './PhysicianAnalytics.module.css';
 
 export default function PhysicianAnalytics() {
+  const navigate = useNavigate();
   const [zipSearch, setZipSearch] = useState('');
   const { data: topHcpcs, loading: loadingHcpcs } = useApi('/physician/top-hcpcs?limit=25');
   const { data: zipData, loading: loadingZip } = useApi(
@@ -121,6 +123,14 @@ export default function PhysicianAnalytics() {
         )}
         {zipSearch.length === 5 && !loadingZip && (!zipData || zipData.length === 0) && (
           <p className={s.emptyMsg}>No physician data for ZIP {zipSearch}</p>
+        )}
+        {zipData?.length > 0 && (
+          <div style={{ paddingTop: 12 }}>
+            <button
+              onClick={() => navigate(`/clinicians`)}
+              style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--accent)', fontFamily: 'Inter,sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+            >→ Find clinicians in ZIP {zipSearch}</button>
+          </div>
         )}
       </Panel>
     </div>
