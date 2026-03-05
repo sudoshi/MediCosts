@@ -13,24 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 12141,
+    "response_time_ms": 674,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:04.898188+00:00",
-    "notes": "",
-    "transparency_score": 65,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039536+00:00"
+    "last_probed_at": "2026-03-05T20:26:02.674955+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -46,24 +36,29 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 32,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.064293+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039584+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.727516+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "PA",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071851+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -79,24 +74,46 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 7,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.349762+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039658+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.867745+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Humana Insurance Company",
+    "trade_names": [
+      "Humana"
+    ],
+    "state": "PA",
+    "mrf_url": "https://developers.humana.com/syntheticdata/healthplan-price-transparency",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.072006+00:00"
+  },
+  {
+    "insurer_name": "Centene Corporation",
+    "trade_names": [
+      "Centene",
+      "Ambetter",
+      "WellCare",
+      "Health Net",
+      "Fidelis Care"
+    ],
+    "state": "PA",
+    "mrf_url": "https://www.centene.com/price-transparency-files.html",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.072094+00:00"
   },
   {
     "insurer_name": "UPMC Health Plan",
@@ -119,83 +136,8 @@
     "file_size_bytes": null,
     "accessibility": "dead",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.387779+00:00",
-    "notes": "404 Not Found",
-    "transparency_score": 20,
-    "digital_debt_score": 60,
-    "score_breakdown": {
-      "accessibility": "+40 debt (dead/unreachable)",
-      "http_status": "+20 debt (404 Not Found)",
-      "response_time": "+10 (234ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_azure)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039745+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "PA",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171561+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039620+00:00"
-  },
-  {
-    "insurer_name": "Humana Insurance Company",
-    "trade_names": [
-      "Humana"
-    ],
-    "state": "PA",
-    "mrf_url": "https://developers.humana.com/syntheticdata/healthplan-price-transparency",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171632+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039690+00:00"
-  },
-  {
-    "insurer_name": "Centene Corporation",
-    "trade_names": [
-      "Centene",
-      "Ambetter",
-      "WellCare",
-      "Health Net",
-      "Fidelis Care"
-    ],
-    "state": "PA",
-    "mrf_url": "https://www.centene.com/price-transparency-files.html",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171667+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039726+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.885738+00:00",
+    "notes": "404 Not Found"
   },
   {
     "insurer_name": "Highmark Inc",
@@ -210,13 +152,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171689+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039747+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072143+00:00"
   },
   {
     "insurer_name": "Independence Blue Cross",
@@ -231,13 +167,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171692+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039750+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072150+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -251,12 +181,57 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171703+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039761+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072176+00:00"
+  },
+  {
+    "state": "PA",
+    "insurer_name": "Highmark Blue Cross Blue Shield Pennsylvania",
+    "trade_names": [
+      "Highmark BCBS PA",
+      "Highmark Inc PA"
+    ],
+    "mrf_url": "https://mrfdata.hmhs.com/files/363/pa/inbound/local/{date}_Highmark_Blue_Cross_Blue_Shield_of_Pennsylvania_index.json",
+    "index_type": "dated_hmhs",
+    "date_pattern": "YYYY-MM-01",
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "http_status": 200,
+    "file_size_bytes": 5078907,
+    "notes": "From mrfdata.hmhs.com/js/script.js \u2014 code 363 (BCBS PA)",
+    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
+  },
+  {
+    "state": "PA",
+    "insurer_name": "Highmark Blue Shield Pennsylvania",
+    "trade_names": [
+      "Highmark Blue Shield PA",
+      "Highmark BS"
+    ],
+    "mrf_url": "https://mrfdata.hmhs.com/files/378/pa/inbound/local/{date}_Highmark_Blue_Shield_of_Pennsylvania_index.json",
+    "index_type": "dated_hmhs",
+    "date_pattern": "YYYY-MM-01",
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "http_status": 200,
+    "file_size_bytes": 2881586,
+    "notes": "From mrfdata.hmhs.com/js/script.js \u2014 code 378 (Blue Shield only, not BCBS)",
+    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
+  },
+  {
+    "state": "PA",
+    "insurer_name": "Independence National Alliance",
+    "trade_names": [
+      "IBC NA",
+      "Independence National Alliance Powered by Highmark"
+    ],
+    "mrf_url": "https://mrfdata.hmhs.com/files/363/pa/inbound/local/{date}_Independence_National_Alliance_index.json",
+    "index_type": "dated_hmhs",
+    "date_pattern": "YYYY-MM-01",
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "http_status": 200,
+    "file_size_bytes": 5078907,
+    "notes": "Highmark/IBC partnership network. From mrfdata.hmhs.com/js/script.js fileArr.",
+    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
   }
 ]

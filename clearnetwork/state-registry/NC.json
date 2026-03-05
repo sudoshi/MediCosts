@@ -13,24 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 6830,
+    "response_time_ms": 974,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:03.838300+00:00",
-    "notes": "",
-    "transparency_score": 65,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039532+00:00"
+    "last_probed_at": "2026-03-05T20:26:02.242613+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -46,24 +36,29 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 18,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.037412+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039581+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.709255+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "NC",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071842+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -79,77 +74,14 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 8,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.337083+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039653+00:00"
-  },
-  {
-    "insurer_name": "Blue Cross and Blue Shield of North Carolina",
-    "trade_names": [
-      "BCBSNC",
-      "Blue Cross NC"
-    ],
-    "state": "NC",
-    "mrf_url": "https://mrfmftprod.bcbsnc.com/prod/etl/outbound/table-of-contents/non-aso/{date}_blue-cross-and-blue-shield-of-north-carolina_index.json",
-    "index_type": "dated_s3",
-    "date_pattern": "YYYY-MM-DD",
-    "cms_source": false,
-    "http_status": 403,
-    "content_type": "application/xml",
-    "response_time_ms": 186,
-    "ssl_valid": true,
-    "supports_gzip": false,
-    "file_size_bytes": null,
-    "accessibility": "auth_required",
-    "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.507931+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (186ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039751+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "NC",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171558+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039617+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.859282+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -163,13 +95,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171629+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039687+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071999+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -187,13 +113,29 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171664+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039724+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072087+00:00"
+  },
+  {
+    "insurer_name": "Blue Cross and Blue Shield of North Carolina",
+    "trade_names": [
+      "BCBSNC",
+      "Blue Cross NC"
+    ],
+    "state": "NC",
+    "mrf_url": "https://mrfmftprod.bcbsnc.com/prod/etl/outbound/table-of-contents/non-aso/{date}_blue-cross-and-blue-shield-of-north-carolina_index.json",
+    "index_type": "dated_s3",
+    "date_pattern": "YYYY-MM-DD",
+    "cms_source": false,
+    "http_status": 403,
+    "content_type": "application/xml",
+    "response_time_ms": 100,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": null,
+    "accessibility": "auth_required",
+    "mrf_url_verified": false,
+    "last_probed_at": "2026-03-05T20:26:03.957577+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Bright Health",
@@ -207,30 +149,6 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171709+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039768+00:00"
-  },
-  {
-    "insurer_name": "Oscar Health",
-    "trade_names": [
-      "Oscar Health",
-      "Oscar"
-    ],
-    "state": "NC",
-    "mrf_url": "https://www.hioscar.com/transparency-in-coverage",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": true,
-    "notes": "Known browser-required index type",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "hios_issuer_id": "82835",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
+    "last_probed_at": "2026-03-05T20:26:01.072194+00:00"
   }
 ]

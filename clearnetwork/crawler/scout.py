@@ -253,7 +253,7 @@ def compute_scores(entry: dict) -> dict:
 
     # 9. Known index type bonus
     index_type = entry.get("index_type", "")
-    if index_type in ("direct_json", "dated_s3", "dated_azure", "dated_cloudfront", "sapphire_hub", "uhc_blob_api"):
+    if index_type in ("direct_json", "dated_s3", "dated_azure", "dated_cloudfront", "dated_hmhs", "sapphire_hub", "uhc_blob_api"):
         t_score += 5
         breakdown["index_type"] = f"+5 (known pattern: {index_type})"
 

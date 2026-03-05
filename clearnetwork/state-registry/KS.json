@@ -13,25 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 3765,
+    "response_time_ms": 532,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:02.171226+00:00",
-    "notes": "",
-    "transparency_score": 75,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (3765ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039510+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071476+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +36,29 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 63,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:06.936465+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039567+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.603601+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "KS",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071819+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,45 +74,14 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 16,
+    "response_time_ms": 9,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.290718+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (16ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039641+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "KS",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171547+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039607+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.840680+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +95,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171618+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039678+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071976+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,13 +113,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171654+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039713+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072062+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -176,13 +127,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171699+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039757+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072166+00:00"
   },
   {
     "insurer_name": "Medica",
@@ -196,29 +141,6 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171717+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039783+00:00"
-  },
-  {
-    "insurer_name": "Blue Cross Blue Shield of Kansas",
-    "trade_names": [
-      "BCBSKS"
-    ],
-    "state": "KS",
-    "mrf_url": "https://www.bcbsks.com/transparency-in-coverage",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": true,
-    "notes": "",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "hios_issuer_id": "70729",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
+    "last_probed_at": "2026-03-05T20:26:01.072213+00:00"
   }
 ]

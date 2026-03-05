@@ -13,25 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 4701,
+    "response_time_ms": 1553,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:02.171275+00:00",
-    "notes": "",
-    "transparency_score": 75,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (4701ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039512+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071591+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +36,29 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 20,
+    "response_time_ms": 22,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:06.959139+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (20ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039570+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.633292+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "ME",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071823+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,45 +74,14 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 9,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.306789+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039644+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "ME",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171549+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039609+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.841195+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +95,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171621+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039679+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071980+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,12 +113,6 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171656+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039715+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072067+00:00"
   }
 ]

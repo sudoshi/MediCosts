@@ -13,25 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 4970,
+    "response_time_ms": 511,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:02.171451+00:00",
-    "notes": "",
-    "transparency_score": 75,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (4970ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039529+00:00"
+    "last_probed_at": "2026-03-05T20:26:02.185915+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +36,29 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 20,
+    "response_time_ms": 21,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.021048+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (20ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039579+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.699437+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "NJ",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071838+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,45 +74,14 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 10,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.335202+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039651+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "NJ",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171556+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039616+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.857682+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +95,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171627+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039686+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.071995+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,13 +113,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171662+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039722+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072082+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -176,45 +127,6 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171700+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039759+00:00"
-  },
-  {
-    "insurer_name": "Horizon Blue Cross Blue Shield of New Jersey",
-    "trade_names": [
-      "Horizon BCBS NJ"
-    ],
-    "state": "NJ",
-    "mrf_url": "https://www.horizonblue.com/transparency-in-coverage",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": true,
-    "notes": "",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
-  },
-  {
-    "insurer_name": "AmeriHealth / Independence Health Group",
-    "trade_names": [
-      "AmeriHealth",
-      "Independence Health Group"
-    ],
-    "state": "NJ",
-    "mrf_url": "https://www.amerihealth.com/transparency-in-coverage",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": true,
-    "notes": "",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
+    "last_probed_at": "2026-03-05T20:26:01.072171+00:00"
   }
 ]

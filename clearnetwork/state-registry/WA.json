@@ -13,57 +13,14 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1761,
+    "response_time_ms": 595,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:05.942990+00:00",
-    "notes": "",
-    "transparency_score": 75,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (1761ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: uhc_blob_api)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039549+00:00"
-  },
-  {
-    "insurer_name": "Premera Blue Cross",
-    "trade_names": [
-      "Premera"
-    ],
-    "state": "WA",
-    "mrf_url": "https://premera.sapphiremrfhub.com/tocs/current/premera-blue-cross",
-    "index_type": "sapphire_hub",
-    "date_pattern": null,
-    "cms_source": false,
-    "http_status": 200,
-    "content_type": "binary/octet-stream",
-    "response_time_ms": 383,
-    "ssl_valid": true,
-    "supports_gzip": false,
-    "file_size_bytes": 1770490,
-    "accessibility": "automatable",
-    "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T07:00:07.509131+00:00",
-    "notes": "",
-    "transparency_score": 75,
-    "digital_debt_score": 0,
-    "score_breakdown": {
-      "accessibility": "+30 (automatable)",
-      "http_status": "+10 (200 OK)",
-      "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (383ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: sapphire_hub)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039786+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.153102+00:00",
+    "notes": ""
   },
   {
     "insurer_name": "Anthem Inc",
@@ -85,18 +42,23 @@
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.111675+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (20ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_s3)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039592+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.769939+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "WA",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T20:26:01.071863+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -112,45 +74,14 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 15,
+    "response_time_ms": 9,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T07:00:07.366629+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall",
-    "transparency_score": 20,
-    "digital_debt_score": 40,
-    "score_breakdown": {
-      "accessibility": "+25 debt (auth wall)",
-      "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (15ms < 5s)",
-      "ssl": "+5 (valid SSL)",
-      "index_type": "+5 (known pattern: dated_cloudfront)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039665+00:00"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "WA",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171566+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039625+00:00"
+    "last_probed_at": "2026-03-05T20:26:03.875866+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -164,13 +95,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171637+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039695+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072019+00:00"
   },
   {
     "insurer_name": "Kaiser Foundation Health Plan",
@@ -184,13 +109,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171644+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039702+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072036+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -208,13 +127,7 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171673+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039731+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072107+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -228,46 +141,27 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T07:00:02.171682+00:00",
-    "transparency_score": 0,
-    "digital_debt_score": 30,
-    "score_breakdown": {
-      "accessibility": "+30 debt (browser required)"
-    },
-    "last_scored_at": "2026-03-05T07:00:17.039739+00:00"
+    "last_probed_at": "2026-03-05T20:26:01.072129+00:00"
   },
   {
-    "insurer_name": "Regence BlueCross BlueShield",
+    "insurer_name": "Premera Blue Cross",
     "trade_names": [
-      "Regence",
-      "Regence BCBS",
-      "Regence BlueShield"
+      "Premera"
     ],
     "state": "WA",
-    "mrf_url": "https://www.regence.com/transparency-in-coverage",
-    "index_type": "browser_required",
+    "mrf_url": "https://premera.sapphiremrfhub.com/tocs/current/premera-blue-cross",
+    "index_type": "sapphire_hub",
     "date_pattern": null,
-    "cms_source": true,
-    "notes": "",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
-  },
-  {
-    "insurer_name": "Community Health Plan of Washington",
-    "trade_names": [
-      "CHPW"
-    ],
-    "state": "WA",
-    "mrf_url": "https://www.chpw.org/transparency-in-coverage",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": true,
-    "notes": "",
-    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
-    "accessibility": "browser_required",
-    "transparency_score": 0,
-    "digital_debt_score": 30
+    "cms_source": false,
+    "http_status": 200,
+    "content_type": "binary/octet-stream",
+    "response_time_ms": 209,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": 1770490,
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "last_probed_at": "2026-03-05T20:26:03.986765+00:00",
+    "notes": ""
   }
 ]
