@@ -784,6 +784,23 @@ router.get('/value-composite', async (req, res, next) => {
 /* ================================================================== */
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/clinicians/specialties                                     */
+/* ------------------------------------------------------------------ */
+router.get('/clinicians/specialties', async (req, res, next) => {
+  try {
+    const r = await pool.query(`
+      SELECT primary_specialty AS specialty, COUNT(*) AS count
+      FROM medicosts.clinician_directory
+      WHERE primary_specialty IS NOT NULL AND primary_specialty != ''
+      GROUP BY primary_specialty
+      ORDER BY count DESC
+      LIMIT 200
+    `);
+    res.json(r.rows.map(row => row.specialty));
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/clinicians/search?q=&specialty=&state=&limit=             */
 /* ------------------------------------------------------------------ */
 router.get('/clinicians/search', async (req, res, next) => {

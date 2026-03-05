@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianDirectory.module.css';
@@ -13,13 +14,14 @@ const STATES = [
   'VT','VA','WA','WV','WI','WY',
 ];
 
-const TOP_SPECIALTIES = [
-  'Internal Medicine', 'Family Practice', 'Cardiology', 'Orthopedic Surgery',
-  'Dermatology', 'Neurology', 'Psychiatry', 'General Surgery',
-  'Ophthalmology', 'Emergency Medicine', 'Anesthesiology', 'Radiology',
-  'Obstetrics/Gynecology', 'Pediatric Medicine', 'Urology', 'Pulmonary Disease',
-  'Gastroenterology', 'Oncology', 'Nephrology', 'Endocrinology',
-];
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = ['npi', 'last_name', 'first_name', 'credential', 'primary_specialty', 'city', 'state', 'facility_name'];
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
 
 export default function ClinicianDirectory() {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ export default function ClinicianDirectory() {
   const [loading, setLoading] = useState(false);
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
+  const { data: specialties } = useApi('/clinicians/specialties', []);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
@@ -98,12 +101,20 @@ export default function ClinicianDirectory() {
           <span className={s.fieldLabel}>Specialty</span>
           <select className={s.select} value={specialty} onChange={e => setSpecialty(e.target.value)}>
             <option value="">All Specialties</option>
-            {TOP_SPECIALTIES.map(sp => <option key={sp} value={sp}>{sp}</option>)}
+            {(specialties || []).map(sp => <option key={sp} value={sp}>{sp}</option>)}
           </select>
         </div>
       </div>
 
-      <Panel title="Search Results">
+      <Panel
+        title="Search Results"
+        headerRight={results?.length > 0 && (
+          <button
+            onClick={() => exportCsv(results, `clinicians-${state||'all'}-${specialty||'all'}.csv`)}
+            style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+          >↓ CSV</button>
+        )}
+      >
         {loading ? <Skeleton height={400} /> : results === null ? (
           <p className={s.emptyMsg}>Enter a name, select a state, or choose a specialty to search.</p>
         ) : results.length === 0 ? (
