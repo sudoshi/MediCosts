@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1311,
+    "response_time_ms": 3377,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:54.786823+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171159+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (1311ms < 5s)",
+      "response_time": "+10 (3377ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134923+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039507+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 20,
+    "response_time_ms": 19,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.484782+00:00",
+    "last_probed_at": "2026-03-05T07:00:06.910643+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (20ms < 5s)",
+      "response_time": "+10 (19ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134964+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039565+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 14,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.771145+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.288563+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (8ms < 5s)",
+      "response_time": "+10 (14ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135034+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039639+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -112,13 +112,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787210+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171545+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135001+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039605+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +132,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787283+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171616+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135073+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039675+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,12 +156,80 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787318+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171652+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135109+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039711+00:00"
+  },
+  {
+    "insurer_name": "Blue Cross of Idaho",
+    "trade_names": [
+      "BCID",
+      "Blue Cross Idaho"
+    ],
+    "state": "ID",
+    "mrf_url": "https://www.bcidaho.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "SelectHealth",
+    "trade_names": [
+      "SelectHealth",
+      "Intermountain Health"
+    ],
+    "state": "ID",
+    "mrf_url": "https://selecthealth.org/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "Mountain Health CO-OP",
+    "trade_names": [
+      "Mountain Health CO-OP"
+    ],
+    "state": "ID",
+    "mrf_url": "https://www.mountainhealthco-op.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "Regence BlueCross BlueShield",
+    "trade_names": [
+      "Regence",
+      "Regence BCBS",
+      "Regence BlueShield"
+    ],
+    "state": "ID",
+    "mrf_url": "https://www.regence.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

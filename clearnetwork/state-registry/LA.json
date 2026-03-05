@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 2377,
+    "response_time_ms": 4175,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:54.786924+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171259+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (2377ms < 5s)",
+      "response_time": "+10 (4175ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134928+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039512+00:00"
   },
   {
     "insurer_name": "Louisiana Health Service & Indemnity Company",
@@ -47,13 +47,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "binary/octet-stream",
-    "response_time_ms": 592,
+    "response_time_ms": 575,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 326399,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:56.933733+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.614100+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -61,11 +61,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (592ms < 5s)",
+      "response_time": "+10 (575ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: sapphire_hub)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135180+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039788+00:00"
   },
   {
     "insurer_name": "HMO Louisiana",
@@ -80,13 +80,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "binary/octet-stream",
-    "response_time_ms": 527,
+    "response_time_ms": 321,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 519098,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:56.935582+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.622794+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -94,11 +94,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (527ms < 5s)",
+      "response_time": "+10 (321ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: sapphire_hub)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135181+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039789+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -114,24 +114,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 21,
+    "response_time_ms": 23,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.512727+00:00",
+    "last_probed_at": "2026-03-05T07:00:06.951433+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (21ms < 5s)",
+      "response_time": "+10 (23ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134968+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039569+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -147,24 +147,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 10,
+    "response_time_ms": 13,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.772324+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.302592+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (10ms < 5s)",
+      "response_time": "+10 (13ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135039+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039643+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -179,13 +179,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787214+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171548+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135003+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039608+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -199,13 +199,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787288+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171619+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135076+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039679+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -223,12 +223,30 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787322+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171655+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135112+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039714+00:00"
+  },
+  {
+    "insurer_name": "Louisiana Blue (BCBSLA)",
+    "trade_names": [
+      "BCBSLA",
+      "Louisiana Blue"
+    ],
+    "state": "LA",
+    "mrf_url": "https://www.bcbsla.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "90264",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

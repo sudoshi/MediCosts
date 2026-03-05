@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 3412,
+    "response_time_ms": 4576,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:54.786989+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171321+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (3412ms < 5s)",
+      "response_time": "+10 (4576ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134931+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039515+00:00"
   },
   {
     "insurer_name": "Blue Cross Blue Shield of Michigan",
@@ -46,13 +46,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "binary/octet-stream",
-    "response_time_ms": 531,
+    "response_time_ms": 590,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 264769,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:56.815322+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.506960+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -60,11 +60,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (531ms < 5s)",
+      "response_time": "+10 (590ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: sapphire_hub)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135147+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039749+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -86,7 +86,7 @@
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.533838+00:00",
+    "last_probed_at": "2026-03-05T07:00:06.979807+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
@@ -97,7 +97,7 @@
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134971+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039572+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -113,24 +113,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 9,
+    "response_time_ms": 14,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.779523+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.307081+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (9ms < 5s)",
+      "response_time": "+10 (14ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135042+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039645+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -145,13 +145,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787216+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171551+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135006+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039611+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -165,13 +165,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787290+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171623+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135080+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039681+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -189,13 +189,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787324+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171658+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135115+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039717+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -209,13 +209,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787344+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171678+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135132+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039736+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -229,12 +229,47 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787367+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171699+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135153+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039757+00:00"
+  },
+  {
+    "insurer_name": "Priority Health",
+    "trade_names": [
+      "Priority Health"
+    ],
+    "state": "MI",
+    "mrf_url": "https://www.priorityhealth.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "35783",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "McLaren Health Plan",
+    "trade_names": [
+      "McLaren Health Plan",
+      "McLaren"
+    ],
+    "state": "MI",
+    "mrf_url": "https://www.mclarenhealthplan.org/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "25887",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

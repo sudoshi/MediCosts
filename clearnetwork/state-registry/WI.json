@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 408,
+    "response_time_ms": 2754,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:56.053936+00:00",
+    "last_probed_at": "2026-03-05T07:00:06.316055+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (408ms < 5s)",
+      "response_time": "+10 (2754ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134951+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039551+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 21,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.643865+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.128222+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
+      "response_time": "+10 (21ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134990+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039593+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 10,
+    "response_time_ms": 13,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.806575+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.373777+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (10ms < 5s)",
+      "response_time": "+10 (13ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135063+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039666+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -112,13 +112,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787231+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171567+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135023+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039626+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +132,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787305+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171638+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135094+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039696+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,13 +156,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787340+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171674+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135129+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039732+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -176,13 +176,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787349+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171683+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135137+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039740+00:00"
   },
   {
     "insurer_name": "Medica",
@@ -196,12 +196,30 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787381+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171714+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135172+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039779+00:00"
+  },
+  {
+    "insurer_name": "Quartz Health Plan",
+    "trade_names": [
+      "Quartz Health Plan",
+      "Quartz"
+    ],
+    "state": "WI",
+    "mrf_url": "https://www.quartzbenefits.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "66175",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

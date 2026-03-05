@@ -203,7 +203,8 @@ def format_text_report(report: dict) -> str:
     lines.append("COVERAGE SUMMARY")
     lines.append(f"  Total insurer-state entries:  {c['total_entries']}")
     lines.append(f"  Unique insurers discovered:   {c['unique_insurers']}")
-    lines.append(f"  Target (700+):                {'REACHED' if c['target_700'] else f'{c[\"unique_insurers\"]}/700'}")
+    target_str = 'REACHED' if c['target_700'] else f"{c['unique_insurers']}/700"
+    lines.append(f"  Target (700+):                {target_str}")
     lines.append(f"  States covered:               {c['states_covered']}/51")
     lines.append(f"  Automatable:                  {c['automatable']} ({c['automatable'] * 100 // max(c['total_entries'], 1)}%)")
     lines.append(f"  Browser-required:             {c['browser_required']} ({c['browser_required'] * 100 // max(c['total_entries'], 1)}%)")

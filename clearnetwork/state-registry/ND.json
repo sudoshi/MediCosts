@@ -13,25 +13,24 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 388,
+    "response_time_ms": 10687,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:55.317074+00:00",
+    "last_probed_at": "2026-03-05T07:00:04.192647+00:00",
     "notes": "",
-    "transparency_score": 75,
+    "transparency_score": 65,
     "digital_debt_score": 0,
     "score_breakdown": {
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (388ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134940+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039532+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +46,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 27,
+    "response_time_ms": 22,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.583802+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.041732+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (27ms < 5s)",
+      "response_time": "+10 (22ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134981+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039581+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +79,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 13,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.789236+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.340596+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (8ms < 5s)",
+      "response_time": "+10 (13ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135051+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039655+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -112,13 +111,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787223+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171558+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135014+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039618+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +131,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787296+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171629+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135086+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039688+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,13 +155,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787330+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171665+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135122+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039724+00:00"
   },
   {
     "insurer_name": "Medica",
@@ -176,12 +175,29 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787382+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171715+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135173+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039780+00:00"
+  },
+  {
+    "insurer_name": "Blue Cross Blue Shield of North Dakota",
+    "trade_names": [
+      "BCBSND"
+    ],
+    "state": "ND",
+    "mrf_url": "https://www.bcbsnd.com/about-us/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "55247",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

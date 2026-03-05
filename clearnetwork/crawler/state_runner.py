@@ -50,6 +50,11 @@ logger = logging.getLogger("state_runner")
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 STATE_REGISTRY_DIR = PROJECT_ROOT / "clearnetwork" / "state-registry"
 
+# Global cache for UHC blob index (shared across states)
+_uhc_cache = {"result": None, "lock": None}
+# Whether UHC national crawl has been handled this run
+_uhc_national_done = False
+
 US_STATES = [
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
     "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
@@ -155,6 +160,12 @@ async def crawl_single_insurer(
         stats.insurers_skipped += 1
         return
 
+    # UHC blob API is national (same data for all states) — skip in per-state crawls
+    if index_type == "uhc_blob_api":
+        logger.info("  [%s/%s] UHC is national — handled separately, skipping", state, name)
+        stats.insurers_skipped += 1
+        return
+
     insurer_id = await ensure_insurer_in_db(conn, entry)
     if not insurer_id:
         stats.insurers_skipped += 1
@@ -180,12 +191,8 @@ async def crawl_single_insurer(
 
         logger.info("  [%s/%s] Fetching index: %s", state, name, actual_url[:80])
 
-        # Fetch + parse index
-        if index_type == "uhc_blob_api":
-            max_indexes = max(max_files, 20) if max_files > 0 else 50
-            index_result = await fetch_uhc_blob_index(actual_url, session, max_indexes=max_indexes)
-        else:
-            index_result = await fetch_and_parse_index(actual_url, session)
+        # Fetch + parse index (UHC blob API is cached globally — same data for all states)
+        index_result = await fetch_and_parse_index(actual_url, session)
 
         if index_result.errors:
             for err in index_result.errors:
@@ -331,6 +338,116 @@ async def crawl_state(
     logger.info("[%s] State complete", state)
 
 
+async def _crawl_uhc_national(stats: CrawlStats, max_files: int, insurer_timeout: int):
+    """Crawl UHC once as a national insurer (same blob API for all states)."""
+    logger.info("=" * 60)
+    logger.info("Phase 1: UHC National Crawl (one-time)")
+    logger.info("=" * 60)
+
+    # Build a synthetic entry for UHC national
+    uhc_entry = {
+        "insurer_name": "UnitedHealthcare",
+        "state": "US",  # national
+        "mrf_url": "https://transparency-in-coverage.uhc.com/api/v1/uhc/blobs/",
+        "index_type": "uhc_blob_api",
+        "accessibility": "automatable",
+    }
+
+    conn = await get_db_conn()
+    connector = aiohttp.TCPConnector(family=2, limit=10)
+    try:
+        async with aiohttp.ClientSession(connector=connector) as session:
+            async with DownloadManager(MRF_CACHE_DIR) as downloader:
+                # Temporarily allow uhc_blob_api through crawl_single_insurer
+                # by overriding index_type to bypass the skip
+                uhc_entry_copy = {**uhc_entry, "index_type": "uhc_national"}
+
+                insurer_id = await ensure_insurer_in_db(conn, uhc_entry)
+                if not insurer_id:
+                    logger.error("Failed to register UHC in DB")
+                    return
+
+                job_id = await create_crawl_job(conn, insurer_id)
+
+                # Fetch UHC blob index
+                logger.info("Fetching UHC blob API index...")
+                index_result = await fetch_uhc_blob_index(
+                    uhc_entry["mrf_url"], session, max_indexes=max(max_files, 20)
+                )
+
+                if not index_result.in_network_urls:
+                    logger.warning("UHC: No in-network URLs found")
+                    await update_crawl_job(conn, job_id, "failed", error_log=["No in-network URLs"])
+                    return
+
+                # Store index
+                network_id, plans_inserted, _ = await store_index_results(conn, insurer_id, index_result)
+
+                # Download limited files
+                file_limit = max_files if max_files > 0 else 5
+                urls = index_result.in_network_urls[:file_limit]
+                total_files = 0
+                total_providers = 0
+                total_errors = 0
+
+                for idx, url in enumerate(urls, 1):
+                    try:
+                        logger.info("  UHC file %d/%d: %s", idx, len(urls), url[:80])
+                        result = await asyncio.wait_for(
+                            downloader.download(url), timeout=insurer_timeout
+                        )
+                        if not result.success:
+                            if result.error != "duplicate":
+                                total_errors += 1
+                            continue
+                        if result.path is None:
+                            continue
+
+                        total_files += 1
+                        stats.files_downloaded += 1
+
+                        npis = await extract_npis_from_file(result.path)
+                        linked = await upsert_network_providers(conn, network_id, npis)
+                        total_providers += linked
+                        stats.providers_linked += linked
+
+                        result.path.unlink(missing_ok=True)
+                        logger.info("  UHC file %d: %d providers extracted", idx, linked)
+
+                    except asyncio.TimeoutError:
+                        logger.warning("  UHC file %d timed out — moving on", idx)
+                        total_errors += 1
+                    except Exception as e:
+                        logger.error("  UHC file %d error: %s", idx, e)
+                        total_errors += 1
+
+                # Update records
+                status = "completed" if total_errors == 0 else "completed_with_errors"
+                await update_crawl_job(conn, job_id, status, total_files, total_providers, total_errors)
+                stats.insurers_attempted += 1
+                stats.insurers_succeeded += 1
+
+                # Mark ALL UHC state entries as crawled
+                updated = await conn.execute(f"""
+                    UPDATE {SCHEMA}.mrf_research SET
+                        crawl_tested = true,
+                        crawl_result = 'success (national)',
+                        added_to_registry = true
+                    WHERE insurer_name = 'UnitedHealthcare'
+                """)
+
+                logger.info("UHC national crawl complete: %d files, %d providers, %d errors",
+                           total_files, total_providers, total_errors)
+
+    except Exception as e:
+        logger.error("UHC national crawl failed: %s", e)
+        stats.insurers_failed += 1
+    finally:
+        await conn.close()
+
+    logger.info("=" * 60)
+
+
 async def run_all_states(
     states: list[str],
     concurrency: int = 10,
@@ -363,6 +480,10 @@ async def run_all_states(
     logger.info("Starting crawl: %d states, concurrency=%d, max_files=%d",
                 len(states), concurrency, max_files)
 
+    # Phase 1: Run UHC national crawl once (it's the same data for all states)
+    await _crawl_uhc_national(stats, max_files, insurer_timeout)
+
+    # Phase 2: Run per-state crawls (UHC entries will be skipped)
     tasks = [asyncio.create_task(guarded_crawl(s)) for s in states]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 

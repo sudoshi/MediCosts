@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 861,
+    "response_time_ms": 4264,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:54.786840+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171177+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (861ms < 5s)",
+      "response_time": "+10 (4264ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134924+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039508+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 19,
+    "response_time_ms": 24,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.491285+00:00",
+    "last_probed_at": "2026-03-05T07:00:06.922279+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (19ms < 5s)",
+      "response_time": "+10 (24ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134964+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039565+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 16,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.771225+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.290409+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (8ms < 5s)",
+      "response_time": "+10 (16ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135035+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039639+00:00"
   },
   {
     "insurer_name": "Blue Cross and Blue Shield of Illinois",
@@ -113,24 +113,24 @@
     "cms_source": false,
     "http_status": 404,
     "content_type": "",
-    "response_time_ms": 143,
+    "response_time_ms": 129,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "dead",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.806764+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.378878+00:00",
     "notes": "404 Not Found",
     "transparency_score": 20,
     "digital_debt_score": 60,
     "score_breakdown": {
       "accessibility": "+40 debt (dead/unreachable)",
       "http_status": "+20 debt (404 Not Found)",
-      "response_time": "+10 (143ms < 5s)",
+      "response_time": "+10 (129ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_azure)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135138+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039741+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -145,13 +145,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787211+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171545+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135001+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039605+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -165,13 +165,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787284+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171616+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135074+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039675+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -189,13 +189,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787319+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171652+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135110+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039711+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -209,13 +209,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787343+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171678+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135132+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039735+00:00"
   },
   {
     "insurer_name": "Bright Health",
@@ -229,12 +229,52 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787376+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171709+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135166+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039768+00:00"
+  },
+  {
+    "insurer_name": "Health Care Service Corporation (HCSC)",
+    "trade_names": [
+      "HCSC",
+      "BCBS of Illinois",
+      "BCBS of Texas",
+      "BCBS of Montana",
+      "BCBS of Oklahoma",
+      "BCBS of New Mexico"
+    ],
+    "state": "IL",
+    "mrf_url": "https://www.hcsc.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "23234",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "Oscar Health",
+    "trade_names": [
+      "Oscar Health",
+      "Oscar"
+    ],
+    "state": "IL",
+    "mrf_url": "https://www.hioscar.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "Known browser-required index type",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "72491",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]

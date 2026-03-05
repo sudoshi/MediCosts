@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1018,
+    "response_time_ms": 2283,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T04:08:55.721751+00:00",
+    "last_probed_at": "2026-03-05T07:00:05.629240+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (1018ms < 5s)",
+      "response_time": "+10 (2283ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134946+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039545+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 24,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.621305+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.087031+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
+      "response_time": "+10 (24ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.134987+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039589+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 15,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.797991+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.358551+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (8ms < 5s)",
+      "response_time": "+10 (15ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135059+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039663+00:00"
   },
   {
     "insurer_name": "Blue Cross and Blue Shield of Texas",
@@ -113,24 +113,24 @@
     "cms_source": false,
     "http_status": 404,
     "content_type": "",
-    "response_time_ms": 130,
+    "response_time_ms": 131,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "dead",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T04:08:56.806856+00:00",
+    "last_probed_at": "2026-03-05T07:00:07.379062+00:00",
     "notes": "404 Not Found",
     "transparency_score": 20,
     "digital_debt_score": 60,
     "score_breakdown": {
       "accessibility": "+40 debt (dead/unreachable)",
       "http_status": "+20 debt (404 Not Found)",
-      "response_time": "+10 (130ms < 5s)",
+      "response_time": "+10 (131ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_azure)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135140+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039742+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -145,13 +145,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787228+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171563+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135020+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039623+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -165,13 +165,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787301+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171634+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135091+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039693+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -189,13 +189,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787337+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171670+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135126+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039729+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -209,13 +209,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787347+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171681+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135136+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039738+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -229,13 +229,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787371+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171704+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135162+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039762+00:00"
   },
   {
     "insurer_name": "Bright Health",
@@ -249,12 +249,51 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T04:08:54.787379+00:00",
+    "last_probed_at": "2026-03-05T07:00:02.171711+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-05T04:08:59.135169+00:00"
+    "last_scored_at": "2026-03-05T07:00:17.039770+00:00"
+  },
+  {
+    "insurer_name": "Health Care Service Corporation (HCSC)",
+    "trade_names": [
+      "HCSC",
+      "BCBS of Illinois",
+      "BCBS of Texas",
+      "BCBS of Montana",
+      "BCBS of Oklahoma",
+      "BCBS of New Mexico"
+    ],
+    "state": "TX",
+    "mrf_url": "https://www.hcsc.com/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "37861",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
+  },
+  {
+    "insurer_name": "Community Health Choice",
+    "trade_names": [
+      "Community Health Choice"
+    ],
+    "state": "TX",
+    "mrf_url": "https://www.communityhealthchoice.org/transparency-in-coverage",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": true,
+    "notes": "",
+    "seeded_at": "2026-03-05T20:14:40.552828+00:00",
+    "hios_issuer_id": "81832",
+    "accessibility": "browser_required",
+    "transparency_score": 0,
+    "digital_debt_score": 30
   }
 ]
