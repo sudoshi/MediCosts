@@ -29,3 +29,4 @@ Full profile for a single clinician identified by NPI. Aggregates provider demog
 | 2026-02-28 | Initial build — provider demographics |
 | 2026-03-02 | Added industry payments panel |
 | 2026-03-03 | Added Part D prescribing panel, insurance network badges |
+| 2026-03-05 | YoY payment trend bar chart (from new by_year field in /payments/physician/:npi); opioid metric always shown with explanatory note |

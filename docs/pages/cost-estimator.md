@@ -25,3 +25,4 @@ Estimates out-of-pocket cost for a procedure or DRG at specific hospitals, enric
 | Date | Change |
 |------|--------|
 | 2026-03-02 | Initial build |
+| 2026-03-05 | Added cost distribution histogram (10-bucket BarChart) below results table |

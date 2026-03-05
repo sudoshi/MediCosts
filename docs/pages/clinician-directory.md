@@ -24,3 +24,4 @@ Search 2.7M active US healthcare providers from the NPPES NPI Registry. Find any
 |------|--------|
 | 2026-02-28 | Initial build |
 | 2026-03-04 | Dynamic specialty list from DB (96 specialties); CSV export on results; new GET /api/clinicians/specialties endpoint |
+| 2026-03-05 | Paginated results (25/page, Load More button); auth header on search fetch; real-time debounced search preserved |

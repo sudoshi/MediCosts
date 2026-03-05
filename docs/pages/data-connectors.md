@@ -24,3 +24,4 @@ Admin role required for trigger actions. Read-only status visible to all authent
 | Date | Change |
 |------|--------|
 | 2026-03-02 | Initial build |
+| 2026-03-05 | Fix 401 Unauthorized: added authHeaders() helper, all 5 fetch calls now send Bearer token |
