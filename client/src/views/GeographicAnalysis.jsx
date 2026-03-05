@@ -27,6 +27,8 @@ export default function GeographicAnalysis() {
   const [nearbyRadius, setNearbyRadius] = useState(50);
   const [nearbyResults, setNearbyResults] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyLimit, setNearbyLimit] = useState(20);
+  const [nearbyHasMore, setNearbyHasMore] = useState(false);
 
   // State quality sort
   const [stateSort, setStateSort] = useState('state');
@@ -46,18 +48,25 @@ export default function GeographicAnalysis() {
     if (nearbyZip.length === 5) findNearby();
   }, [nearbyZip, nearbyRadius]);
 
-  async function findNearby() {
+  async function findNearby(limit = 20) {
     if (nearbyZip.length !== 5) return;
     setNearbyLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await fetch(`${API}/hospitals/nearby?zip=${nearbyZip}&radius=${nearbyRadius}&sort=star_rating&limit=20`, {
+      const res = await fetch(`${API}/hospitals/nearby?zip=${nearbyZip}&radius=${nearbyRadius}&sort=star_rating&limit=${limit + 1}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setNearbyResults(data);
-    } catch { setNearbyResults([]); }
+      const hasMore = data.length > limit;
+      setNearbyHasMore(hasMore);
+      setNearbyResults(data.slice(0, limit));
+      setNearbyLimit(limit);
+    } catch { setNearbyResults([]); setNearbyHasMore(false); }
     setNearbyLoading(false);
+  }
+
+  function loadMoreNearby() {
+    findNearby(nearbyLimit + 30);
   }
 
   function handleStateSort(col) {
@@ -132,21 +141,30 @@ export default function GeographicAnalysis() {
           nearbyResults.length === 0 ? (
             <p className={s.nearbyEmpty}>No hospitals found within {nearbyRadius} miles of {nearbyZip}.</p>
           ) : (
-            <div className={s.nearbyList}>
-              {nearbyResults.map(h => (
-                <div key={h.facility_id} className={s.nearbyCard} onClick={() => navigate(`/hospitals/${h.facility_id}`)}>
-                  <div className={s.nearbyInfo}>
-                    <span className={s.nearbyName}>{h.facility_name}</span>
-                    <span className={s.nearbyMeta}>{h.city}, {h.state} · {h.hospital_type}</span>
+            <>
+              <div className={s.nearbyList}>
+                {nearbyResults.map(h => (
+                  <div key={h.facility_id} className={s.nearbyCard} onClick={() => navigate(`/hospitals/${h.facility_id}`)}>
+                    <div className={s.nearbyInfo}>
+                      <span className={s.nearbyName}>{h.facility_name}</span>
+                      <span className={s.nearbyMeta}>{h.city}, {h.state} · {h.hospital_type}</span>
+                    </div>
+                    <div className={s.nearbyStats}>
+                      <span className={s.nearbyStat}>{h.distance_miles} mi</span>
+                      <span className={s.nearbyStars}>{fmtStars(h.star_rating)}</span>
+                      <span className={s.nearbyStat}>{fmtCurrency(h.weighted_avg_payment)}</span>
+                    </div>
                   </div>
-                  <div className={s.nearbyStats}>
-                    <span className={s.nearbyStat}>{h.distance_miles} mi</span>
-                    <span className={s.nearbyStars}>{fmtStars(h.star_rating)}</span>
-                    <span className={s.nearbyStat}>{fmtCurrency(h.weighted_avg_payment)}</span>
-                  </div>
+                ))}
+              </div>
+              {nearbyHasMore && (
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12 }}>
+                  <button onClick={loadMoreNearby} style={{ padding: '6px 20px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+                    Load 30 more
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )
         )}
       </Panel>
