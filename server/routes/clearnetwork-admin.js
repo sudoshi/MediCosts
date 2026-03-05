@@ -187,6 +187,10 @@ router.get('/mrf-research', async (_req, res, next) => {
         id, state, insurer_name, trade_names, market_share_rank,
         mrf_url, mrf_url_verified, index_type, date_pattern,
         http_status, accessibility, notes,
+        content_type, response_time_ms, ssl_valid, supports_gzip,
+        file_size_bytes, last_probed_at, data_freshness_days,
+        transparency_score, digital_debt_score, score_breakdown,
+        last_scored_at, cms_source,
         added_to_registry, crawl_tested, crawl_result,
         researched_at
       FROM ${SCHEMA}.mrf_research
@@ -227,6 +231,189 @@ router.get('/nightly-summary', async (_req, res, next) => {
       LIMIT 14
     `);
     res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/scorecard                                    */
+/*  Transparency + digital debt scorecard (from mrf_research)          */
+/* ------------------------------------------------------------------ */
+router.get('/scorecard', async (req, res, next) => {
+  try {
+    const state = req.query.state;
+    const sort = req.query.sort === 'debt' ? 'digital_debt_score' : 'transparency_score';
+    const dir = req.query.sort === 'debt' ? 'DESC' : 'DESC';
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+
+    let where = 'WHERE transparency_score IS NOT NULL';
+    const params = [limit];
+    if (state) {
+      where += ` AND state = $2`;
+      params.push(state.toUpperCase());
+    }
+
+    const { rows } = await pool.query(`
+      SELECT
+        insurer_name, state, trade_names, index_type,
+        transparency_score, digital_debt_score,
+        score_breakdown, accessibility, mrf_url,
+        http_status, content_type, response_time_ms,
+        ssl_valid, supports_gzip, file_size_bytes,
+        data_freshness_days, last_probed_at,
+        crawl_tested, crawl_result, cms_source
+      FROM ${SCHEMA}.mrf_research
+      ${where}
+      ORDER BY ${sort} ${dir} NULLS LAST
+      LIMIT $1
+    `, params);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/debt-hall-of-shame                           */
+/*  Top digital debt offenders                                         */
+/* ------------------------------------------------------------------ */
+router.get('/debt-hall-of-shame', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+    const { rows } = await pool.query(`
+      SELECT * FROM ${SCHEMA}.v_digital_debt_hall_of_shame
+      LIMIT $1
+    `, [limit]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/transparency-leaders                         */
+/*  Top transparency leaders                                           */
+/* ------------------------------------------------------------------ */
+router.get('/transparency-leaders', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+    const { rows } = await pool.query(`
+      SELECT * FROM ${SCHEMA}.v_transparency_leaders
+      LIMIT $1
+    `, [limit]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/state-coverage                               */
+/*  Per-state insurer coverage summary                                 */
+/* ------------------------------------------------------------------ */
+router.get('/state-coverage', async (_req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM ${SCHEMA}.v_state_coverage
+    `);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/crawl-stats                                  */
+/*  Daily crawl stats time series (for dashboard charts)               */
+/* ------------------------------------------------------------------ */
+router.get('/crawl-stats', async (req, res, next) => {
+  try {
+    const days = Math.min(parseInt(req.query.days) || 30, 90);
+    let rows = [];
+    try {
+      const result = await pool.query(`
+        SELECT
+          recorded_at,
+          total_insurers_discovered,
+          total_insurers_automatable,
+          total_insurers_browser_required,
+          total_insurers_dead,
+          total_unique_insurers,
+          states_with_coverage,
+          total_networks,
+          total_providers,
+          crawl_insurers_attempted,
+          crawl_insurers_succeeded,
+          crawl_insurers_failed,
+          crawl_files_downloaded,
+          crawl_providers_linked,
+          crawl_errors,
+          crawl_elapsed_seconds
+        FROM ${SCHEMA}.crawl_stats
+        WHERE recorded_at > NOW() - ($1 || ' days')::interval
+        ORDER BY recorded_at DESC
+      `, [days.toString()]);
+      rows = result.rows;
+    } catch (_e) { /* table may not exist yet */ }
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/latest-stats                                 */
+/*  Most recent crawl stats snapshot (for KPI cards)                   */
+/* ------------------------------------------------------------------ */
+router.get('/latest-stats', async (_req, res, next) => {
+  try {
+    // crawl_stats table is lazily created by state_runner — handle if missing
+    let latest = { rows: [] };
+    try {
+      latest = await pool.query(`
+        SELECT * FROM ${SCHEMA}.crawl_stats
+        ORDER BY recorded_at DESC LIMIT 1
+      `);
+    } catch (_e) { /* table may not exist yet */ }
+
+    const coverage = await pool.query(`
+      SELECT
+        count(*)::int AS total_entries,
+        count(DISTINCT insurer_name)::int AS unique_insurers,
+        count(DISTINCT state)::int AS states,
+        count(*) FILTER (WHERE accessibility = 'automatable')::int AS automatable,
+        count(*) FILTER (WHERE accessibility = 'browser_required')::int AS browser_required,
+        count(*) FILTER (WHERE accessibility = 'dead')::int AS dead,
+        count(*) FILTER (WHERE crawl_tested AND crawl_result = 'success')::int AS crawl_success,
+        round(avg(transparency_score) FILTER (WHERE transparency_score IS NOT NULL))::int AS avg_transparency,
+        round(avg(digital_debt_score) FILTER (WHERE digital_debt_score IS NOT NULL))::int AS avg_debt
+      FROM ${SCHEMA}.mrf_research
+    `);
+
+    res.json({
+      latest_crawl: latest.rows[0] || null,
+      coverage: coverage.rows[0],
+    });
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/blog                                         */
+/*  List blog posts (public — no auth required)                        */
+/* ------------------------------------------------------------------ */
+router.get('/blog', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+    const { rows } = await pool.query(`
+      SELECT id, published_at, title, slug, summary, tags, stats
+      FROM ${SCHEMA}.blog_posts
+      ORDER BY published_at DESC
+      LIMIT $1
+    `, [limit]);
+    res.json(rows);
+  } catch (err) { next(err); }
+});
+
+/* ------------------------------------------------------------------ */
+/*  GET /api/clearnetwork/blog/:slug                                   */
+/*  Single blog post by slug (public)                                  */
+/* ------------------------------------------------------------------ */
+router.get('/blog/:slug', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM ${SCHEMA}.blog_posts WHERE slug = $1
+    `, [req.params.slug]);
+    if (!rows.length) return res.status(404).json({ error: 'Post not found' });
+    res.json(rows[0]);
   } catch (err) { next(err); }
 });
 

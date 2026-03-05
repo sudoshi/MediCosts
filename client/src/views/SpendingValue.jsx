@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -142,6 +142,8 @@ export default function SpendingValue() {
   const [ownership, setOwnership] = useState('');
   const [minStars, setMinStars] = useState(0);
   const [yMetric, setYMetric] = useState('vbp_total_score');
+  const [zoomDomain, setZoomDomain] = useState(null); // { x: [min,max], y: [min,max] }
+  const scatterRef = useRef(null);
   const stateQ = state ? `?state=${state}` : '';
 
   // Always load value-composite (needed for frontier + correlations too)
@@ -224,6 +226,37 @@ export default function SpendingValue() {
     const f = paretoFrontier(pts);
     return yMeta.higher ? f : f.map(p => ({ ...p, y: -p.y }));
   }, [scatterData, yMeta]);
+
+  /* ── Scatter zoom ── */
+  const scatterExtent = useMemo(() => {
+    if (!scatterData.length) return null;
+    const xs = scatterData.map(d => d.x), ys = scatterData.map(d => d.y);
+    return { x: [Math.min(...xs), Math.max(...xs)], y: [Math.min(...ys), Math.max(...ys)] };
+  }, [scatterData]);
+
+  // Reset zoom when metric or data changes
+  const prevYMetric = useRef(yMetric);
+  if (yMetric !== prevYMetric.current) { prevYMetric.current = yMetric; if (zoomDomain) setZoomDomain(null); }
+
+  const handleScatterWheel = useCallback((e) => {
+    e.preventDefault();
+    if (!scatterExtent) return;
+    const factor = e.deltaY > 0 ? 1.15 : 0.87; // scroll down = zoom out, up = zoom in
+    setZoomDomain(prev => {
+      const cur = prev || scatterExtent;
+      const xRange = cur.x[1] - cur.x[0], yRange = cur.y[1] - cur.y[0];
+      // Get mouse position as fraction of chart area
+      const rect = scatterRef.current?.getBoundingClientRect();
+      const mx = rect ? Math.max(0, Math.min(1, (e.clientX - rect.left - 40) / (rect.width - 60))) : 0.5;
+      const my = rect ? Math.max(0, Math.min(1, (e.clientY - rect.top - 10) / (rect.height - 40))) : 0.5;
+      const newXRange = xRange * factor, newYRange = yRange * factor;
+      const xCenter = cur.x[0] + xRange * mx, yCenter = cur.y[0] + yRange * (1 - my);
+      return {
+        x: [xCenter - newXRange * mx, xCenter + newXRange * (1 - mx)],
+        y: [yCenter - newYRange * (1 - my), yCenter + newYRange * my],
+      };
+    });
+  }, [scatterExtent]);
 
   /* ── Correlation matrix ── */
   const corrMatrix = useMemo(() => {
@@ -491,47 +524,59 @@ export default function SpendingValue() {
               </select>
             </div>
             <ExportBtn data={scatterData} filename={`efficiency-frontier-${state || 'all'}.csv`} />
+            {zoomDomain && <button className={s.exportBtn} onClick={() => setZoomDomain(null)} title="Reset zoom">Reset Zoom</button>}
           </>}
         >
           {loadValue ? <Skeleton height={500} /> : scatterData.length > 0 ? (
             <>
-              <div className={s.quadrantLabels}>
-                <div className={s.quadGrid}>
-                  <span className={s.qLabel} style={{ color: '#22c55e' }}>Value Leaders</span>
-                  <span className={s.qLabel} style={{ color: '#71717a' }}>High Quality, High Cost</span>
-                  <span className={s.qLabel} style={{ color: '#71717a' }}>Low Cost, Low Quality</span>
-                  <span className={s.qLabel} style={{ color: '#ef4444' }}>Value Laggards</span>
+              {!zoomDomain && (
+                <div className={s.quadrantLabels}>
+                  <div className={s.quadGrid}>
+                    <span className={s.qLabel} style={{ color: '#22c55e' }}>Value Leaders</span>
+                    <span className={s.qLabel} style={{ color: '#71717a' }}>High Quality, High Cost</span>
+                    <span className={s.qLabel} style={{ color: '#71717a' }}>Low Cost, Low Quality</span>
+                    <span className={s.qLabel} style={{ color: '#ef4444' }}>Value Laggards</span>
+                  </div>
                 </div>
+              )}
+              {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+              <div ref={scatterRef} onWheel={handleScatterWheel} style={{ cursor: zoomDomain ? 'zoom-in' : 'default' }}>
+                <ResponsiveContainer width="100%" height={520}>
+                  <ScatterChart margin={{ left: 20, right: 20, top: 10, bottom: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" />
+                    <XAxis type="number" dataKey="x" name="Payment"
+                      tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
+                      tick={AXIS_TICK} axisLine={false} tickLine={false}
+                      domain={zoomDomain ? zoomDomain.x : ['auto', 'auto']}
+                      allowDataOverflow={!!zoomDomain}
+                      label={{ value: 'Average Total Payment per Discharge', position: 'insideBottom', offset: -15, fontSize: 11, fill: '#3f3f46' }}
+                    />
+                    <YAxis type="number" dataKey="y" name={yMeta.label}
+                      tick={AXIS_TICK} axisLine={false} tickLine={false}
+                      domain={zoomDomain ? zoomDomain.y : ['auto', 'auto']}
+                      allowDataOverflow={!!zoomDomain}
+                      label={{ value: yMeta.label, angle: -90, position: 'insideLeft', offset: -5, fontSize: 11, fill: '#3f3f46' }}
+                      reversed={!yMeta.higher}
+                    />
+                    <ZAxis type="number" dataKey="z" range={[20, 400]} />
+                    <Tooltip content={<ScatterTooltip />} />
+                    {natPay && <ReferenceLine x={natPay} stroke="#71717a" strokeDasharray="4 4" />}
+                    {natVbp && yMetric === 'vbp_total_score' && <ReferenceLine y={natVbp} stroke="#71717a" strokeDasharray="4 4" />}
+                    <Scatter data={scatterData} onClick={(d) => navigate(`/hospitals/${d.facility_id}`)}>
+                      {scatterData.map((d, i) => (
+                        <Cell key={i} fill={STAR_COLORS[Number(d.star_rating)] || '#71717a'} fillOpacity={0.7} />
+                      ))}
+                    </Scatter>
+                  </ScatterChart>
+                </ResponsiveContainer>
               </div>
-              <ResponsiveContainer width="100%" height={520}>
-                <ScatterChart margin={{ left: 20, right: 20, top: 10, bottom: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-dim)" />
-                  <XAxis type="number" dataKey="x" name="Payment"
-                    tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
-                    tick={AXIS_TICK} axisLine={false} tickLine={false}
-                    label={{ value: 'Average Total Payment per Discharge', position: 'insideBottom', offset: -15, fontSize: 11, fill: '#3f3f46' }}
-                  />
-                  <YAxis type="number" dataKey="y" name={yMeta.label}
-                    tick={AXIS_TICK} axisLine={false} tickLine={false}
-                    label={{ value: yMeta.label, angle: -90, position: 'insideLeft', offset: -5, fontSize: 11, fill: '#3f3f46' }}
-                    reversed={!yMeta.higher}
-                  />
-                  <ZAxis type="number" dataKey="z" range={[20, 400]} />
-                  <Tooltip content={<ScatterTooltip />} />
-                  {natPay && <ReferenceLine x={natPay} stroke="#71717a" strokeDasharray="4 4" />}
-                  {natVbp && yMetric === 'vbp_total_score' && <ReferenceLine y={natVbp} stroke="#71717a" strokeDasharray="4 4" />}
-                  <Scatter data={scatterData} onClick={(d) => navigate(`/hospitals/${d.facility_id}`)}>
-                    {scatterData.map((d, i) => (
-                      <Cell key={i} fill={STAR_COLORS[Number(d.star_rating)] || '#71717a'} fillOpacity={0.7} />
-                    ))}
-                  </Scatter>
-                </ScatterChart>
-              </ResponsiveContainer>
               <div className={s.scatterLegend}>
                 {[1,2,3,4,5].map(n => (
                   <span key={n}><span className={s.legendDot} style={{ background: STAR_COLORS[n] }} />{n}★</span>
                 ))}
-                <span style={{ marginLeft: 12, color: 'var(--text-tertiary)', fontSize: 11 }}>Bubble size = discharge volume</span>
+                <span style={{ marginLeft: 12, color: 'var(--text-tertiary)', fontSize: 11 }}>
+                  Bubble size = discharge volume{!zoomDomain ? ' · Scroll to zoom' : ''}
+                </span>
               </div>
               {frontier.length > 2 && (
                 <p className={s.frontierNote}>

@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Server — Express API (Node.js)
+  # ---------------------------------------------------------------------------
+  server:
+    name: Server (Express/Node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: medicosts_test
+          POSTGRES_USER: medicosts
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U medicosts"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Lint server (if eslint config exists)
+        working-directory: server
+        run: npx eslint . --ext .js,.mjs 2>/dev/null || echo "No ESLint config — skipping"
+        continue-on-error: true
+
+      - name: Verify server starts (smoke test)
+        working-directory: server
+        run: |
+          timeout 10 node index.js &
+          sleep 4
+          kill %1 2>/dev/null || true
+        env:
+          PORT: 3001
+          NODE_ENV: test
+          DATABASE_URL: postgresql://medicosts:test_pass@localhost:5432/medicosts_test
+          JWT_SECRET: ci-test-secret
+        continue-on-error: true
+
+      - name: npm audit (server — critical)
+        working-directory: server
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+  # ---------------------------------------------------------------------------
+  # Client — React/Vite frontend
+  # ---------------------------------------------------------------------------
+  client:
+    name: Client (React/Vite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Build
+        working-directory: client
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:3000
+
+      - name: npm audit (client — critical)
+        working-directory: client
+        run: npm audit --audit-level=critical
+        continue-on-error: true

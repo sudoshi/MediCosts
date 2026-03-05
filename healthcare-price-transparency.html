@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The $4 Trillion Maze — Healthcare Price Transparency</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #f8f5f0;
+    --accent: #c0392b;
+    --accent-light: #e8d5d0;
+    --muted: #6b6b6b;
+    --rule: #d4cfc7;
+    --code-bg: #2d2d2d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Newsreader', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 19px;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+  .masthead {
+    border-bottom: 3px double var(--rule);
+    padding: 1.5rem 2rem 1rem;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .hero {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+  }
+  .hero .kicker {
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .hero .subtitle {
+    font-size: 1.25rem;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.5;
+    max-width: 640px;
+    margin: 0 auto 2rem;
+  }
+  .hero .byline {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .hero .byline strong { color: var(--ink); font-weight: 600; }
+  article {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+  article p { margin-bottom: 1.4rem; text-indent: 0; }
+  article p + p { text-indent: 1.5em; }
+  article h2 + p, article .figure + p, article blockquote + p,
+  article .code-block + p, article .pullquote + p, article .chart-container + p,
+  article .diagram-container + p, article table + p { text-indent: 0; }
+  article h2 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 3.5rem 0 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  article h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+  .dropcap::first-letter {
+    float: left;
+    font-size: 4.2rem;
+    line-height: 0.8;
+    padding-right: 0.12em;
+    padding-top: 0.08em;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .pullquote {
+    margin: 2.8rem -1rem;
+    padding: 0 1.5rem;
+    border-left: 4px solid var(--accent);
+    font-size: 1.35rem;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--ink);
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: rgba(0,0,0,0.06);
+    padding: 0.12em 0.35em;
+    border-radius: 3px;
+  }
+  .chart-container, .diagram-container {
+    margin: 2.5rem 0;
+    padding: 2rem;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .chart-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .chart-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+  .chart-container svg, .diagram-container svg { display: block; width: 100%; height: auto; }
+  .chart-source {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    text-align: right;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+  }
+  .data-table th {
+    text-align: left;
+    font-weight: 600;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 2px solid var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+  }
+  .data-table td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: 2px solid var(--ink); }
+  .article-footer {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 2rem 4rem;
+    border-top: 1px solid var(--rule);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  @media (max-width: 600px) {
+    body { font-size: 17px; }
+    .hero { padding: 2.5rem 1.2rem 2rem; }
+    article { padding: 0 1.2rem 4rem; }
+    .chart-container, .diagram-container { padding: 1.2rem 0.8rem; margin-left: -0.5rem; margin-right: -0.5rem; }
+    .pullquote { margin-left: 0; margin-right: 0; font-size: 1.15rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">Investigation &bull; Healthcare &bull; Technology</div>
+
+<header class="hero">
+  <div class="kicker">Healthcare Price Transparency</div>
+  <h1>The $4&nbsp;Trillion Maze: How Health Insurers Buried Price Transparency in Technical&nbsp;Debt</h1>
+  <p class="subtitle">We tried to build a free tool using the data insurers are legally required to publish. What we found was a masterclass in technical obstruction.</p>
+  <p class="byline"><strong>The MediCosts Engineering Team</strong> &middot; 2025</p>
+</header>
+
+<article>
+
+<p class="dropcap">On July 1, 2022, something remarkable happened in American healthcare. The Transparency in Coverage Rule went into effect, requiring every health insurer in the United States to publish machine-readable files containing their negotiated rates with every provider. Every price. Every hospital. Every procedure. All of it, out in the open. For the first time in the history of American medicine, the sticker-shock problem had a regulatory solution: consumers could, in theory, comparison-shop for an MRI the same way they'd compare flights on Kayak.</p>
+
+<p>The policy was sound. The mandate was clear. And the data, technically, is out there.</p>
+
+<p>We know, because we went looking for it.</p>
+
+<p>Our team set out to build MediCosts &mdash; a free, open tool that aggregates insurer pricing data so patients can see what procedures actually cost before they walk in the door. We began with a straightforward engineering plan: download the mandated files, parse them, load them into a database, and build a search interface on top. We estimated it would take a few weeks of focused work.</p>
+
+<p>That was months ago. What we've discovered since is that the Transparency in Coverage Rule created a legal mandate without technical standards for accessibility &mdash; and that America's health insurers have exploited that gap with a thoroughness that borders on artistry. They've complied with the letter of the law while burying its spirit under layers of technical obstruction so dense that accessing the data requires the kind of engineering resources no ordinary consumer &mdash; and few organizations &mdash; can muster.</p>
+
+<p>This is the story of what we found.</p>
+
+<h2>The Mandate and the Promise</h2>
+
+<p>The Transparency in Coverage Rule was a centerpiece of a broader push toward healthcare price transparency that spanned both the Trump and Biden administrations &mdash; a rare case of bipartisan policy continuity. The logic was compelling: American healthcare spending exceeds $4 trillion annually, yet patients routinely have no idea what they'll pay for a procedure until the bill arrives weeks later. Insurers negotiate wildly different rates with different providers for identical services. A knee MRI might cost $400 at one facility and $2,800 at another, both covered by the same plan. The rule was supposed to end that opacity.</p>
+
+<p>The mechanism was simple. Insurers would publish Machine Readable Files &mdash; MRFs &mdash; in standardized JSON format, containing their negotiated rates. These files would be updated monthly and hosted at publicly accessible URLs. The word "machine-readable" was doing important work in that sentence: the data wasn't meant for consumers to browse directly but for developers and entrepreneurs to build tools that would translate the raw data into something useful. An ecosystem of comparison-shopping apps, price-check websites, and cost-estimation tools would spring up, driven by the same market forces that gave us Zillow for real estate and Google Flights for airfare.</p>
+
+<p>That was the theory. It was a good theory. Here's what it ran into.</p>
+
+<h2>Into the Maze</h2>
+
+<p>We began with what seemed like a reasonable survey: identify the major insurers, find their transparency pages, and start downloading files. We catalogued 29 insurers across 70 endpoints spanning all 50 states and the District of Columbia. We expected variation in file formats and hosting arrangements. What we found was something far more systematic.</p>
+
+<div class="chart-container">
+  <div class="chart-title">Insurer Endpoint Accessibility</div>
+  <div class="chart-subtitle">Of 70 insurer endpoints researched across all 50 states + DC, classified by automated accessibility</div>
+  <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+    <rect x="80" y="30" width="260" height="36" rx="3" fill="#27ae60"/>
+    <rect x="80" y="80" width="442" height="36" rx="3" fill="#e67e22"/>
+    <rect x="80" y="130" width="156" height="36" rx="3" fill="#c0392b"/>
+    <rect x="80" y="180" width="208" height="36" rx="3" fill="#7f8c8d"/>
+    <rect x="80" y="230" width="520" height="36" rx="3" fill="#bdc3c7"/>
+    <text x="75" y="53" text-anchor="end" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Easy</text>
+    <text x="75" y="103" text-anchor="end" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Browser Req'd</text>
+    <text x="75" y="153" text-anchor="end" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Hard</text>
+    <text x="75" y="203" text-anchor="end" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Dead</text>
+    <text x="75" y="253" text-anchor="end" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">Unknown</text>
+    <text x="347" y="53" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#fff">10 (14%)</text>
+    <text x="530" y="103" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#fff">17 (24%)</text>
+    <text x="243" y="153" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#fff">6 (9%)</text>
+    <text x="295" y="203" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#fff">8 (11%)</text>
+    <text x="440" y="253" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#1a1a1a">29 (41%)</text>
+  </svg>
+  <div class="chart-source">Source: MediCosts internal audit of insurer MRF endpoints, 2024&ndash;2025</div>
+</div>
+
+<p>Of the 70 endpoints we researched, only 10 &mdash; fourteen percent &mdash; were what we'd call "easy": a direct, stable URL pointing to a machine-readable file that could be downloaded with a simple HTTP request. No browser automation. No reverse engineering. No guessing. Just a URL and a file. That's the baseline behavior the regulation was designed to produce, and fewer than one in seven insurers achieved it.</p>
+
+<p>Another 17 required headless browser automation &mdash; meaning the "transparency page" was a JavaScript Single Page Application that rendered download links dynamically, and the only way to find the actual file URLs was to run a full web browser in software, intercept its network traffic, and extract the links programmatically. Six more had pages that technically existed but provided no way to access data in bulk. Eight were simply dead: URLs that returned 404 errors, SSL certificate failures, or blank pages. And 29 remained untested &mdash; not because we'd given up, but because we couldn't even determine where to look.</p>
+
+<p>Out of all the insurers we catalogued, only 13 could be crawled without a web browser. Let that sink in: a regulation designed to produce <em>machine-readable</em> data resulted in files that the majority of publishers made inaccessible to machines.</p>
+
+<h2>The Good (Such as It Is)</h2>
+
+<p>Credit where it's due. A handful of insurers made genuine efforts at accessibility &mdash; or at least, efforts that a competent engineering team could work with.</p>
+
+<p>UnitedHealthcare publishes a blob API containing approximately 85,000 index files. It's technically accessible, but navigating that volume requires custom engineering to traverse, filter, and identify the files relevant to any given query. It's the transparency equivalent of answering a Freedom of Information Act request by delivering the entire filing cabinet: technically responsive, practically overwhelming.</p>
+
+<p>Anthem publishes gzipped index files on Amazon S3 &mdash; straightforward to access but compressed to over 10 gigabytes. Cigna uses dated CloudFront URLs; once you reverse-engineer their date pattern, you can automate downloads. These are workable arrangements, but notice the recurring theme: every one of them requires engineering effort to access, not just a browser and a click.</p>
+
+<p>Then there's the Blue Cross Blue Shield system &mdash; the largest health insurance brand in America, operating as a federation of 35+ independent companies covering every state. We tested 85 potential Sapphire MRF Hub subdomains, the centralized platform some BCBS affiliates use. Only three resolved. We tested 53 BCBS affiliate URLs using guessed patterns derived from the few that worked. One succeeded. Out of 85+ BCBS affiliates, only three had direct, machine-readable JSON index files accessible via simple HTTP requests.</p>
+
+<p>Three out of eighty-five.</p>
+
+<div class="diagram-container">
+  <div class="chart-title">The Blue Cross Blue Shield Funnel</div>
+  <div class="chart-subtitle">Attempting to find accessible machine-readable data across the BCBS federation</div>
+  <svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="30,30 530,30 490,100 70,100" fill="#dce6f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <polygon points="70,108 490,108 440,178 120,178" fill="#aed6f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <polygon points="120,186 440,186 400,256 160,256" fill="#7fb3d8" stroke="#2c3e50" stroke-width="1.5"/>
+    <polygon points="250,264 310,264 300,290 260,290" fill="#c0392b" stroke="#922b21" stroke-width="1.5"/>
+    <text x="280" y="72" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="14" font-weight="700" fill="#2c3e50">85+ BCBS Affiliates Nationwide</text>
+    <text x="280" y="148" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="13" font-weight="600" fill="#2c3e50">85 Sapphire Hub Subdomains Tested</text>
+    <text x="280" y="164" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="11" fill="#5d6d7e">+ 53 affiliate URLs via pattern guessing</text>
+    <text x="280" y="228" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="13" font-weight="600" fill="#2c3e50">URLs That Resolved</text>
+    <text x="280" y="244" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="11" fill="#5d6d7e">Handful from Sapphire + 1 affiliate</text>
+    <text x="280" y="283" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="13" font-weight="700" fill="#fff">3</text>
+    <line x1="315" y1="277" x2="420" y2="277" stroke="#c0392b" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="425" y="280" font-family="DM Sans, sans-serif" font-size="11" font-weight="600" fill="#c0392b">Direct, parseable JSON files</text>
+  </svg>
+</div>
+
+<h2>The Bad</h2>
+
+<p>If the "good" examples required engineering effort, the "bad" ones required detective work.</p>
+
+<p>HCSC &mdash; the Blue Cross affiliate covering Illinois, Texas, Montana, Oklahoma, and New Mexico &mdash; publishes its machine-readable files on Azure Blob Storage. Sounds fine. Except the files aren't published on the first of each month, as you might reasonably expect. They appear around the 24th &mdash; approximately, not exactly. And each state uses a different filename convention that can only be discovered by scraping the individual state-level transparency websites, which are themselves JavaScript SPAs that require browser automation to read. To access HCSC data programmatically, you need to: run a headless browser for each of five state websites, extract the current month's Azure Blob URL from the dynamically rendered page, handle the fact that the date in the URL is unpredictable, and build state-specific parsers because the naming conventions differ.</p>
+
+<p>Blue Cross Blue Shield of North Carolina publishes a single index file &mdash; the table of contents that tells you where the actual rate data lives. That index file is 2.4 gigabytes. Not the rate data itself. The <em>index</em>. The table of contents. Downloading and parsing it requires streaming JSON processing and significant memory allocation for what is, functionally, a list of URLs.</p>
+
+<p>UPMC, one of the largest health systems in Pennsylvania, encodes their JSON with doubled double-quotes &mdash; writing <code>""value""</code> where the spec calls for <code>"value"</code>. Every file they publish is technically unparseable by any standard JSON library. To use their data, you first have to run it through a custom sanitization step that finds and corrects the encoding errors. This isn't a one-time glitch; it's their consistent output format.</p>
+
+<p>Centene, a major Medicaid managed-care insurer covering tens of millions of low-income Americans, hosts their files on a domain with SSL certificate issues &mdash; specifically, a <code>TLSV1_UNRECOGNIZED_NAME</code> error that causes standard HTTP clients to refuse the connection. To download their legally mandated transparency data, you have to rewrite the URL to bypass the certificate problem.</p>
+
+<div class="pullquote">
+  A regulation designed to produce machine-readable data resulted in files that the majority of publishers made inaccessible to machines.
+</div>
+
+<h2>The Ugly</h2>
+
+<p>The cases above are technical obstacles &mdash; frustrating but surmountable with enough engineering time. The "ugly" category is something different. It's where the design of the transparency portal itself makes bulk access conceptually impossible.</p>
+
+<p>The majority of Blue Cross Blue Shield affiliates &mdash; we documented this pattern in Arkansas, Kansas, Alabama, South Carolina, New Jersey, Iowa, New York, Tennessee, Massachusetts, and others &mdash; hide their data behind EIN-search portals. EIN stands for Employer Identification Number: the nine-digit tax ID assigned to businesses. To access <em>any</em> pricing data on these portals, you must first enter a specific employer's EIN. No EIN, no data. There is no browse function. There is no bulk download. There is no way to see what a given procedure costs without already knowing which employer's plan you want to query.</p>
+
+<p>Think about what this means. The regulation was designed so consumers could comparison-shop. These portals require you to already know your employer's tax identification number &mdash; information most employees don't have &mdash; and even then, they only show you prices for your specific plan. You can't compare across plans. You can't compare across insurers. You can't see what the hospital down the street charges versus the one across town. The portal is technically "compliant" &mdash; the data is "published" in a "machine-readable" format &mdash; while being effectively useless for any purpose the regulation intended.</p>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Obstacle Type</th>
+      <th>Example Insurers</th>
+      <th>Engineering Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EIN-gated search portals</td>
+      <td>BCBS AR, KS, AL, SC, NJ, IA, NY, TN, MA</td>
+      <td>Conceptually blocked &mdash; no bulk access possible</td>
+    </tr>
+    <tr>
+      <td>JavaScript SPA rendering</td>
+      <td>Highmark, multiple BCBS affiliates</td>
+      <td>Playwright automation + network interception</td>
+    </tr>
+    <tr>
+      <td>Expiring signed URLs</td>
+      <td>Highmark, Aetna (CloudFront)</td>
+      <td>Fresh browser sessions for each download</td>
+    </tr>
+    <tr>
+      <td>Malformed data formats</td>
+      <td>UPMC (doubled double-quotes)</td>
+      <td>Custom JSON sanitization pipeline</td>
+    </tr>
+    <tr>
+      <td>SSL / TLS failures</td>
+      <td>Centene</td>
+      <td>URL rewriting, certificate bypass</td>
+    </tr>
+    <tr>
+      <td>Unpredictable publish dates</td>
+      <td>HCSC (&approx;24th of month, varies)</td>
+      <td>Date-pattern resolvers per insurer</td>
+    </tr>
+    <tr>
+      <td>Gigabyte-scale index files</td>
+      <td>BCBS NC (2.4 GB index), Anthem (10+ GB)</td>
+      <td>Streaming parsers, significant infrastructure</td>
+    </tr>
+    <tr>
+      <td>Dead URLs / 404s</td>
+      <td>Multiple smaller insurers</td>
+      <td>No workaround &mdash; data simply unavailable</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>This is compliance theater. The portals satisfy the regulatory checkbox &mdash; "Are your negotiated rates published in a machine-readable format? Yes." &mdash; while ensuring that no one outside the insurer's own systems can meaningfully use the data. It's the digital equivalent of publishing a book by printing each page on a separate grain of rice and storing them in different warehouses.</p>
+
+<h2>The Engineering Tax</h2>
+
+<p>To access data that insurers are legally <em>required</em> to make available, our team had to build the following systems from scratch: SSL certificate workaround handlers for insurers with broken TLS configurations; a malformed-JSON sanitizer that detects and corrects encoding errors across multiple vendor-specific corruption patterns; six separate URL date-pattern resolvers, because six different insurers use six different conventions for embedding dates in their file paths; an Azure Blob Storage enumerator for traversing HCSC's unpredictable directory structures; an S3 gzip streaming pipeline for handling Anthem's multi-gigabyte compressed archives; a Playwright-based browser automation framework with network request interception, capable of navigating JavaScript SPAs, waiting for dynamic content to render, and extracting download URLs from intercepted API calls; and a dedicated PostgreSQL knowledge base just to track which insurers' data we could actually reach, what format it was in, when it was last updated, and what custom code was required to access it.</p>
+
+<div class="chart-container">
+  <div class="chart-title">Custom Engineering Required per Insurer Class</div>
+  <div class="chart-subtitle">Number of distinct custom systems needed to access data, by insurer accessibility rating</div>
+  <svg viewBox="0 0 520 240" xmlns="http://www.w3.org/2000/svg">
+    <line x1="60" y1="200" x2="500" y2="200" stroke="#d4cfc7" stroke-width="1"/>
+    <line x1="60" y1="40" x2="500" y2="40" stroke="#eee" stroke-width="0.5"/>
+    <line x1="60" y1="80" x2="500" y2="80" stroke="#eee" stroke-width="0.5"/>
+    <line x1="60" y1="120" x2="500" y2="120" stroke="#eee" stroke-width="0.5"/>
+    <line x1="60" y1="160" x2="500" y2="160" stroke="#eee" stroke-width="0.5"/>
+    <text x="55" y="204" text-anchor="end" font-family="DM Sans" font-size="10" fill="#999">0</text>
+    <text x="55" y="164" text-anchor="end" font-family="DM Sans" font-size="10" fill="#999">1</text>
+    <text x="55" y="124" text-anchor="end" font-family="DM Sans" font-size="10" fill="#999">2</text>
+    <text x="55" y="84" text-anchor="end" font-family="DM Sans" font-size="10" fill="#999">3</text>
+    <text x="55" y="44" text-anchor="end" font-family="DM Sans" font-size="10" fill="#999">4+</text>
+    <rect x="100" y="160" width="60" height="40" rx="2" fill="#27ae60"/>
+    <rect x="210" y="80" width="60" height="120" rx="2" fill="#e67e22"/>
+    <rect x="320" y="40" width="60" height="160" rx="2" fill="#c0392b"/>
+    <rect x="430" y="200" width="60" height="0" rx="2" fill="#7f8c8d"/>
+    <text x="130" y="154" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="500" fill="#fff">~1</text>
+    <text x="240" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="500" fill="#fff">~3</text>
+    <text x="350" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="500" fill="#c0392b">4+</text>
+    <text x="460" y="194" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="500" fill="#7f8c8d">N/A</text>
+    <text x="130" y="218" text-anchor="middle" font-family="DM Sans" font-size="11" font-weight="600" fill="#1a1a1a">Easy</text>
+    <text x="240" y="218" text-anchor="middle" font-family="DM Sans" font-size="11" font-weight="600" fill="#1a1a1a">Browser</text>
+    <text x="350" y="218" text-anchor="middle" font-family="DM Sans" font-size="11" font-weight="600" fill="#1a1a1a">Hard</text>
+    <text x="460" y="218" text-anchor="middle" font-family="DM Sans" font-size="11" font-weight="600" fill="#1a1a1a">Dead</text>
+    <text x="15" y="120" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999" transform="rotate(-90, 15, 120)">Custom systems needed</text>
+  </svg>
+  <div class="chart-source">Source: MediCosts engineering logs</div>
+</div>
+
+<p>Each of these systems represents days to weeks of engineering effort. None of them would be necessary if insurers simply published a JSON file at a stable URL, as the regulation intended. The combined effect is an access tax &mdash; not monetary, but technical &mdash; that filters out everyone except well-funded organizations with dedicated engineering teams. It is, in practice, a paywall built out of complexity instead of price.</p>
+
+<h2>The Pattern Is the Point</h2>
+
+<p>It would be generous to attribute all of this to innocent incompetence. Some of it surely is &mdash; large organizations have fragmented IT departments, and publishing a new data feed is never as simple as it sounds. The SSL errors and malformed JSON might well be genuine mistakes that no one inside the organization has prioritized fixing.</p>
+
+<p>But the EIN-gated search portals are not accidents. They are designed systems, built on purpose, that happen to make bulk access impossible while maintaining the appearance of compliance. The JavaScript SPAs that require browser automation to navigate are not the simplest way to host a file for download &mdash; they're the most <em>complicated</em> way. A static file on an S3 bucket would be cheaper, simpler, and more reliable. The choice to wrap it in a client-rendered web application is a choice, and it has consequences that are easy to predict.</p>
+
+<p>When you see one insurer making data hard to access, that's a bug. When you see dozens of insurers, independently arriving at different but equally effective methods of technical obstruction, that's an emergent industry strategy. Nobody had to send a memo. The incentives are aligned: insurers benefit from information asymmetry. Consumers who can't compare prices can't exert downward pressure on costs. The regulation threatened that asymmetry, and the industry's collective immune response has been to neutralize the threat through implementation.</p>
+
+<div class="diagram-container">
+  <div class="chart-title">What It Takes to Access "Transparent" Price Data</div>
+  <div class="chart-subtitle">The actual engineering pipeline required to read publicly mandated insurer files</div>
+  <svg viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+      </marker>
+      <marker id="arrow2" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-auto">
+        <path d="M 10 0 L 0 5 L 10 10 z" fill="#999"/>
+      </marker>
+    </defs>
+    <rect x="20" y="20" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="95" y="42" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">1. Discover URL</text>
+    <text x="95" y="57" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Scrape SPA, guess pattern,</text>
+    <text x="95" y="68" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">or enumerate blob storage</text>
+    <line x1="170" y1="45" x2="200" y2="45" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="200" y="20" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="275" y="42" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">2. Handle Auth/SSL</text>
+    <text x="275" y="57" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Bypass cert errors,</text>
+    <text x="275" y="68" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">refresh signed URLs</text>
+    <line x1="350" y1="45" x2="380" y2="45" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="380" y="20" width="160" height="50" rx="6" fill="#2c3e50"/>
+    <text x="460" y="42" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">3. Download</text>
+    <text x="460" y="57" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Stream GBs of gzipped</text>
+    <text x="460" y="68" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">JSON index files</text>
+    <line x1="460" y1="70" x2="460" y2="110" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="380" y="110" width="160" height="50" rx="6" fill="#2c3e50"/>
+    <text x="460" y="132" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">4. Sanitize</text>
+    <text x="460" y="147" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Fix malformed JSON,</text>
+    <text x="460" y="158" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">doubled quotes, encoding</text>
+    <line x1="380" y1="135" x2="350" y2="135" stroke="#999" stroke-width="1.5" marker-end="url(#arrow2)"/>
+    <rect x="200" y="110" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="275" y="132" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">5. Parse Index</text>
+    <text x="275" y="147" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Navigate 85K files or</text>
+    <text x="275" y="158" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">2.4 GB table of contents</text>
+    <line x1="200" y1="135" x2="170" y2="135" stroke="#999" stroke-width="1.5" marker-end="url(#arrow2)"/>
+    <rect x="20" y="110" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="95" y="132" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">6. Download Rates</text>
+    <text x="95" y="147" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Actual price files &#8212;</text>
+    <text x="95" y="158" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">terabytes per insurer</text>
+    <line x1="95" y1="160" x2="95" y2="200" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="20" y="200" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="95" y="222" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">7. Normalize</text>
+    <text x="95" y="237" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">Map to common schema</text>
+    <text x="95" y="248" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">across 29+ insurers</text>
+    <line x1="170" y1="225" x2="200" y2="225" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="200" y="200" width="150" height="50" rx="6" fill="#2c3e50"/>
+    <text x="275" y="222" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="600" fill="#fff">8. Load DB</text>
+    <text x="275" y="237" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">PostgreSQL with insurer</text>
+    <text x="275" y="248" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#bbb">knowledge base metadata</text>
+    <line x1="350" y1="225" x2="380" y2="225" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="380" y="200" width="160" height="50" rx="6" fill="#27ae60"/>
+    <text x="460" y="222" text-anchor="middle" font-family="DM Sans" font-size="10" font-weight="700" fill="#fff">9. Serve to User</text>
+    <text x="460" y="237" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#d5f5e3">What should have been</text>
+    <text x="460" y="248" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#d5f5e3">step 1 of 2</text>
+    <rect x="120" y="296" width="320" height="70" rx="8" fill="#fdf2e9" stroke="#e67e22" stroke-width="1.5"/>
+    <text x="280" y="320" text-anchor="middle" font-family="DM Sans" font-size="11" font-weight="700" fill="#e67e22">In a functional system, this pipeline would be:</text>
+    <text x="280" y="340" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="#2c3e50">GET /transparency/rates.json &#8594; display to user</text>
+    <text x="280" y="355" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#999">Two steps. Not nine.</text>
+  </svg>
+</div>
+
+<h2>What Would Actually Fix This</h2>
+
+<p>The Transparency in Coverage Rule got the policy right and the implementation wrong. The fix isn't complicated &mdash; at least, not conceptually. The regulation needs technical teeth.</p>
+
+<p>First, mandate a standardized API. Not "publish a file somewhere on your website" &mdash; a specific RESTful API specification with defined endpoints, query parameters, pagination, and response schemas. The government already does this successfully with FHIR (Fast Healthcare Interoperability Resources) for clinical data exchange. Apply the same principle here.</p>
+
+<p>Second, require automated accessibility testing. CMS should run a monthly crawler that verifies every insurer's data is downloadable via a simple HTTP request, that the JSON is valid, that the SSL certificates work, and that no human interaction &mdash; clicking, searching, entering an EIN &mdash; is required to access the full dataset. If the crawler can't reach it, it's not compliant. Period.</p>
+
+<p>Third, enforce meaningfully. The current penalty for noncompliance is $100 per day per violation &mdash; a rounding error for companies that measure revenue in the tens of billions. Penalties should scale to revenue, and "compliance" should be defined by accessibility, not merely publication.</p>
+
+<p>Fourth, publish a centralized registry. Every insurer's MRF URL should be registered with CMS in a single, machine-readable directory. No one should have to guess URLs, enumerate subdomains, or scrape state-specific websites to find data that the federal government has mandated to be public.</p>
+
+<p>None of this is exotic technology. All of it is routine in other industries. Flight prices, real estate listings, stock market data, weather forecasts &mdash; all of these are accessible via standardized, well-documented APIs that any developer can use. Healthcare pricing remains the exception because the regulation didn't specify <em>how</em> the data must be published, only <em>that</em> it must be.</p>
+
+<h2>Where This Leaves Us</h2>
+
+<p>We're still building MediCosts. We've gotten remarkably far &mdash; further, we suspect, than most teams would get without this specific combination of healthcare domain knowledge and infrastructure engineering. We can now access pricing data from a meaningful subset of American insurers, and the number grows as we reverse-engineer each new portal, workaround, and data format.</p>
+
+<p>But we're also acutely aware that the need for our project is itself an indictment. The entire point of the Transparency in Coverage Rule was that teams like ours <em>shouldn't need to exist</em>. The data should be straightforward enough that a motivated developer could build a comparison tool in a weekend, that a patient could look up a price in a minute, that the market forces of an informed consumer base would begin, slowly, to bend the cost curve of American healthcare.</p>
+
+<p>Instead, we have a $4 trillion industry that has turned regulatory compliance into an obstacle course &mdash; and a regulatory framework that, three years into implementation, still lacks the technical standards to prevent it. The prices are technically public. They are practically hidden. And the distance between those two things is where American healthcare's dysfunction lives.</p>
+
+<div class="pullquote">
+  The prices are technically public. They are practically hidden. And the distance between those two things is where American healthcare's dysfunction lives.
+</div>
+
+<p>The Transparency in Coverage Rule was the right idea. It remains the right idea. But an idea without implementation is just a press release. And right now, healthcare price transparency in America is a press release with a 2.4-gigabyte attachment, published at an unpredictable URL, behind a JavaScript wall, with a broken SSL certificate, requiring an Employer Identification Number you don't have, in a JSON file that won't parse.</p>
+
+<p>Good luck comparison-shopping with that.</p>
+
+</article>
+
+<div class="article-footer">
+  <p><strong>About this investigation.</strong> MediCosts is an ongoing project to aggregate and make accessible the pricing data published under the Transparency in Coverage Rule. The findings reported here are based on direct technical testing of insurer endpoints conducted between 2024 and 2025. Methodology details and raw accessibility data are available upon request.</p>
+</div>
+
+</body>
+</html>

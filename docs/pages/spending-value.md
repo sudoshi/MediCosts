@@ -41,3 +41,4 @@ Analyzes Medicare spending efficiency — which hospitals and regions deliver th
 |------|--------|
 | 2026-02-28 | Initial build |
 | 2026-03-04 | Major enhancement: 5-tab layout (Value, VBP, MSPB, Efficiency Frontier, Correlations), KPI row with national benchmarks, enhanced 11-column value table with color-coded warnings, filters (type/ownership/stars/search), scatter plot with Y-axis selector + Pareto frontier, 7×7 correlation heatmap, CSV export on all panels, summary API endpoint |
+| 2026-03-04 | Scatter zoom: scroll-to-zoom on Efficiency Frontier chart with mouse-centered zoom, zoom domain state, quadrant labels hidden while zoomed, Reset Zoom button |

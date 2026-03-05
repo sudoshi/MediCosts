@@ -13,3 +13,6 @@ data/
 *.egg-info/
 __pycache__/
 .claudeapikey
+.resendapikey
+clearnetwork/logs/
+clearnetwork/.venv/

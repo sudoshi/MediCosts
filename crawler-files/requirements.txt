@@ -1,0 +1,11 @@
+# Core
+aiohttp>=3.9.0
+ijson>=3.2.0          # Streaming JSON parser for multi-GB MRF files
+
+# Optional but recommended
+pyyaml>=6.0           # YAML config support
+
+# For development / testing
+pytest>=7.0
+pytest-asyncio>=0.21
+aioresponses>=0.7     # Mock aiohttp

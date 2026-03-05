@@ -1,12 +1,17 @@
 #!/bin/bash
-# ClearNetwork Nightly MRF Crawl
-# Runs all automatable insurers with up to 50 files each
+# ClearNetwork Nightly Pipeline — Scout + Crawl + Report
 # Scheduled via crontab: 0 2 * * * /home/smudoshi/Github/MediCosts/clearnetwork/scripts/nightly-crawl.sh
+#
+# Three-stage pipeline:
+#   1. Scout: Discover new insurers, probe URLs, score transparency
+#   2. Crawl: Run 50-state parallel crawler on all automatable insurers
+#   3. Report: Generate stats + email nightly report
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+ROOT_DIR="$(dirname "$PROJECT_DIR")"
 LOG_DIR="$PROJECT_DIR/logs"
 LOG_FILE="$LOG_DIR/crawl-$(date +%Y%m%d-%H%M%S).log"
 
@@ -18,31 +23,89 @@ source "$PROJECT_DIR/.venv/bin/activate"
 
 # Load environment variables
 set -a
-source "$(dirname "$PROJECT_DIR")/.env" 2>/dev/null || true
+source "$ROOT_DIR/.env" 2>/dev/null || true
 set +a
 
-echo "=== ClearNetwork Nightly Crawl ===" | tee "$LOG_FILE"
+echo "=== ClearNetwork Nightly Pipeline ===" | tee "$LOG_FILE"
 echo "Started: $(date)" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Kill any stale crawl processes older than 12 hours
-STALE_PIDS=$(pgrep -f "crawler.orchestrator" -u "$(whoami)" | while read PID; do
+STALE_PIDS=$(pgrep -f "crawler\.\(orchestrator\|state_runner\|scout\)" -u "$(whoami)" 2>/dev/null | while read PID; do
   START=$(stat -c %Y "/proc/$PID" 2>/dev/null || echo 0)
   NOW=$(date +%s)
   AGE=$(( NOW - START ))
   if [ "$AGE" -gt 43200 ]; then echo "$PID"; fi
-done)
+done || true)
 if [ -n "$STALE_PIDS" ]; then
-  echo "Killing stale crawl processes: $STALE_PIDS" | tee -a "$LOG_FILE"
+  echo "Killing stale processes: $STALE_PIDS" | tee -a "$LOG_FILE"
   echo "$STALE_PIDS" | xargs kill 2>/dev/null || true
   sleep 2
 fi
 
-# Run the crawler with all automatable insurers (2h timeout per insurer)
 cd "$PROJECT_DIR"
-python -u -m crawler.orchestrator --automatable-only --max-files=50 --insurer-timeout=7200 2>&1 | tee -a "$LOG_FILE"
+
+# ── Stage 1: Scout (discover + probe + score) ──
+echo "" | tee -a "$LOG_FILE"
+echo "=== Stage 1: Scout — Discovering insurers across 50 states ===" | tee -a "$LOG_FILE"
+echo "Started: $(date)" | tee -a "$LOG_FILE"
+
+python -u -m crawler.scout --concurrency 30 2>&1 | tee -a "$LOG_FILE" || {
+  echo "WARNING: Scout failed — continuing with existing registry" | tee -a "$LOG_FILE"
+}
+
+echo "Scout finished: $(date)" | tee -a "$LOG_FILE"
+
+# ── Stage 2: State Runner (parallel 50-state crawl) ──
+echo "" | tee -a "$LOG_FILE"
+echo "=== Stage 2: State Runner — Crawling all automatable insurers ===" | tee -a "$LOG_FILE"
+echo "Started: $(date)" | tee -a "$LOG_FILE"
+
+python -u -m crawler.state_runner \
+  --concurrency 10 \
+  --max-files 20 \
+  --insurer-timeout 3600 \
+  --automatable-only \
+  2>&1 | tee -a "$LOG_FILE" || {
+  echo "WARNING: State runner had errors — generating report anyway" | tee -a "$LOG_FILE"
+}
+
+echo "State runner finished: $(date)" | tee -a "$LOG_FILE"
+
+# ── Stage 3: Legacy orchestrator (existing known insurers) ──
+echo "" | tee -a "$LOG_FILE"
+echo "=== Stage 3: Legacy Orchestrator — Known insurer deep crawl ===" | tee -a "$LOG_FILE"
+
+python -u -m crawler.orchestrator \
+  --automatable-only \
+  --max-files=50 \
+  --insurer-timeout=7200 \
+  2>&1 | tee -a "$LOG_FILE" || {
+  echo "WARNING: Legacy orchestrator had errors" | tee -a "$LOG_FILE"
+}
+
+echo "Legacy orchestrator finished: $(date)" | tee -a "$LOG_FILE"
+
+# ── Stage 4: Nightly Report ──
+echo "" | tee -a "$LOG_FILE"
+echo "=== Stage 4: Generating nightly report ===" | tee -a "$LOG_FILE"
+
+python -u "$SCRIPT_DIR/nightly-report.py" --email 2>&1 | tee -a "$LOG_FILE" || {
+  echo "WARNING: Report generation/email failed" | tee -a "$LOG_FILE"
+}
+
+# ── Stage 5: Daily Blog Post ──
+echo "" | tee -a "$LOG_FILE"
+echo "=== Stage 5: Generating daily blog post ===" | tee -a "$LOG_FILE"
+
+python -u "$SCRIPT_DIR/generate-blog-post.py" --email 2>&1 | tee -a "$LOG_FILE" || {
+  echo "WARNING: Blog post generation failed" | tee -a "$LOG_FILE"
+}
+
+echo "Blog post generated: $(date)" | tee -a "$LOG_FILE"
 
 echo "" | tee -a "$LOG_FILE"
+echo "=== Pipeline Complete ===" | tee -a "$LOG_FILE"
 echo "Finished: $(date)" | tee -a "$LOG_FILE"
 
 # Clean up old logs (keep last 30 days)

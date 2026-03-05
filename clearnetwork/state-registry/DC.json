@@ -1,0 +1,208 @@
+[
+  {
+    "insurer_name": "UnitedHealthcare",
+    "trade_names": [
+      "UHC",
+      "United Healthcare",
+      "Optum"
+    ],
+    "state": "DC",
+    "mrf_url": "https://transparency-in-coverage.uhc.com/api/v1/uhc/blobs/",
+    "index_type": "uhc_blob_api",
+    "date_pattern": null,
+    "cms_source": false,
+    "http_status": 200,
+    "content_type": "application/json; charset=utf-8",
+    "response_time_ms": 2834,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": 32459382,
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "last_probed_at": "2026-03-05T04:08:56.300526+00:00",
+    "notes": "",
+    "transparency_score": 75,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "response_time": "+10 (2834ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: uhc_blob_api)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.134952+00:00"
+  },
+  {
+    "insurer_name": "Anthem Inc",
+    "trade_names": [
+      "Anthem",
+      "Elevance Health",
+      "Anthem Blue Cross Blue Shield"
+    ],
+    "state": "DC",
+    "mrf_url": "https://antm-pt-prod-dataz-nogbd-nophi-us-east1.s3.amazonaws.com/anthem/{date}_anthem_index.json.gz",
+    "index_type": "dated_s3",
+    "date_pattern": "YYYY-MM-01",
+    "cms_source": false,
+    "http_status": 403,
+    "content_type": "application/xml",
+    "response_time_ms": 23,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": null,
+    "accessibility": "auth_required",
+    "mrf_url_verified": false,
+    "last_probed_at": "2026-03-05T04:08:56.654069+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (23ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_s3)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.134992+00:00"
+  },
+  {
+    "insurer_name": "Cigna Health and Life Insurance Company",
+    "trade_names": [
+      "Cigna",
+      "The Cigna Group",
+      "Evernorth"
+    ],
+    "state": "DC",
+    "mrf_url": "https://d25kgz5rikkq4n.cloudfront.net/cost_transparency/mrf/table-of-contents/reporting_month={date}/{date}_cigna-health-life-insurance-company_index.json",
+    "index_type": "dated_cloudfront",
+    "date_pattern": "YYYY-MM",
+    "cms_source": false,
+    "http_status": 403,
+    "content_type": "text/xml",
+    "response_time_ms": 8,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": 146,
+    "accessibility": "auth_required",
+    "mrf_url_verified": false,
+    "last_probed_at": "2026-03-05T04:08:56.806723+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (8ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_cloudfront)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135065+00:00"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "DC",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T04:08:54.787232+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135024+00:00"
+  },
+  {
+    "insurer_name": "Humana Insurance Company",
+    "trade_names": [
+      "Humana"
+    ],
+    "state": "DC",
+    "mrf_url": "https://developers.humana.com/syntheticdata/healthplan-price-transparency",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T04:08:54.787306+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135096+00:00"
+  },
+  {
+    "insurer_name": "Kaiser Foundation Health Plan",
+    "trade_names": [
+      "Kaiser Permanente"
+    ],
+    "state": "DC",
+    "mrf_url": "https://healthy.kaiserpermanente.org/front-door/machine-readable",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T04:08:54.787311+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135102+00:00"
+  },
+  {
+    "insurer_name": "Centene Corporation",
+    "trade_names": [
+      "Centene",
+      "Ambetter",
+      "WellCare",
+      "Health Net",
+      "Fidelis Care"
+    ],
+    "state": "DC",
+    "mrf_url": "https://www.centene.com/price-transparency-files.html",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T04:08:54.787341+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135130+00:00"
+  },
+  {
+    "insurer_name": "CareFirst BlueCross BlueShield",
+    "trade_names": [
+      "CareFirst",
+      "CareFirst BCBS"
+    ],
+    "state": "DC",
+    "mrf_url": "https://individual.carefirst.com/individuals-families/mandates-background/machine-readable-files.page",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-05T04:08:54.787362+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-05T04:08:59.135149+00:00"
+  }
+]

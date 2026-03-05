@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "db_path": "scraper_state.db",
+    "download_dir": "./downloads",
+    "output_dir": "./output",
+    "max_concurrent": 5,
+    "request_timeout": 300.0,
+    "default_rps": 2.0
+  },
+
+  "mrf": {
+    "enabled": true,
+    "toc_urls": [
+      "https://transparency-in-coverage.uhc.com/api/v1/uhc/blobs/"
+    ]
+  },
+
+  "chargemaster": {
+    "enabled": true,
+    "registry_url": null,
+    "hospitals": [
+      {
+        "name": "Example Hospital",
+        "npi": "1234567890",
+        "ein": "12-3456789",
+        "url": "https://www.example-hospital.org/chargemaster.csv",
+        "format": "auto"
+      }
+    ]
+  },
+
+  "custom": {
+    "enabled": true,
+    "targets": [
+      {
+        "url": "https://data.cms.gov/provider-data/api/1/datastore/query/mj5m-pzi6",
+        "name": "cms_hospital_compare",
+        "type": "paginated_api",
+        "jq_path": "results",
+        "output_name": "hospital_compare",
+        "pagination": {
+          "type": "offset",
+          "param": "offset",
+          "page_size": 500,
+          "max_pages": 20
+        }
+      }
+    ]
+  }
+}
