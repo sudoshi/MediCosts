@@ -28,3 +28,4 @@ Medicare Part D drug spending explorer. Shows 5-year (2019–2023) spending tren
 | Date | Change |
 |------|--------|
 | 2026-03-03 | Initial build — 14K drugs, 1.38M prescribers from CMS Part D data |
+| 2026-03-04 | Drug rows now clickable → DrugDetail page (/drugs/:name); new DrugDetail page with 5-year trend charts, cost/unit chart, KPI row, manufacturers breakdown, CSV export |

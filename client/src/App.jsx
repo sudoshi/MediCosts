@@ -36,6 +36,7 @@ const SettingsView = lazy(() => import('./views/SettingsView'));
 const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
 const FinancialsExplorer = lazy(() => import('./views/FinancialsExplorer'));
 const DrugSpending = lazy(() => import('./views/DrugSpending'));
+const DrugDetail = lazy(() => import('./views/DrugDetail'));
 const AboutView = lazy(() => import('./views/AboutView'));
 const ExcellenceView = lazy(() => import('./views/ExcellenceView'));
 const BlogIndex = lazy(() => import('./views/BlogIndex'));
@@ -176,6 +177,7 @@ export default function App() {
               <Route path="/payments" element={<ErrorBoundary><PaymentsExplorer /></ErrorBoundary>} />
               <Route path="/financials" element={<ErrorBoundary><FinancialsExplorer /></ErrorBoundary>} />
               <Route path="/drugs" element={<ErrorBoundary><DrugSpending /></ErrorBoundary>} />
+              <Route path="/drugs/:name" element={<ErrorBoundary><DrugDetail /></ErrorBoundary>} />
               <Route path="/transparency" element={<ErrorBoundary><TransparencyScorecard /></ErrorBoundary>} />
               <Route path="/connectors" element={<ErrorBoundary><DataConnectors /></ErrorBoundary>} />
               <Route path="/ai-providers" element={<ErrorBoundary><AIProvidersView /></ErrorBoundary>} />

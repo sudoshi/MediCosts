@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
@@ -34,6 +35,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function DrugSpending() {
+  const navigate = useNavigate();
   const [sort, setSort] = useState('spending');
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState(null);
@@ -133,7 +135,7 @@ export default function DrugSpending() {
               </thead>
               <tbody>
                 {drugs.map((d, i) => (
-                  <tr key={i} className={d.outlier_flag === 'X' ? s.outlierRow : ''}>
+                  <tr key={i} className={`${d.outlier_flag === 'X' ? s.outlierRow : ''} ${s.clickableRow}`} onClick={() => navigate(`/drugs/${encodeURIComponent(d.gnrc_name)}`)}>
                     <td className={s.drugName}>
                       {d.gnrc_name}
                       {d.outlier_flag === 'X' && <span className={s.outlierBadge} title="CMS high-cost outlier">★</span>}
