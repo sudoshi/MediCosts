@@ -10,7 +10,7 @@
 
 import express from 'express';
 import pg from 'pg';
-import { cache } from '../lib/cache.js';
+import { cache, invalidate } from '../lib/cache.js';
 
 const router = express.Router();
 const pool = new pg.Pool(); // uses PG* env vars
@@ -232,54 +232,41 @@ router.get('/top', async (req, res) => {
 
 // ── GET /summary ───────────────────────────────────────────────────────────
 
-router.get('/summary', async (req, res) => {
-  const data = await cache('payments:summary', 1800, async () => {
-  const [totals, byYear, byNature, byState] = await Promise.all([
-    pool.query(`
-      SELECT
-        COUNT(*) AS total_payments,
-        SUM(payment_amount) AS total_amount,
-        AVG(payment_amount) AS avg_amount,
-        COUNT(DISTINCT physician_npi) AS unique_physicians,
-        COUNT(DISTINCT hospital_ccn) AS unique_hospitals,
-        COUNT(DISTINCT payer_name) AS unique_payers
-      FROM medicosts.open_payments
-    `),
-    pool.query(`
-      SELECT payment_year,
-             COUNT(*) AS num_payments,
-             SUM(payment_amount) AS total_amount,
-             COUNT(DISTINCT physician_npi) AS unique_physicians
-      FROM medicosts.open_payments
-      GROUP BY payment_year ORDER BY payment_year
-    `),
-    pool.query(`
-      SELECT payment_nature,
-             COUNT(*) AS num_payments,
-             SUM(payment_amount) AS total_amount,
-             AVG(payment_amount) AS avg_amount
-      FROM medicosts.open_payments
-      WHERE payment_nature IS NOT NULL
-      GROUP BY payment_nature ORDER BY total_amount DESC LIMIT 15
-    `),
-    pool.query(`
-      SELECT recipient_state AS state,
-             COUNT(*) AS num_payments,
-             SUM(payment_amount) AS total_amount,
-             COUNT(DISTINCT physician_npi) AS unique_physicians
-      FROM medicosts.open_payments
-      WHERE recipient_state IS NOT NULL
-      GROUP BY recipient_state ORDER BY total_amount DESC
-    `),
-  ]);
+// Query payments summary from materialized views (instant) with fallback to raw table.
+// MVs are populated via: REFRESH MATERIALIZED VIEW medicosts.mv_payments_summary (etc.)
+async function fetchPaymentsSummary() {
+  try {
+    const [totals, byYear, byNature, byState] = await Promise.all([
+      pool.query(`SELECT * FROM medicosts.mv_payments_summary`),
+      pool.query(`SELECT * FROM medicosts.mv_payments_by_year ORDER BY payment_year`),
+      pool.query(`SELECT * FROM medicosts.mv_payments_by_nature ORDER BY total_amount DESC LIMIT 15`),
+      pool.query(`SELECT * FROM medicosts.mv_payments_by_state ORDER BY total_amount DESC`),
+    ]);
+    if (!totals.rows.length) return null; // MV empty
+    return {
+      totals: totals.rows[0],
+      by_year: byYear.rows,
+      by_nature: byNature.rows,
+      by_state: byState.rows,
+    };
+  } catch (err) {
+    if (err.code === '55000') return null; // MV not yet populated (WITH NO DATA)
+    throw err;
+  }
+}
 
-  return {
-    totals: totals.rows[0],
-    by_year: byYear.rows,
-    by_nature: byNature.rows,
-    by_state: byState.rows,
-  };
-  }); // end cache
+// Pre-warm the summary cache on server startup (called from index.js)
+export async function warmPaymentsSummary() {
+  return cache('payments:summary', 86400, fetchPaymentsSummary);
+}
+
+router.get('/summary', async (req, res) => {
+  // Don't cache a null result — MV may still be populating
+  const data = await cache('payments:summary', 86400, fetchPaymentsSummary);
+  if (!data) {
+    invalidate('payments:summary'); // clear null so next request retries
+    return res.json({ loading: true, message: 'Summary is being computed, check back in a few minutes.' });
+  }
   res.json(data);
 });
 

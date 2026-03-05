@@ -25,7 +25,7 @@ import trendsRouter from './routes/trends.js';
 import postAcuteRouter from './routes/post-acute.js';
 import facilitiesRouter from './routes/facilities.js';
 import clearnetworkAdminRouter from './routes/clearnetwork-admin.js';
-import paymentsRouter from './routes/payments.js';
+import paymentsRouter, { warmPaymentsSummary } from './routes/payments.js';
 import financialsRouter from './routes/financials.js';
 import shortageRouter from './routes/shortage.js';
 import communityHealthRouter from './routes/community-health.js';
@@ -141,6 +141,10 @@ runMigrations()
   .then(() => {
     app.listen(PORT, () => {
       logger.info(`MediCosts API listening on http://localhost:${PORT}`);
+      // Pre-warm the 30M-row payments summary query so the first visitor never waits
+      warmPaymentsSummary()
+        .then(() => logger.info('payments:summary cache warmed'))
+        .catch(err => logger.warn({ err }, 'payments:summary warm failed'));
     });
   })
   .catch((err) => {
