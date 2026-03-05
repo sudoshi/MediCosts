@@ -4,12 +4,30 @@
  * Lets users search for a physician or company by name.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 import s from './PaymentsExplorer.module.css';
+
+const TOOLTIP_STYLE = {
+  background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8,
+  fontFamily: 'JetBrains Mono, monospace', color: '#e4e4e7', fontSize: 12,
+};
+const AXIS_STYLE = { fill: '#71717a', fontFamily: 'Inter, sans-serif', fontSize: 10 };
+
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
 
 const fmt$ = (v) =>
   v == null ? '—' : Number(v).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -31,6 +49,12 @@ export default function PaymentsExplorer() {
   const [search, setSearch] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Real-time debounced search
+  useEffect(() => {
+    const t = setTimeout(() => setSearchQuery(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const yearParam = year === 'all' ? '' : `&year=${year}`;
   const { data: summary } = useApi('/payments/summary', []);
   const { data: topData, loading: topLoading } = useApi(
@@ -41,11 +65,6 @@ export default function PaymentsExplorer() {
     searchQuery.length >= 2 ? `/payments/search?q=${encodeURIComponent(searchQuery)}&limit=20` : null,
     [searchQuery]
   );
-
-  function handleSearch(e) {
-    e.preventDefault();
-    setSearchQuery(search);
-  }
 
   const totals = summary?.totals || {};
   const byYear = summary?.by_year || [];
@@ -78,8 +97,17 @@ export default function PaymentsExplorer() {
       <div className={s.grid}>
         {/* Year-over-year */}
         {byYear.length > 0 && (
-          <Panel title="Year Summary">
-            <table className={s.table}>
+          <Panel title="Year-over-Year Spending">
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={byYear.map(r => ({ year: String(r.payment_year), amount: Number(r.total_amount) }))} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e21" />
+                <XAxis dataKey="year" tick={AXIS_STYLE} />
+                <YAxis tickFormatter={v => `$${(v/1e9).toFixed(1)}B`} tick={AXIS_STYLE} width={52} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={v => [fmt$(v), 'Total Disclosed']} />
+                <Bar dataKey="amount" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            <table className={s.table} style={{ marginTop: 12 }}>
               <thead>
                 <tr>
                   <th>Year</th>
@@ -129,15 +157,15 @@ export default function PaymentsExplorer() {
 
       {/* Search */}
       <Panel title="Search Physicians or Companies">
-        <form onSubmit={handleSearch} className={s.searchRow}>
+        <div className={s.searchRow}>
           <input
             className={s.searchInput}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by physician name or company…"
+            placeholder="Type to search by physician name or company…"
           />
-          <button type="submit" className={s.searchBtn}>Search</button>
-        </form>
+          {search && <button className={s.clearBtn} onClick={() => setSearch('')}>✕</button>}
+        </div>
 
         {searchLoading && <Skeleton height={80} />}
 
@@ -223,6 +251,9 @@ export default function PaymentsExplorer() {
               </button>
             ))}
           </div>
+          <button className={s.exportBtn} onClick={() => exportCsv(topData?.results, `payments-${by}-${year}.csv`)}>
+            ↓ CSV
+          </button>
         </div>
 
         {topLoading && (

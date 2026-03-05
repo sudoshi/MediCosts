@@ -30,3 +30,4 @@ Sunshine Act (Open Payments) disclosure explorer. 30M+ financial relationships b
 |------|--------|
 | 2026-03-02 | Initial build — 30M rows, dual-year (PY2023+PY2024) |
 | 2026-03-03 | Fixed SQL injection in /top endpoint — numeric params now fully parameterized |
+| 2026-03-04 | Real-time debounced search (no form submit); YoY bar chart in Year Summary; CSV export on Leaderboard; clear search button |
