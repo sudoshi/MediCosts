@@ -131,3 +131,11 @@ const AXIS_TICK = { fill: '#71717a', fontSize: 10, fontFamily: 'Inter, sans-seri
 | Date | Phase | Notes |
 |------|-------|-------|
 | 2026-03-04 | Plan | Initial plan created from full audit of all 25+ pages and 172 API endpoints |
+| 2026-03-04 | Phase 1 | CSV exports: PostAcuteCare (all 7 panels), HospitalExplorer (min-stars filter + export), FinancialsExplorer (leaderboard export). TransparencyScorecard tabs fixed. Quality endpoint now supports min_stars. PostAcuteCare landscape bug fixed (wrong column names). |
+| 2026-03-04 | Phase 2 | DrugDetail page created at /drugs/:name — KPI row, 5-year spending bar chart, cost/unit line chart, manufacturers table, CSV export. DrugSpending rows now clickable. |
+| 2026-03-04 | Phase 3 | PaymentsExplorer: real-time debounced search, YoY bar chart, CSV export on leaderboard, clear button |
+| 2026-03-04 | Phase 4 | AccountabilityDashboard CSV exports (4 panels). QualityCommandCenter CSV export. |
+| 2026-03-04 | Phase 5 | ClinicianDirectory: dynamic specialty list from /api/clinicians/specialties (96 real specialties); CSV export on results. |
+| 2026-03-04 | Phase 6 | GeographicAnalysis: sortable state quality table, CSV export, auto-trigger ZIP search on 5-digit entry. |
+| 2026-03-04 | Phase 7 | (DrugDetail — completed in Phase 2) |
+| 2026-03-04 | Phase 8 | HospitalDetail: 3-tab layout reduces initial API calls from 17 to 1. Tabs: Quality & Safety, Cost & Spending, Community & Networks. |
