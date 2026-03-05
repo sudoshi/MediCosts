@@ -370,7 +370,7 @@ export default function SpendingValue() {
 
       {/* ── Value Composite ── */}
       {tab === 'value' && (
-        <Panel title="Hospital Value Composite" headerRight={<ExportBtn data={filtered} filename={`value-composite-${state || 'all'}.csv`} />}>
+        <Panel title="Hospital Value Composite" headerRight={<ExportBtn data={filtered} filename={`value-composite-${state || 'all'}.csv`} />} footer="Data: CMS Medicare 2023 — Hospital Value-Based Purchasing, MSPB, PSI-90, Readmissions">
           {loadValue ? <Skeleton height={400} /> : filtered.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>

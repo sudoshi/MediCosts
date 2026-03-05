@@ -1,6 +1,6 @@
 import styles from './Panel.module.css';
 
-export default function Panel({ title, children, className = '', headerRight }) {
+export default function Panel({ title, children, className = '', headerRight, footer }) {
   return (
     <div className={`${styles.panel} ${className}`}>
       {(title || headerRight) && (
@@ -10,6 +10,7 @@ export default function Panel({ title, children, className = '', headerRight }) 
         </div>
       )}
       {children}
+      {footer && <div className={styles.panelFooter}>{footer}</div>}
     </div>
   );
 }
