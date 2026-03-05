@@ -1,6 +1,24 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
+
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
+const ExportBtn = ({ data, filename }) => (
+  <button
+    onClick={() => exportCsv(data, filename)}
+    style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+    onMouseEnter={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--text-primary)'; }}
+    onMouseLeave={e => { e.target.style.borderColor = 'var(--border-dim)'; e.target.style.color = 'var(--text-secondary)'; }}
+  >↓ CSV</button>
+);
 import KpiDomainCard from '../components/quality/KpiDomainCard.jsx';
 import HaiChart from '../components/quality/HaiChart.jsx';
 import SafetyIndicators from '../components/quality/SafetyIndicators.jsx';
@@ -252,7 +270,7 @@ export default function QualityCommandCenter() {
         <span className={s.sectionLabelLine} />
       </div>
 
-      <Panel title="Worst Composite Quality — Top 25 by Patient Safety Score">
+      <Panel title="Worst Composite Quality — Top 25 by Patient Safety Score" headerRight={<ExportBtn data={compositeData} filename={`composite-quality-${state||'all'}.csv`} />}>
         {loadComposite ? <Skeleton height={400} /> : compositeData?.length > 0 ? (
           <div className={s.tableWrap}>
             <table className={s.dataTable}>

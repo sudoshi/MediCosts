@@ -27,3 +27,4 @@ System-wide quality analytics dashboard. Surfaces HCAHPS patient satisfaction, s
 | Date | Change |
 |------|--------|
 | 2026-02-28 | Initial build |
+| 2026-03-04 | Added CSV export to Worst Composite Quality panel |

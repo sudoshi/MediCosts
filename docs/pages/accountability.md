@@ -27,3 +27,4 @@ Names names. Identifies the worst-performing hospitals across three accountabili
 | Date | Change |
 |------|--------|
 | 2026-03-02 | Initial build |
+| 2026-03-04 | Added CSV export to Composite Rankings, Markup Ratios, Readmission Penalties, and HAC Scores panels |

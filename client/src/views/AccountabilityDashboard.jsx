@@ -3,6 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
+
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
+const ExportBtn = ({ data, filename }) => (
+  <button
+    onClick={() => exportCsv(data, filename)}
+    style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+    onMouseEnter={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--text-primary)'; }}
+    onMouseLeave={e => { e.target.style.borderColor = 'var(--border-dim)'; e.target.style.color = 'var(--text-secondary)'; }}
+  >↓ CSV</button>
+);
 import { fmtCurrency, fmtNumber, fmtStars } from '../utils/format.js';
 import s from './AccountabilityDashboard.module.css';
 
@@ -270,7 +288,7 @@ export default function AccountabilityDashboard() {
       {/* ════════════════════════════════════════════ */}
       {/* Phase 3 — Composite accountability failure index */}
       {/* ════════════════════════════════════════════ */}
-      <Panel title="Accountability Failure Index — Composite Rankings">
+      <Panel title="Accountability Failure Index — Composite Rankings" headerRight={<ExportBtn data={compositeRankings} filename={`accountability-composite-${state||'all'}.csv`} />}>
         {coreLoading ? <Skeleton height={400} /> : compositeRankings.length > 0 ? (
           <>
             <p className={s.panelNote}>
@@ -350,7 +368,7 @@ export default function AccountabilityDashboard() {
       {/* ════════════════════════════════════════════ */}
 
       {/* Price Gouging */}
-      <Panel title="Highest Hospital Markup Ratios — Price Gouging">
+      <Panel title="Highest Hospital Markup Ratios — Price Gouging" headerRight={<ExportBtn data={markups} filename={`markups-${state||'all'}.csv`} />}>
         {loadMark ? <Skeleton height={400} /> : markups?.length > 0 ? (
           <div className={s.tableWrap}>
             <table className={s.table}>
@@ -391,7 +409,7 @@ export default function AccountabilityDashboard() {
       </Panel>
 
       {/* Readmission Penalties */}
-      <Panel title="Worst Readmission Penalty Ratios (HRRP)">
+      <Panel title="Worst Readmission Penalty Ratios (HRRP)" headerRight={<ExportBtn data={penalties} filename={`readmission-penalties-${state||'all'}.csv`} />}>
         {loadPen ? <Skeleton height={400} /> : penalties?.length > 0 ? (
           <div className={s.tableWrap}>
             <table className={s.table}>
@@ -481,7 +499,7 @@ export default function AccountabilityDashboard() {
       </Panel>
 
       {/* HAC Hospital List */}
-      <Panel title="Hospital HAC Scores">
+      <Panel title="Hospital HAC Scores" headerRight={<ExportBtn data={hacList} filename={`hac-scores-${state||'all'}.csv`} />}>
         {loadHac ? <Skeleton height={400} /> : hacList?.length > 0 ? (
           <div className={s.tableWrap}>
             <table className={s.table}>
