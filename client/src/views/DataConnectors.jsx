@@ -7,6 +7,11 @@ import s from './DataConnectors.module.css';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
+const authHeaders = (extra = {}) => ({
+  ...extra,
+  Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+});
+
 const PUBLIC_SOURCES = [
   { name: 'Medicare Inpatient DRGs', records: '~190K rows' },
   { name: 'Hospital General Info', records: '~5,300 hospitals' },
@@ -29,7 +34,7 @@ export default function DataConnectors() {
 
   const fetchConnectors = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/connectors`);
+      const res = await fetch(`${API}/connectors`, { headers: authHeaders() });
       const json = await res.json();
       setConnectors(json);
     } catch { /* ignore */ }
@@ -40,7 +45,7 @@ export default function DataConnectors() {
   async function handleCreate(data) {
     const res = await fetch(`${API}/connectors`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to create connector');
@@ -51,7 +56,7 @@ export default function DataConnectors() {
   async function handleTest(id) {
     setMessage(null);
     try {
-      const res = await fetch(`${API}/connectors/${id}/test`, { method: 'POST' });
+      const res = await fetch(`${API}/connectors/${id}/test`, { method: 'POST', headers: authHeaders() });
       const json = await res.json();
       setMessage({ type: json.ok ? 'success' : 'error', text: json.message });
       await fetchConnectors();
@@ -68,9 +73,9 @@ export default function DataConnectors() {
       if (file) {
         const form = new FormData();
         form.append('file', file);
-        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST', body: form });
+        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST', headers: authHeaders(), body: form });
       } else {
-        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST' });
+        res = await fetch(`${API}/connectors/${id}/sync`, { method: 'POST', headers: authHeaders() });
       }
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Sync failed');
@@ -84,7 +89,7 @@ export default function DataConnectors() {
 
   async function handleDelete(id) {
     try {
-      await fetch(`${API}/connectors/${id}`, { method: 'DELETE' });
+      await fetch(`${API}/connectors/${id}`, { method: 'DELETE', headers: authHeaders() });
       setMessage({ type: 'success', text: 'Connector removed' });
       await fetchConnectors();
     } catch (err) {
