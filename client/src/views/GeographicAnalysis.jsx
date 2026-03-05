@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import DrilldownMap from '../components/DrilldownMap.jsx';
@@ -28,16 +28,51 @@ export default function GeographicAnalysis() {
   const [nearbyResults, setNearbyResults] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
+  // State quality sort
+  const [stateSort, setStateSort] = useState('state');
+  const [stateSortDir, setStateSortDir] = useState('asc');
+
+  function exportCsv(rows, filename) {
+    if (!rows?.length) return;
+    const keys = Object.keys(rows[0]);
+    const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = filename; a.click();
+  }
+
+  // Auto-trigger search when ZIP is exactly 5 digits
+  useEffect(() => {
+    if (nearbyZip.length === 5) findNearby();
+  }, [nearbyZip, nearbyRadius]);
+
   async function findNearby() {
     if (nearbyZip.length !== 5) return;
     setNearbyLoading(true);
     try {
-      const res = await fetch(`${API}/hospitals/nearby?zip=${nearbyZip}&radius=${nearbyRadius}&sort=star_rating&limit=20`);
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API}/hospitals/nearby?zip=${nearbyZip}&radius=${nearbyRadius}&sort=star_rating&limit=20`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setNearbyResults(data);
     } catch { setNearbyResults([]); }
     setNearbyLoading(false);
   }
+
+  function handleStateSort(col) {
+    if (stateSort === col) setStateSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setStateSort(col); setStateSortDir('asc'); }
+  }
+
+  const sortedStateQuality = stateQuality ? [...stateQuality].sort((a, b) => {
+    const av = a[stateSort], bv = b[stateSort];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    const cmp = typeof av === 'string' ? av.localeCompare(bv) : Number(av) - Number(bv);
+    return stateSortDir === 'asc' ? cmp : -cmp;
+  }) : [];
 
   return (
     <div className={s.page}>
@@ -118,24 +153,32 @@ export default function GeographicAnalysis() {
 
       {/* State Quality Heatmap Table */}
       {loadingQuality ? <Skeleton height={300} /> : stateQuality?.length > 0 && (
-        <Panel title="State Quality Comparison">
+        <Panel title="State Quality Comparison" headerRight={
+          <button onClick={() => exportCsv(sortedStateQuality, 'state-quality.csv')} style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>↓ CSV</button>
+        }>
           <div className={s.tableWrap}>
             <table className={s.table}>
               <thead>
                 <tr>
-                  <th>State</th>
-                  <th>Hospitals</th>
-                  <th>Avg Stars</th>
-                  <th>CLABSI SIR</th>
-                  <th>PSI-90</th>
-                  <th>Readm Ratio</th>
-                  <th>Mortality %</th>
-                  <th>Avg Payment</th>
-                  <th>Discharges</th>
+                  {[
+                    { key: 'state', label: 'State' },
+                    { key: 'num_hospitals', label: 'Hospitals' },
+                    { key: 'avg_star_rating', label: 'Avg Stars' },
+                    { key: 'avg_clabsi_sir', label: 'CLABSI SIR' },
+                    { key: 'avg_psi_90', label: 'PSI-90' },
+                    { key: 'avg_excess_readm_ratio', label: 'Readm Ratio' },
+                    { key: 'avg_mortality_rate', label: 'Mortality %' },
+                    { key: 'avg_payment', label: 'Avg Payment' },
+                    { key: 'total_discharges', label: 'Discharges' },
+                  ].map(col => (
+                    <th key={col.key} onClick={() => handleStateSort(col.key)} style={{ cursor: 'pointer', userSelect: 'none', color: stateSort === col.key ? 'var(--accent-light)' : undefined }}>
+                      {col.label}{stateSort === col.key ? (stateSortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {stateQuality.map((r) => (
+                {sortedStateQuality.map((r) => (
                   <tr key={r.state}>
                     <td className={s.stateCell}>{r.state}</td>
                     <td className={s.mono}>{r.num_hospitals}</td>

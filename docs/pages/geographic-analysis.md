@@ -23,3 +23,4 @@ Map-first view of healthcare cost and quality disparities across states, regions
 | Date | Change |
 |------|--------|
 | 2026-02-28 | Initial build |
+| 2026-03-04 | Sortable columns on State Quality Comparison table; CSV export; auto-trigger ZIP search on 5-digit entry; auth token passed to nearby endpoint |
