@@ -39,7 +39,7 @@ router.get('/physician/:npi', async (req, res) => {
 
   const where = conditions.join(' AND ');
 
-  const [rows, totRow] = await Promise.all([
+  const [rows, totRow, byNatureRows, byYearRows] = await Promise.all([
     pool.query(
       `SELECT id, payment_year, recipient_type,
               physician_first_name, physician_last_name, physician_specialty,
@@ -67,6 +67,12 @@ router.get('/physician/:npi', async (req, res) => {
        GROUP BY payment_nature ORDER BY amount DESC LIMIT 10`,
       params
     ).then(r => r.rows),
+    pool.query(
+      `SELECT payment_year, SUM(payment_amount) AS total_amount, COUNT(*) AS num_payments
+       FROM medicosts.open_payments WHERE ${where}
+       GROUP BY payment_year ORDER BY payment_year`,
+      params
+    ).then(r => r.rows),
   ]);
 
   const summary = totRow.rows[0];
@@ -81,6 +87,7 @@ router.get('/physician/:npi', async (req, res) => {
         ? { first: summary.first_year, last: summary.last_year }
         : null,
     },
+    by_year: byYearRows,
     payments: rows.rows,
     pagination: { page, limit, offset },
   });

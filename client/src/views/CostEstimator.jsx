@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
 import Panel from '../components/Panel.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import { fmtCurrency, fmtNumber, fmtStars } from '../utils/format.js';
 import s from './CostEstimator.module.css';
+
+const TOOLTIP_STYLE = { background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 };
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
@@ -33,6 +36,28 @@ export default function CostEstimator() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  // Payment distribution histogram (10 buckets)
+  const histogramData = useMemo(() => {
+    if (!results || results.length < 3) return null;
+    const vals = results.map(h => Number(h.avg_total_payments)).filter(v => v > 0);
+    if (vals.length < 3) return null;
+    const min = Math.min(...vals), max = Math.max(...vals);
+    if (max === min) return null;
+    const bucketCount = Math.min(10, vals.length);
+    const step = (max - min) / bucketCount;
+    const buckets = Array.from({ length: bucketCount }, (_, i) => ({
+      label: fmtCurrency(min + i * step),
+      min: min + i * step,
+      max: min + (i + 1) * step,
+      count: 0,
+    }));
+    vals.forEach(v => {
+      const idx = Math.min(Math.floor((v - min) / step), bucketCount - 1);
+      buckets[idx].count++;
+    });
+    return { buckets, avg: vals.reduce((a, b) => a + b, 0) / vals.length };
+  }, [results]);
 
   // DRG autocomplete
   useEffect(() => {
@@ -315,6 +340,19 @@ export default function CostEstimator() {
               </tbody>
             </table>
           </div>
+          {histogramData && (
+            <Panel title="Cost Distribution — Payment Range">
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={histogramData.buckets} margin={{ top: 8, right: 16, left: 0, bottom: 40 }}>
+                  <XAxis dataKey="label" tick={{ fill: '#71717a', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" interval={0} />
+                  <YAxis tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'Inter, sans-serif' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [v, 'Hospitals']} labelFormatter={(l) => `~${l}`} />
+                  <ReferenceLine x={fmtCurrency(histogramData.avg)} stroke="#3b82f6" strokeDasharray="4 2" label={{ value: 'avg', fill: '#3b82f6', fontSize: 10 }} />
+                  <Bar dataKey="count" fill="#22d3ee" radius={[3,3,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+          )}
         </>
       ) : searched && !loading ? (
         <div className={s.emptyState}>

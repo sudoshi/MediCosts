@@ -1,9 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianProfile.module.css';
+
+const TOOLTIP_STYLE = { background: '#141416', border: '1px solid #2a2a2d', borderRadius: 8, fontFamily: 'JetBrains Mono', color: '#e4e4e7', fontSize: 12 };
 
 const fmt$ = (v) =>
   v == null ? '—' : Number(v).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -145,6 +148,19 @@ export default function ClinicianProfile() {
               </div>
             )}
           </div>
+          {payments.by_year?.length > 1 && (
+            <div className={s.yoyChart}>
+              <p className={s.yoyLabel}>Year-over-Year Payments</p>
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={payments.by_year.map(y => ({ year: String(y.payment_year), amount: parseFloat(y.total_amount) || 0 }))} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                  <XAxis dataKey="year" tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'Inter, sans-serif' }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`$${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, 'Total']} />
+                  <Bar dataKey="amount" fill="#3b82f6" radius={[3,3,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
           <div className={s.tableWrap}>
             <table className={s.paymentsTable}>
               <thead>
@@ -181,8 +197,8 @@ export default function ClinicianProfile() {
             <MetricRow label="Beneficiaries" value={partD.tot_benes != null ? Number(partD.tot_benes).toLocaleString() : '—'} />
             <MetricRow label="Brand Claims" value={partD.brand_claims != null ? Number(partD.brand_claims).toLocaleString() : '—'} />
             <MetricRow label="Generic Claims" value={partD.generic_claims != null ? Number(partD.generic_claims).toLocaleString() : '—'} />
-            {partD.opioid_claims > 0 && <MetricRow label="Opioid Claims" value={Number(partD.opioid_claims).toLocaleString()} />}
-            {partD.opioid_prescriber_rate != null && <MetricRow label="Opioid Prescriber Rate" value={`${Number(partD.opioid_prescriber_rate).toFixed(1)}%`} />}
+            <MetricRow label="Opioid Claims" value={partD.opioid_claims > 0 ? Number(partD.opioid_claims).toLocaleString() : '0 — no opioids prescribed'} />
+            <MetricRow label="Opioid Prescriber Rate" value={partD.opioid_prescriber_rate != null ? `${Number(partD.opioid_prescriber_rate).toFixed(1)}%` : '0% — not an opioid prescriber'} />
             {partD.antibiotic_claims > 0 && <MetricRow label="Antibiotic Claims" value={Number(partD.antibiotic_claims).toLocaleString()} />}
             <MetricRow label="Avg Patient Age" value={partD.avg_patient_age != null ? `${Number(partD.avg_patient_age).toFixed(0)} yrs` : '—'} />
           </div>

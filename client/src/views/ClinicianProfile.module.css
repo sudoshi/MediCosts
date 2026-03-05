@@ -177,6 +177,17 @@
   font-weight: 700;
   color: var(--accent);
 }
+.yoyChart {
+  margin: 12px 0 4px;
+}
+.yoyLabel {
+  font-size: 11px;
+  font-family: Inter, sans-serif;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px;
+}
 .tableWrap {
   overflow-x: auto;
 }

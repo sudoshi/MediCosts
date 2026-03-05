@@ -4,6 +4,24 @@ import { useApi } from '../hooks/useApi.js';
 import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ExcellenceView.module.css';
 
+function exportCsv(data, filename) {
+  if (!data?.length) return;
+  const keys = Object.keys(data[0]);
+  const csv = [keys.join(','), ...data.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
+function ExportBtn({ data, filename }) {
+  return (
+    <button
+      onClick={() => exportCsv(data, filename)}
+      style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--border-dim)', borderRadius: 5, color: 'var(--text-secondary)', fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+    >↓ CSV</button>
+  );
+}
+
 const STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN',
   'IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH',
@@ -312,10 +330,13 @@ export default function ExcellenceView() {
       {coreLoading ? <Skeleton height={400} /> : (
         <div className={s.tablePanel}>
           <div className={s.tablePanelHeader}>
-            <div className={s.tablePanelTitle}>Composite Excellence Rankings</div>
-            <div className={s.tablePanelSubtitle}>
-              Weighted score: 30% star rating · 30% patient safety · 25% readmissions · 15% mortality
+            <div>
+              <div className={s.tablePanelTitle}>Composite Excellence Rankings</div>
+              <div className={s.tablePanelSubtitle}>
+                Weighted score: 30% star rating · 30% patient safety · 25% readmissions · 15% mortality
+              </div>
             </div>
+            <ExportBtn data={honorRoll} filename="excellence-composite.csv" />
           </div>
           <div className={s.tableWrap}>
             <table className={s.table}>
@@ -389,10 +410,13 @@ export default function ExcellenceView() {
       {loadSafe ? <Skeleton height={280} /> : (
         <div className={s.tablePanel}>
           <div className={s.tablePanelHeader}>
-            <div className={s.tablePanelTitle}>Patient Safety Excellence</div>
-            <div className={s.tablePanelSubtitle}>
-              Lowest composite PSI-90 scores — fewest preventable complications and adverse events
+            <div>
+              <div className={s.tablePanelTitle}>Patient Safety Excellence</div>
+              <div className={s.tablePanelSubtitle}>
+                Lowest composite PSI-90 scores — fewest preventable complications and adverse events
+              </div>
             </div>
+            <ExportBtn data={safeData?.slice(0, 25)} filename="excellence-safety.csv" />
           </div>
           <div className={s.tableWrap}>
             <table className={s.table}>
@@ -451,10 +475,16 @@ export default function ExcellenceView() {
       {loadStar ? <Skeleton height={280} /> : (
         <div className={s.tablePanel}>
           <div className={s.tablePanelHeader}>
-            <div className={s.tablePanelTitle}>Lowest Readmission Ratios</div>
-            <div className={s.tablePanelSubtitle}>
-              Facilities where patients recover right the first time — excess readmission ratio below 1.0
+            <div>
+              <div className={s.tablePanelTitle}>Lowest Readmission Ratios</div>
+              <div className={s.tablePanelSubtitle}>
+                Facilities where patients recover right the first time — excess readmission ratio below 1.0
+              </div>
             </div>
+            <ExportBtn
+              data={(starData || []).filter(r => Number(r.avg_excess_readm_ratio) > 0 && Number(r.avg_excess_readm_ratio) < 1.0).sort((a, b) => Number(a.avg_excess_readm_ratio) - Number(b.avg_excess_readm_ratio)).slice(0, 15)}
+              filename="excellence-readmissions.csv"
+            />
           </div>
           <div className={s.tableWrap}>
             <table className={s.table}>

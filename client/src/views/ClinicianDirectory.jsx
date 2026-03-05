@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import Panel from '../components/Panel.jsx';
@@ -6,6 +6,7 @@ import Skeleton from '../components/ui/Skeleton.jsx';
 import s from './ClinicianDirectory.module.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem('authToken')}` });
 
 const STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN',
@@ -30,52 +31,57 @@ export default function ClinicianDirectory() {
   const [specialty, setSpecialty] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
   const { data: specialties } = useApi('/clinicians/specialties', []);
+  const PAGE_SIZE = 25;
+
+  const fetchClinicians = useCallback((nameQ, st, spec, off, append) => {
+    if (abortRef.current) abortRef.current.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    const params = new URLSearchParams();
+    if (nameQ) params.set('q', nameQ);
+    if (st) params.set('state', st);
+    if (spec) params.set('specialty', spec);
+    params.set('limit', String(PAGE_SIZE + 1)); // fetch one extra to know if there's more
+    params.set('offset', String(off));
+
+    if (append) setLoadingMore(true); else setLoading(true);
+    fetch(`${API_BASE}/clinicians/search?${params}`, { signal: ctrl.signal, headers: authHeader() })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => {
+        if (ctrl.signal.aborted) return;
+        const hasNext = data.length > PAGE_SIZE;
+        const page = data.slice(0, PAGE_SIZE);
+        setHasMore(hasNext);
+        setResults(prev => append ? [...(prev || []), ...page] : page);
+      })
+      .catch(e => { if (e.name !== 'AbortError') setResults(append ? r => r : []); })
+      .finally(() => {
+        if (!ctrl.signal.aborted) { setLoading(false); setLoadingMore(false); }
+      });
+  }, []);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
-
-    // Need at least one filter
-    if (!nameQuery && !state && !specialty) {
-      setResults(null);
-      return;
-    }
-
+    if (!nameQuery && !state && !specialty) { setResults(null); setOffset(0); return; }
     debounceRef.current = setTimeout(() => {
-      if (abortRef.current) abortRef.current.abort();
-      const ctrl = new AbortController();
-      abortRef.current = ctrl;
-
-      const params = new URLSearchParams();
-      if (nameQuery) params.set('q', nameQuery);
-      if (state) params.set('state', state);
-      if (specialty) params.set('specialty', specialty);
-      params.set('limit', '100');
-
-      setLoading(true);
-      fetch(`${API_BASE}/clinicians/search?${params}`, { signal: ctrl.signal })
-        .then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then(data => {
-          if (!ctrl.signal.aborted) setResults(data);
-        })
-        .catch(e => {
-          if (e.name !== 'AbortError') setResults([]);
-        })
-        .finally(() => {
-          if (!ctrl.signal.aborted) setLoading(false);
-        });
+      setOffset(0);
+      fetchClinicians(nameQuery, state, specialty, 0, false);
     }, 300);
+    return () => { clearTimeout(debounceRef.current); if (abortRef.current) abortRef.current.abort(); };
+  }, [nameQuery, state, specialty, fetchClinicians]);
 
-    return () => {
-      clearTimeout(debounceRef.current);
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, [nameQuery, state, specialty]);
+  function loadMore() {
+    const newOffset = offset + PAGE_SIZE;
+    setOffset(newOffset);
+    fetchClinicians(nameQuery, state, specialty, newOffset, true);
+  }
 
   return (
     <div className={s.page}>
@@ -121,7 +127,7 @@ export default function ClinicianDirectory() {
           <p className={s.emptyMsg}>No clinicians found matching your criteria.</p>
         ) : (
           <>
-            <p className={s.resultCount}>{results.length >= 100 ? '100+ results (showing first 100)' : `${results.length} results`}</p>
+            <p className={s.resultCount}>{results.length} result{results.length !== 1 ? 's' : ''}{hasMore ? '+' : ''}</p>
             <div className={s.tableWrap}>
               <table className={s.table}>
                 <thead>
@@ -150,6 +156,13 @@ export default function ClinicianDirectory() {
                 </tbody>
               </table>
             </div>
+            {hasMore && (
+              <div className={s.loadMoreWrap}>
+                <button className={s.loadMoreBtn} onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore ? 'Loading…' : 'Load 25 more'}
+                </button>
+              </div>
+            )}
           </>
         )}
       </Panel>
