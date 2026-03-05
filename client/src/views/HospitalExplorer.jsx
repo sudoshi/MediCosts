@@ -8,10 +8,21 @@ import s from './HospitalExplorer.module.css';
 const API = import.meta.env.VITE_API_URL || '/api';
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
+function exportCsv(rows, filename) {
+  if (!rows.length) return;
+  const keys = ['facility_name','city','state','star_rating','psi_90_score','avg_excess_readm_ratio','weighted_avg_payment'];
+  const labels = ['Hospital','City','State','Stars','PSI-90','Readm Ratio','Avg Payment'];
+  const csv = [labels.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
 export default function HospitalExplorer() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+  const [minStars, setMinStars] = useState(0);
   const [sort, setSort] = useState('facility_name');
   const [order, setOrder] = useState('asc');
   const [page, setPage] = useState(1);
@@ -28,12 +39,13 @@ export default function HospitalExplorer() {
     try {
       const params = new URLSearchParams({ page, per_page: perPage, sort, order });
       if (stateFilter) params.set('state', stateFilter);
+      if (minStars > 0) params.set('min_stars', minStars);
       const res = await fetch(`${API}/quality/hospitals?${params}`);
       const json = await res.json();
       setData(json);
     } catch { setData(null); }
     setLoading(false);
-  }, [page, sort, order, stateFilter]);
+  }, [page, sort, order, stateFilter, minStars]);
 
   useEffect(() => { fetchHospitals(); }, [fetchHospitals]);
 
@@ -72,6 +84,11 @@ export default function HospitalExplorer() {
     setPage(1);
   }
 
+  function handleMinStarsChange(e) {
+    setMinStars(Number(e.target.value));
+    setPage(1);
+  }
+
   const totalPages = data ? Math.ceil(data.total / perPage) : 0;
   const hospitals = searchResults || data?.data || [];
   const showingSearch = searchResults !== null;
@@ -94,6 +111,13 @@ export default function HospitalExplorer() {
           <option value="">All States</option>
           {STATES.map((st) => <option key={st} value={st}>{st}</option>)}
         </select>
+        <select className={s.select} value={minStars} onChange={handleMinStarsChange} title="Minimum star rating">
+          <option value={0}>Any Stars</option>
+          {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}+ Stars</option>)}
+        </select>
+        <button className={s.exportBtn} onClick={() => exportCsv(hospitals, `hospitals-${stateFilter || 'all'}.csv`)} title="Export CSV">
+          ↓ CSV
+        </button>
       </div>
 
       <div className={s.tableWrap}>

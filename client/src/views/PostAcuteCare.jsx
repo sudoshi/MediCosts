@@ -7,6 +7,23 @@ import Skeleton from '../components/ui/Skeleton.jsx';
 import { fmtCurrency, fmtNumber, fmtStars, fmtRate } from '../utils/format.js';
 import s from './PostAcuteCare.module.css';
 
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
+function ExportBtn({ data, filename }) {
+  return (
+    <button className={s.exportBtn} onClick={() => exportCsv(data, filename)} title="Export CSV">
+      ↓ CSV
+    </button>
+  );
+}
+
 const TABS = [
   { id: 'landscape', label: 'Landscape' },
   { id: 'nursing',   label: 'Nursing Homes' },
@@ -92,7 +109,7 @@ export default function PostAcuteCare() {
 
       {/* ── Landscape ── */}
       {tab === 'landscape' && (
-        <Panel title="Post-Acute Care Landscape">
+        <Panel title="Post-Acute Care Landscape" headerRight={<ExportBtn data={landscape} filename={`landscape-${state || 'all'}.csv`} />}>
           {loadLand ? <Skeleton height={200} /> : landscape?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -128,7 +145,7 @@ export default function PostAcuteCare() {
 
       {/* ── Nursing Homes ── */}
       {tab === 'nursing' && (
-        <Panel title="Nursing Homes">
+        <Panel title="Nursing Homes" headerRight={<ExportBtn data={nursing} filename={`nursing-homes-${state || 'all'}.csv`} />}>
           {loadNH ? <Skeleton height={400} /> : nursing?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -164,7 +181,7 @@ export default function PostAcuteCare() {
 
       {/* ── Home Health ── */}
       {tab === 'hh' && (
-        <Panel title="Home Health Agencies">
+        <Panel title="Home Health Agencies" headerRight={<ExportBtn data={hh} filename={`home-health-${state || 'all'}.csv`} />}>
           {loadHH ? <Skeleton height={400} /> : hh?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -198,7 +215,7 @@ export default function PostAcuteCare() {
 
       {/* ── Hospice ── */}
       {tab === 'hospice' && (
-        <Panel title="Hospice Providers">
+        <Panel title="Hospice Providers" headerRight={<ExportBtn data={hospiceFacilities} filename={`hospice-${state || 'all'}.csv`} />}>
           {loadHosp ? <Skeleton height={400} /> : hospiceFacilities.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -226,7 +243,7 @@ export default function PostAcuteCare() {
 
       {/* ── Dialysis ── */}
       {tab === 'dialysis' && (
-        <Panel title="Dialysis Facilities">
+        <Panel title="Dialysis Facilities" headerRight={<ExportBtn data={dialysis} filename={`dialysis-${state || 'all'}.csv`} />}>
           {loadDia ? <Skeleton height={400} /> : dialysis?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -262,7 +279,7 @@ export default function PostAcuteCare() {
 
       {/* ── IRF ── */}
       {tab === 'irf' && (
-        <Panel title="Inpatient Rehabilitation Facilities">
+        <Panel title="Inpatient Rehabilitation Facilities" headerRight={<ExportBtn data={irf} filename={`irf-${state || 'all'}.csv`} />}>
           {loadIRF ? <Skeleton height={400} /> : irf?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>
@@ -294,7 +311,7 @@ export default function PostAcuteCare() {
 
       {/* ── LTCH ── */}
       {tab === 'ltch' && (
-        <Panel title="Long-Term Care Hospitals">
+        <Panel title="Long-Term Care Hospitals" headerRight={<ExportBtn data={ltch} filename={`ltch-${state || 'all'}.csv`} />}>
           {loadLTCH ? <Skeleton height={400} /> : ltch?.length > 0 ? (
             <div className={s.tableWrap}>
               <table className={s.table}>

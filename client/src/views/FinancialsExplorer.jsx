@@ -14,6 +14,15 @@ const fmt$ = (v) =>
   v == null ? '—' : Number(v).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const fmtN = (v) => v == null ? '—' : Number(v).toLocaleString();
 
+function exportCsv(rows, filename) {
+  if (!rows?.length) return;
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = filename; a.click();
+}
+
 const YEARS = [2023, 2024];
 const BY_OPTIONS = [
   { value: 'charges',       label: 'Gross Charges' },
@@ -146,6 +155,9 @@ export default function FinancialsExplorer() {
               >{o.label}</button>
             ))}
           </div>
+          <button className={s.exportBtn} onClick={() => exportCsv(topData?.results, `financials-${by}-${year}.csv`)}>
+            ↓ CSV
+          </button>
         </div>
 
         {topLoading && (

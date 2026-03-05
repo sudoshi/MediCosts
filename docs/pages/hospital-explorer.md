@@ -23,3 +23,4 @@ Search and filter all 4,000+ CMS-tracked hospitals. Primary entry point for prov
 | Date | Change |
 |------|--------|
 | 2026-02-28 | Initial build |
+| 2026-03-04 | Added min-stars filter dropdown; added CSV export button to toolbar |

@@ -178,7 +178,7 @@ export default function TransparencyScorecard() {
       </div>
 
       {/* ── Tabs ── */}
-      <Tabs tabs={TABS} active={tab} onChange={setTab} />
+      <Tabs tabs={TABS} activeTab={tab} onTabChange={setTab} />
 
       {/* ── Scorecard tab ── */}
       {tab === 'scorecard' && (

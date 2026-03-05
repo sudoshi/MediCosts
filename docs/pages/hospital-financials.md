@@ -25,3 +25,4 @@ Hospital financial statement explorer using HCRIS (Healthcare Cost Report Inform
 | Date | Change |
 |------|--------|
 | 2026-03-02 | Initial build — HCRIS FY2023–2024 data |
+| 2026-03-04 | Added CSV export button to Leaderboard panel |

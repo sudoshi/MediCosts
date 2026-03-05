@@ -71,6 +71,26 @@
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
+.exportBtn {
+  padding: 8px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  align-self: flex-start;
+}
+
+.exportBtn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
 .tableWrap {
   overflow-x: auto;
   background: var(--bg-surface);

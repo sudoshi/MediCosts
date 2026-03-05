@@ -395,13 +395,14 @@ router.get('/search', async (req, res, next) => {
 /* ------------------------------------------------------------------ */
 router.get('/hospitals', async (req, res, next) => {
   try {
-    const { page = 1, per_page = 50, sort = 'facility_name', order = 'asc', state } = req.query;
+    const { page = 1, per_page = 50, sort = 'facility_name', order = 'asc', state, min_stars } = req.query;
     const offset = (Math.max(1, Number(page)) - 1) * Number(per_page);
     const conditions = [];
     const params = [];
     let idx = 1;
 
     if (state) { conditions.push(`state = $${idx++}`); params.push(state); }
+    if (min_stars) { conditions.push(`star_rating >= $${idx++}`); params.push(Number(min_stars)); }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const allowedSorts = ['facility_name', 'star_rating', 'state', 'weighted_avg_payment', 'psi_90_score', 'avg_excess_readm_ratio'];
