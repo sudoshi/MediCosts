@@ -13,6 +13,17 @@ import s from './FinancialsExplorer.module.css';
 const fmt$ = (v) =>
   v == null ? '—' : Number(v).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const fmtN = (v) => v == null ? '—' : Number(v).toLocaleString();
+function Delta({ current, prev, fmt = fmtN, pct = false }) {
+  if (current == null || prev == null || prev == 0) return null;
+  const diff = Number(current) - Number(prev);
+  const p = ((diff / Number(prev)) * 100).toFixed(1);
+  const up = diff > 0;
+  return (
+    <span style={{ fontSize: 11, color: up ? '#22c55e' : '#ef4444', marginLeft: 6, fontFamily: 'Inter,sans-serif' }}>
+      {up ? '▲' : '▼'} {pct ? `${Math.abs(p)}pp` : `${Math.abs(p)}%`}
+    </span>
+  );
+}
 
 function exportCsv(rows, filename) {
   if (!rows?.length) return;
@@ -37,6 +48,8 @@ export default function FinancialsExplorer() {
   const [by, setBy]     = useState('charges');
 
   const { data: summary } = useApi(`/financials/summary?year=${year}`, [year]);
+  const prevYear = year === 2024 ? 2023 : null;
+  const { data: prevSummary } = useApi(prevYear ? `/financials/summary?year=${prevYear}` : null, [prevYear]);
   const { data: topData, loading: topLoading } = useApi(
     `/financials/top?year=${year}&by=${by}&limit=30`,
     [year, by]
@@ -44,6 +57,7 @@ export default function FinancialsExplorer() {
   const { data: uncompData } = useApi(`/financials/uncompensated?year=${year}&limit=20`, [year]);
 
   const totals = summary?.totals || {};
+  const prevTotals = prevSummary?.totals || {};
   const bySize = summary?.by_bed_size || [];
 
   return (
@@ -71,13 +85,13 @@ export default function FinancialsExplorer() {
       {!summary && <Skeleton height={80} />}
       {totals.hospitals && (
         <div className={s.kpiRow}>
-          <KpiCard label="Hospitals Reporting" value={fmtN(totals.hospitals)} />
-          <KpiCard label="Avg Gross Charges" value={fmt$(totals.avg_charges)} />
-          <KpiCard label="Total Gross Charges" value={`$${(Number(totals.total_charges)/1e9).toFixed(1)}B`} />
-          <KpiCard label="Avg Beds" value={fmtN(totals.avg_beds)} />
-          <KpiCard label="Avg Occupancy" value={totals.avg_occupancy_pct ? `${totals.avg_occupancy_pct}%` : '—'} />
-          <KpiCard label="Total Uncompensated Care" value={`$${(Number(totals.total_uncomp_cost)/1e9).toFixed(1)}B`} />
-          <KpiCard label="Hospitals w/ Charity" value={fmtN(totals.charity_hospitals)} />
+          <KpiCard label="Hospitals Reporting" value={<>{fmtN(totals.hospitals)}<Delta current={totals.hospitals} prev={prevTotals.hospitals} /></>} />
+          <KpiCard label="Avg Gross Charges" value={<>{fmt$(totals.avg_charges)}<Delta current={totals.avg_charges} prev={prevTotals.avg_charges} /></>} />
+          <KpiCard label="Total Gross Charges" value={<>${(Number(totals.total_charges)/1e9).toFixed(1)}B<Delta current={totals.total_charges} prev={prevTotals.total_charges} /></>} />
+          <KpiCard label="Avg Beds" value={<>{fmtN(totals.avg_beds)}<Delta current={totals.avg_beds} prev={prevTotals.avg_beds} /></>} />
+          <KpiCard label="Avg Occupancy" value={<>{totals.avg_occupancy_pct ? `${totals.avg_occupancy_pct}%` : '—'}<Delta current={totals.avg_occupancy_pct} prev={prevTotals.avg_occupancy_pct} pct /></>} />
+          <KpiCard label="Total Uncompensated Care" value={<>${(Number(totals.total_uncomp_cost)/1e9).toFixed(1)}B<Delta current={totals.total_uncomp_cost} prev={prevTotals.total_uncomp_cost} /></>} />
+          <KpiCard label="Hospitals w/ Charity" value={<>{fmtN(totals.charity_hospitals)}<Delta current={totals.charity_hospitals} prev={prevTotals.charity_hospitals} /></>} />
         </div>
       )}
 
