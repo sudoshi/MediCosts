@@ -139,3 +139,7 @@ const AXIS_TICK = { fill: '#71717a', fontSize: 10, fontFamily: 'Inter, sans-seri
 | 2026-03-04 | Phase 6 | GeographicAnalysis: sortable state quality table, CSV export, auto-trigger ZIP search on 5-digit entry. |
 | 2026-03-04 | Phase 7 | (DrugDetail — completed in Phase 2) |
 | 2026-03-04 | Phase 8 | HospitalDetail: 3-tab layout reduces initial API calls from 17 to 1. Tabs: Quality & Safety, Cost & Spending, Community & Networks. |
+| 2026-03-05 | Bugfixes | DataConnectors: auth headers on all fetch calls. TransparencyScorecard: null-guard on useSort hook. |
+| 2026-03-05 | Phase 5 | ClinicianDirectory: 25/page Load More pagination, auth header on search. ClinicianProfile: YoY payment trend bar chart, opioid metric always shown, payments Load More (50/page). payments API: added by_year year breakdown. PhysicianAnalytics: drill-down link to clinician directory after ZIP results. |
+| 2026-03-05 | Phase 4.6 | FinancialsExplorer: YoY delta indicators (▲/▼%) on all KPI cards when viewing FY2024 vs FY2023. |
+| 2026-03-05 | Phase 6 | GeographicAnalysis: nearby hospitals Load More pagination (20 initial, +30 per click). Panel component: new footer prop for CMS data labels. SpendingValue: CMS 2023 data source footer on composite panel. CostEstimator: 10-bucket payment distribution histogram below results. ExcellenceView: CSV export on all 3 tables. |
