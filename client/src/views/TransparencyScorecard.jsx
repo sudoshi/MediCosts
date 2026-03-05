@@ -57,7 +57,7 @@ function fmtDate(str) {
 }
 
 function exportCsv(rows, filename) {
-  if (!rows.length) return;
+  if (!rows?.length) return;
   const keys = Object.keys(rows[0]);
   const csv = [keys.join(','), ...rows.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
   const a = document.createElement('a');
@@ -81,7 +81,7 @@ function SortTh({ col, sort, onSort, children, left }) {
 function useSort(data, defaultCol, defaultDir = 'desc') {
   const [sort, setSort] = useState({ col: defaultCol, dir: defaultDir });
   const sorted = useMemo(() => {
-    if (!data.length) return data;
+    if (!data?.length) return data ?? [];
     return [...data].sort((a, b) => {
       const av = a[sort.col] ?? (sort.dir === 'asc' ? Infinity : -Infinity);
       const bv = b[sort.col] ?? (sort.dir === 'asc' ? Infinity : -Infinity);
