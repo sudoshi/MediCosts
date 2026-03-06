@@ -271,7 +271,7 @@ def format_html_report(report: dict) -> str:
             <td style="padding:4px 8px">{off['name']}</td>
             <td style="padding:4px 8px">{off['state']}</td>
             <td style="padding:4px 8px;color:#ef4444;font-weight:700">{off['score']}</td>
-            <td style="padding:4px 8px;font-size:12px">{off.get('notes','')[:50]}</td>
+            <td style="padding:4px 8px;font-size:12px">{(off.get('notes') or '')[:50]}</td>
         </tr>"""
 
     leader_rows = ""

@@ -144,7 +144,55 @@
   color: var(--accent);
 }
 
+/* ── Pinned ── */
+.pinnedCard {
+  border-left: 3px solid var(--accent);
+  padding-left: 1.5rem;
+}
+
+.pinnedBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--bg-base);
+  background: var(--accent);
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+}
+
+/* ── Section header ── */
+.sectionHeader {
+  padding: 2.5rem 0 0.5rem;
+}
+
+.sectionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.sectionSub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.loading {
+  padding: 2rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 640px) {
   .hero { padding: 3rem 1.25rem 2.5rem; }
   .grid { padding: 0 1.25rem 4rem; }
+  .pinnedCard { padding-left: 1rem; }
 }

@@ -25,6 +25,7 @@ import trendsRouter from './routes/trends.js';
 import postAcuteRouter from './routes/post-acute.js';
 import facilitiesRouter from './routes/facilities.js';
 import clearnetworkAdminRouter from './routes/clearnetwork-admin.js';
+import blogRouter from './routes/blog.js';
 import paymentsRouter, { warmPaymentsSummary } from './routes/payments.js';
 import financialsRouter from './routes/financials.js';
 import shortageRouter from './routes/shortage.js';
@@ -86,6 +87,9 @@ app.use('/api/auth', authRouter);
 
 // Stats route — public (no auth, cached 24h, used by landing/login pages)
 app.use('/api/stats', statsRouter);
+
+// Blog — public (daily transparency reports, no auth required)
+app.use('/api/blog', blogRouter);
 
 // Protect all remaining /api routes
 app.use('/api', requireAuth);

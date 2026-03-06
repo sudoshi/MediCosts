@@ -48,12 +48,20 @@ async def ensure_blog_table(conn):
             content_html TEXT NOT NULL,
             content_markdown TEXT NOT NULL,
             tags TEXT[],
-            stats JSONB
+            stats JSONB,
+            is_pinned BOOLEAN NOT NULL DEFAULT FALSE
         )
     """)
     await conn.execute(f"""
         CREATE INDEX IF NOT EXISTS idx_blog_posts_published
         ON {SCHEMA}.blog_posts (published_at DESC)
+    """)
+    # Add is_pinned column if missing (existing tables)
+    await conn.execute(f"""
+        DO $$ BEGIN
+            ALTER TABLE {SCHEMA}.blog_posts ADD COLUMN is_pinned BOOLEAN NOT NULL DEFAULT FALSE;
+        EXCEPTION WHEN duplicate_column THEN NULL;
+        END $$;
     """)
 
 

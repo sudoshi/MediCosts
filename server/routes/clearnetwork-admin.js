@@ -394,9 +394,10 @@ router.get('/blog', async (req, res, next) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 30, 100);
     const { rows } = await pool.query(`
-      SELECT id, published_at, title, slug, summary, tags, stats
+      SELECT id, published_at, title, slug, summary, tags, stats,
+             COALESCE(is_pinned, false) AS is_pinned
       FROM ${SCHEMA}.blog_posts
-      ORDER BY published_at DESC
+      ORDER BY is_pinned DESC, published_at DESC
       LIMIT $1
     `, [limit]);
     res.json(rows);
@@ -410,7 +411,8 @@ router.get('/blog', async (req, res, next) => {
 router.get('/blog/:slug', async (req, res, next) => {
   try {
     const { rows } = await pool.query(`
-      SELECT * FROM ${SCHEMA}.blog_posts WHERE slug = $1
+      SELECT *, COALESCE(is_pinned, false) AS is_pinned
+      FROM ${SCHEMA}.blog_posts WHERE slug = $1
     `, [req.params.slug]);
     if (!rows.length) return res.status(404).json({ error: 'Post not found' });
     res.json(rows[0]);

@@ -15,6 +15,9 @@ ROOT_DIR="$(dirname "$PROJECT_DIR")"
 LOG_DIR="$PROJECT_DIR/logs"
 LOG_FILE="$LOG_DIR/crawl-$(date +%Y%m%d-%H%M%S).log"
 
+# Hard deadline: crawlers must stop by 9 AM so blog publishes by 10 AM
+DEADLINE_HOUR=9
+
 # Ensure log directory exists
 mkdir -p "$LOG_DIR"
 
@@ -26,8 +29,14 @@ set -a
 source "$ROOT_DIR/.env" 2>/dev/null || true
 set +a
 
+# Check if we've passed the deadline — if so, skip crawl stages
+past_deadline() {
+  [ "$(date +%H)" -ge "$DEADLINE_HOUR" ]
+}
+
 echo "=== ClearNetwork Nightly Pipeline ===" | tee "$LOG_FILE"
 echo "Started: $(date)" | tee -a "$LOG_FILE"
+echo "Deadline: ${DEADLINE_HOUR}:00 AM" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Kill any stale crawl processes older than 12 hours
@@ -46,45 +55,68 @@ fi
 cd "$PROJECT_DIR"
 
 # ── Stage 1: Scout (discover + probe + score) ──
-echo "" | tee -a "$LOG_FILE"
-echo "=== Stage 1: Scout — Discovering insurers across 50 states ===" | tee -a "$LOG_FILE"
-echo "Started: $(date)" | tee -a "$LOG_FILE"
+if past_deadline; then
+  echo "SKIPPED Stage 1 — past ${DEADLINE_HOUR}:00 deadline" | tee -a "$LOG_FILE"
+else
+  echo "" | tee -a "$LOG_FILE"
+  echo "=== Stage 1: Scout — Discovering insurers across 50 states ===" | tee -a "$LOG_FILE"
+  echo "Started: $(date)" | tee -a "$LOG_FILE"
 
-python -u -m crawler.scout --concurrency 30 2>&1 | tee -a "$LOG_FILE" || {
-  echo "WARNING: Scout failed — continuing with existing registry" | tee -a "$LOG_FILE"
-}
+  python -u -m crawler.scout --concurrency 30 2>&1 | tee -a "$LOG_FILE" || {
+    echo "WARNING: Scout failed — continuing with existing registry" | tee -a "$LOG_FILE"
+  }
 
-echo "Scout finished: $(date)" | tee -a "$LOG_FILE"
+  echo "Scout finished: $(date)" | tee -a "$LOG_FILE"
+fi
 
 # ── Stage 2: State Runner (parallel 50-state crawl) ──
-echo "" | tee -a "$LOG_FILE"
-echo "=== Stage 2: State Runner — Crawling all automatable insurers ===" | tee -a "$LOG_FILE"
-echo "Started: $(date)" | tee -a "$LOG_FILE"
+if past_deadline; then
+  echo "SKIPPED Stage 2 — past ${DEADLINE_HOUR}:00 deadline" | tee -a "$LOG_FILE"
+else
+  echo "" | tee -a "$LOG_FILE"
+  echo "=== Stage 2: State Runner — Crawling all automatable insurers ===" | tee -a "$LOG_FILE"
+  echo "Started: $(date)" | tee -a "$LOG_FILE"
 
-python -u -m crawler.state_runner \
-  --concurrency 10 \
-  --max-files 20 \
-  --insurer-timeout 3600 \
-  --automatable-only \
-  2>&1 | tee -a "$LOG_FILE" || {
-  echo "WARNING: State runner had errors — generating report anyway" | tee -a "$LOG_FILE"
-}
+  # Calculate seconds remaining until deadline
+  DEADLINE_TS=$(date -d "today ${DEADLINE_HOUR}:00" +%s)
+  NOW_TS=$(date +%s)
+  REMAINING=$(( DEADLINE_TS - NOW_TS ))
+  if [ "$REMAINING" -lt 600 ]; then REMAINING=600; fi
 
-echo "State runner finished: $(date)" | tee -a "$LOG_FILE"
+  timeout "${REMAINING}s" python -u -m crawler.state_runner \
+    --concurrency 10 \
+    --max-files 20 \
+    --insurer-timeout 3600 \
+    --automatable-only \
+    2>&1 | tee -a "$LOG_FILE" || {
+    echo "WARNING: State runner stopped (timeout or error) — continuing to report" | tee -a "$LOG_FILE"
+  }
+
+  echo "State runner finished: $(date)" | tee -a "$LOG_FILE"
+fi
 
 # ── Stage 3: Legacy orchestrator (existing known insurers) ──
-echo "" | tee -a "$LOG_FILE"
-echo "=== Stage 3: Legacy Orchestrator — Known insurer deep crawl ===" | tee -a "$LOG_FILE"
+if past_deadline; then
+  echo "SKIPPED Stage 3 — past ${DEADLINE_HOUR}:00 deadline" | tee -a "$LOG_FILE"
+else
+  echo "" | tee -a "$LOG_FILE"
+  echo "=== Stage 3: Legacy Orchestrator — Known insurer deep crawl ===" | tee -a "$LOG_FILE"
 
-python -u -m crawler.orchestrator \
-  --automatable-only \
-  --max-files=50 \
-  --insurer-timeout=7200 \
-  2>&1 | tee -a "$LOG_FILE" || {
-  echo "WARNING: Legacy orchestrator had errors" | tee -a "$LOG_FILE"
-}
+  DEADLINE_TS=$(date -d "today ${DEADLINE_HOUR}:00" +%s)
+  NOW_TS=$(date +%s)
+  REMAINING=$(( DEADLINE_TS - NOW_TS ))
+  if [ "$REMAINING" -lt 600 ]; then REMAINING=600; fi
 
-echo "Legacy orchestrator finished: $(date)" | tee -a "$LOG_FILE"
+  timeout "${REMAINING}s" python -u -m crawler.orchestrator \
+    --automatable-only \
+    --max-files=50 \
+    --insurer-timeout=7200 \
+    2>&1 | tee -a "$LOG_FILE" || {
+    echo "WARNING: Legacy orchestrator stopped (timeout or error)" | tee -a "$LOG_FILE"
+  }
+
+  echo "Legacy orchestrator finished: $(date)" | tee -a "$LOG_FILE"
+fi
 
 # ── Stage 4: Nightly Report ──
 echo "" | tee -a "$LOG_FILE"
