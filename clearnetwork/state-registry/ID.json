@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 3474,
+    "response_time_ms": 1992,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-08T07:00:02.384266+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944035+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (3474ms < 5s)",
+      "response_time": "+10 (1992ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420173+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187284+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -53,7 +53,7 @@
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:05.785135+00:00",
+    "last_probed_at": "2026-03-09T06:00:05.697122+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
@@ -64,7 +64,7 @@
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420215+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187329+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -86,7 +86,7 @@
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:06.103274+00:00",
+    "last_probed_at": "2026-03-09T06:00:06.021514+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
@@ -97,7 +97,7 @@
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420287+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187398+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -112,13 +112,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384655+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944423+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420252+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187365+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +132,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384727+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944493+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420323+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187434+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -156,12 +156,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384763+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944528+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420361+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187474+00:00"
   }
 ]

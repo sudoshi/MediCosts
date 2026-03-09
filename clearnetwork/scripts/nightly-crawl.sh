@@ -126,15 +126,7 @@ python -u "$SCRIPT_DIR/nightly-report.py" --email 2>&1 | tee -a "$LOG_FILE" || {
   echo "WARNING: Report generation/email failed" | tee -a "$LOG_FILE"
 }
 
-# ── Stage 5: Daily Blog Post ──
-echo "" | tee -a "$LOG_FILE"
-echo "=== Stage 5: Generating daily blog post ===" | tee -a "$LOG_FILE"
-
-python -u "$SCRIPT_DIR/generate-blog-post.py" --email 2>&1 | tee -a "$LOG_FILE" || {
-  echo "WARNING: Blog post generation failed" | tee -a "$LOG_FILE"
-}
-
-echo "Blog post generated: $(date)" | tee -a "$LOG_FILE"
+# Stage 5 (blog post) removed — n8n workflow handles blog generation now
 
 echo "" | tee -a "$LOG_FILE"
 echo "=== Pipeline Complete ===" | tee -a "$LOG_FILE"
