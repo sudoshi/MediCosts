@@ -1,4 +1,5 @@
-import { z } from 'zod';
+import { z, ZodSchema } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -16,16 +17,21 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),
 });
 
-export function validateBody(schema) {
-  return (req, res, next) => {
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export function validateBody<T>(schema: ZodSchema<T>) {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
-      return res.status(422).json({
+      res.status(422).json({
         error: 'Validation failed',
         details: result.error.flatten().fieldErrors,
       });
+      return;
     }
-    req.validatedBody = result.data;
+    (req as Request & { validatedBody: T }).validatedBody = result.data;
     next();
   };
 }

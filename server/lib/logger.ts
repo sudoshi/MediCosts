@@ -5,10 +5,11 @@
  */
 
 import pino from 'pino';
+import type { LoggerOptions } from 'pino';
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const logger = pino({
+const options: LoggerOptions = {
   level: process.env.LOG_LEVEL || 'info',
   ...(isProd
     ? {}
@@ -18,6 +19,8 @@ const logger = pino({
           options: { colorize: true, translateTime: 'HH:MM:ss', ignore: 'pid,hostname' },
         },
       }),
-});
+};
+
+const logger = pino(options);
 
 export default logger;

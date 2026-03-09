@@ -7,9 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Ensure password is always a string (pg fails if undefined)
-const config = {
+const config: pg.PoolConfig = {
   host: process.env.PGHOST,
-  port: process.env.PGPORT || 5432,
+  port: Number(process.env.PGPORT) || 5432,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD ?? '',
   database: process.env.PGDATABASE,

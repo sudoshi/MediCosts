@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch index.js",
+    "dev": "tsx --watch index.js",
+    "build": "tsc -p tsconfig.json",
     "start": "node index.js"
   },
   "dependencies": {
