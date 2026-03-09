@@ -338,7 +338,8 @@ async def crawl_state(
     logger.info("[%s] State complete", state)
 
 
-async def _crawl_uhc_national(stats: CrawlStats, max_files: int, insurer_timeout: int):
+async def _crawl_uhc_national(stats: CrawlStats, max_files: int, insurer_timeout: int,
+                              shutdown: asyncio.Event | None = None):
     """Crawl UHC once as a national insurer (same blob API for all states)."""
     logger.info("=" * 60)
     logger.info("Phase 1: UHC National Crawl (one-time)")
@@ -390,11 +391,17 @@ async def _crawl_uhc_national(stats: CrawlStats, max_files: int, insurer_timeout
                 total_providers = 0
                 total_errors = 0
 
+                # Per-file timeout: 15 min max (UHC files can be huge but 1h is too long)
+                file_timeout = min(insurer_timeout, 900)
+
                 for idx, url in enumerate(urls, 1):
+                    if shutdown and shutdown.is_set():
+                        logger.info("  UHC: shutdown requested — stopping after %d/%d files", idx - 1, len(urls))
+                        break
                     try:
                         logger.info("  UHC file %d/%d: %s", idx, len(urls), url[:80])
                         result = await asyncio.wait_for(
-                            downloader.download(url), timeout=insurer_timeout
+                            downloader.download(url), timeout=file_timeout
                         )
                         if not result.success:
                             if result.error != "duplicate":
@@ -481,7 +488,7 @@ async def run_all_states(
                 len(states), concurrency, max_files)
 
     # Phase 1: Run UHC national crawl once (it's the same data for all states)
-    await _crawl_uhc_national(stats, max_files, insurer_timeout)
+    await _crawl_uhc_national(stats, max_files, insurer_timeout, shutdown)
 
     # Phase 2: Run per-state crawls (UHC entries will be skipped)
     tasks = [asyncio.create_task(guarded_crawl(s)) for s in states]

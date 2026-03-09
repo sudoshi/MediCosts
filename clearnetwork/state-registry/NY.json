@@ -13,14 +13,25 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1891,
+    "response_time_ms": 4709,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T20:26:02.239616+00:00",
-    "notes": ""
+    "last_probed_at": "2026-03-08T07:00:03.618576+00:00",
+    "notes": "",
+    "transparency_score": 75,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "response_time": "+10 (4709ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: uhc_blob_api)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420191+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -36,29 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 70,
+    "response_time_ms": 23,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.707488+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "NY",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071840+00:00"
+    "last_probed_at": "2026-03-08T07:00:05.944681+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (23ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_s3)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420230+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -74,14 +80,45 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 14,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.859207+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
+    "last_probed_at": "2026-03-08T07:00:06.145360+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (14ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_cloudfront)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420302+00:00"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "NY",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-08T07:00:02.384667+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420266+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -95,7 +132,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071998+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384740+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420335+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -113,7 +156,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072085+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384774+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420375+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -127,7 +176,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072122+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384791+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420640+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -141,39 +196,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072172+00:00"
-  },
-  {
-    "state": "NY",
-    "insurer_name": "Highmark Blue Shield of Northeastern New York",
-    "trade_names": [
-      "Highmark BCBS NNY"
-    ],
-    "mrf_url": "https://mrfdata.hmhs.com/files/800/nny/inbound/local/{date}_Highmark_Blue_Shield_of_Northeastern_New_York_index.json",
-    "index_type": "dated_hmhs",
-    "date_pattern": "YYYY-MM-01",
-    "accessibility": "automatable",
-    "mrf_url_verified": true,
-    "http_status": 200,
-    "file_size_bytes": 713430,
-    "notes": "From mrfdata.hmhs.com/js/script.js fileArr \u2014 verified HTTP 200 Mar 2026",
-    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
-  },
-  {
-    "state": "NY",
-    "insurer_name": "Highmark Blue Cross Blue Shield of Western New York",
-    "trade_names": [
-      "Highmark BCBS WNY",
-      "HealthNow New York"
-    ],
-    "mrf_url": "https://mrfdata.hmhs.com/files/301/wny/inbound/local/{date}_Highmark_Blue_Shield_of_Western_New_York_index.json",
-    "index_type": "dated_hmhs",
-    "date_pattern": "YYYY-MM-01",
-    "accessibility": "automatable",
-    "mrf_url_verified": true,
-    "http_status": 200,
-    "file_size_bytes": 868060,
-    "notes": "From mrfdata.hmhs.com/js/script.js fileArr \u2014 verified HTTP 200 Mar 2026",
-    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384814+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420665+00:00"
   }
 ]

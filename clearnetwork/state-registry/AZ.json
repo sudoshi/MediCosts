@@ -13,14 +13,24 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1115,
+    "response_time_ms": 6698,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T20:26:01.070872+00:00",
-    "notes": ""
+    "last_probed_at": "2026-03-08T07:00:02.384022+00:00",
+    "notes": "",
+    "transparency_score": 65,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: uhc_blob_api)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420164+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -36,29 +46,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 23,
+    "response_time_ms": 22,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.458538+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "AZ",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071798+00:00"
+    "last_probed_at": "2026-03-08T07:00:05.657742+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (22ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_s3)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420208+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -74,14 +79,45 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 30,
+    "response_time_ms": 78,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.801001+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
+    "last_probed_at": "2026-03-08T07:00:06.024988+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (78ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_cloudfront)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420280+00:00"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "AZ",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-08T07:00:02.384650+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420246+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -95,7 +131,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071957+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384722+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420318+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -113,7 +155,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072042+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384758+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420356+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -127,7 +175,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072157+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384808+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420659+00:00"
   },
   {
     "insurer_name": "Bright Health",
@@ -141,23 +195,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072183+00:00"
-  },
-  {
-    "state": "AZ",
-    "insurer_name": "Blue Cross Blue Shield of Arizona",
-    "trade_names": [
-      "BCBS Arizona",
-      "AZ Blue"
-    ],
-    "mrf_url": "https://mrfdata.hmhs.com/files/363/pa/inbound/local/{date}_Blue_Cross_and_Blue_Shield_of_Arizona_index.json",
-    "index_type": "dated_hmhs",
-    "date_pattern": "YYYY-MM-01",
-    "accessibility": "automatable",
-    "mrf_url_verified": true,
-    "http_status": 200,
-    "file_size_bytes": 5078907,
-    "notes": "Served via Highmark PA gateway. From mrfdata.hmhs.com/js/script.js.",
-    "last_probed_at": "2026-03-05T20:54:20.172290+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384818+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420669+00:00"
   }
 ]

@@ -13,14 +13,24 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 627,
+    "response_time_ms": 5082,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T20:26:02.238557+00:00",
-    "notes": ""
+    "last_probed_at": "2026-03-08T07:00:03.590272+00:00",
+    "notes": "",
+    "transparency_score": 65,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: uhc_blob_api)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420190+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -36,29 +46,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 25,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.702666+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "NM",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071839+00:00"
+    "last_probed_at": "2026-03-08T07:00:05.932935+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (25ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_s3)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420229+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -74,14 +79,78 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 10,
+    "response_time_ms": 14,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.857958+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
+    "last_probed_at": "2026-03-08T07:00:06.135781+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (14ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_cloudfront)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420302+00:00"
+  },
+  {
+    "insurer_name": "Blue Cross and Blue Shield of New Mexico",
+    "trade_names": [
+      "BCBS New Mexico",
+      "BCBSNM",
+      "HCSC New Mexico"
+    ],
+    "state": "NM",
+    "mrf_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-New-Mexico_index.json",
+    "index_type": "dated_azure",
+    "date_pattern": "YYYY-MM-DD",
+    "cms_source": false,
+    "http_status": 404,
+    "content_type": "",
+    "response_time_ms": 122,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": null,
+    "accessibility": "dead",
+    "mrf_url_verified": false,
+    "last_probed_at": "2026-03-08T07:00:06.187490+00:00",
+    "notes": "404 Not Found",
+    "transparency_score": 20,
+    "digital_debt_score": 60,
+    "score_breakdown": {
+      "accessibility": "+40 debt (dead/unreachable)",
+      "http_status": "+20 debt (404 Not Found)",
+      "response_time": "+10 (122ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_azure)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420650+00:00"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "NM",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-08T07:00:02.384666+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420265+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -95,7 +164,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071997+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384739+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420335+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -113,7 +188,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072084+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384774+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420374+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -127,29 +208,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072120+00:00"
-  },
-  {
-    "insurer_name": "Blue Cross and Blue Shield of New Mexico",
-    "trade_names": [
-      "BCBS New Mexico",
-      "BCBSNM",
-      "HCSC New Mexico"
-    ],
-    "state": "NM",
-    "mrf_url": "https://app0004702110a5prdnc868.blob.core.windows.net/toc/{date}_Blue-Cross-and-Blue-Shield-of-New-Mexico_index.json",
-    "index_type": "dated_azure",
-    "date_pattern": "YYYY-MM-DD",
-    "cms_source": false,
-    "http_status": 404,
-    "content_type": "",
-    "response_time_ms": 105,
-    "ssl_valid": true,
-    "supports_gzip": false,
-    "file_size_bytes": null,
-    "accessibility": "dead",
-    "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.885665+00:00",
-    "notes": "404 Not Found"
+    "last_probed_at": "2026-03-08T07:00:02.384791+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420639+00:00"
   }
 ]

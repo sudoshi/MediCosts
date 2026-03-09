@@ -57,20 +57,26 @@ function statusBadge(status) {
 
 function accessBadge(level) {
   const colors = {
-    easy: '#22c55e',
-    moderate: '#f59e0b',
-    hard: '#f97316',
-    blocked: '#ef4444',
-    dead: '#71717a',
+    automatable: '#22c55e',
+    browser_required: '#f59e0b',
+    auth_required: '#f97316',
+    dead: '#ef4444',
+    unknown: '#71717a',
+  };
+  const labels = {
+    automatable: 'Automatable',
+    browser_required: 'Browser',
+    auth_required: 'Auth Wall',
+    dead: 'Dead',
   };
   const color = colors[level] || '#71717a';
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: 4,
       background: `${color}18`, color, border: `1px solid ${color}33`,
-      fontSize: 11, fontWeight: 500, textTransform: 'capitalize',
+      fontSize: 11, fontWeight: 500,
     }}>
-      {level || 'unknown'}
+      {labels[level] || level || 'unknown'}
     </span>
   );
 }
@@ -193,9 +199,6 @@ function ClearNetworkPanel() {
               <h3 className={s.sectionTitle}>Provider Coverage (NPPES)</h3>
               <div className={s.statsGrid}>
                 <StatCard label="Total Providers" value={fmt(providerStats.total_providers)} />
-                <StatCard label="Individuals" value={fmt(providerStats.individuals)} />
-                <StatCard label="Facilities" value={fmt(providerStats.facilities)} />
-                <StatCard label="Geocoded" value={fmt(providerStats.geocoded)} />
                 <StatCard label="In Any Network" value={fmt(providerStats.in_any_network)} />
                 <StatCard label="Specialties" value={fmt(providerStats.unique_specialties)} />
                 <StatCard label="States" value={fmt(providerStats.states_covered)} />
@@ -283,8 +286,8 @@ function ClearNetworkPanel() {
           <div className={s.statsGrid}>
             <StatCard label="States Researched" value={researchStates.size} />
             <StatCard label="Total Entries" value={research.length} />
-            <StatCard label="Easy Access" value={research.filter(r => r.accessibility === 'easy').length} highlight />
-            <StatCard label="Hard / Blocked" value={research.filter(r => r.accessibility === 'hard' || r.accessibility === 'blocked').length} warn={research.filter(r => r.accessibility === 'hard' || r.accessibility === 'blocked').length > 0} />
+            <StatCard label="Automatable" value={research.filter(r => r.accessibility === 'automatable').length} highlight />
+            <StatCard label="Browser / Auth" value={research.filter(r => r.accessibility === 'browser_required' || r.accessibility === 'auth_required').length} warn={research.filter(r => r.accessibility === 'browser_required' || r.accessibility === 'auth_required').length > 0} />
             <StatCard label="In Registry" value={research.filter(r => r.added_to_registry).length} />
             <StatCard label="Crawl Tested" value={research.filter(r => r.crawl_tested).length} />
           </div>

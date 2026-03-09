@@ -13,14 +13,58 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 594,
+    "response_time_ms": 2016,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T20:26:01.648491+00:00",
-    "notes": ""
+    "last_probed_at": "2026-03-08T07:00:02.384430+00:00",
+    "notes": "",
+    "transparency_score": 75,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "response_time": "+10 (2016ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: uhc_blob_api)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420181+00:00"
+  },
+  {
+    "insurer_name": "Blue Cross Blue Shield of Michigan",
+    "trade_names": [
+      "BCBSM",
+      "Blue Care Network"
+    ],
+    "state": "MI",
+    "mrf_url": "https://bcbsm.sapphiremrfhub.com/tocs/current/blue_cross_blue_shield_of_michigan",
+    "index_type": "sapphire_hub",
+    "date_pattern": null,
+    "cms_source": false,
+    "http_status": 200,
+    "content_type": "binary/octet-stream",
+    "response_time_ms": 594,
+    "ssl_valid": true,
+    "supports_gzip": false,
+    "file_size_bytes": 264769,
+    "accessibility": "automatable",
+    "mrf_url_verified": true,
+    "last_probed_at": "2026-03-08T07:00:06.187938+00:00",
+    "notes": "",
+    "transparency_score": 75,
+    "digital_debt_score": 0,
+    "score_breakdown": {
+      "accessibility": "+30 (automatable)",
+      "http_status": "+10 (200 OK)",
+      "content_type": "+15 (machine-readable)",
+      "response_time": "+10 (594ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: sapphire_hub)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420654+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -36,29 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 21,
+    "response_time_ms": 20,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.654415+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
-  },
-  {
-    "insurer_name": "Aetna Life Insurance Company",
-    "trade_names": [
-      "Aetna",
-      "CVS Health"
-    ],
-    "state": "MI",
-    "mrf_url": "https://mrf.aetna.com/",
-    "index_type": "browser_required",
-    "date_pattern": null,
-    "cms_source": false,
-    "accessibility": "browser_required",
-    "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071827+00:00"
+    "last_probed_at": "2026-03-08T07:00:05.879454+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (20ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_s3)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420222+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -74,14 +113,45 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 8,
+    "response_time_ms": 14,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-05T20:26:03.849197+00:00",
-    "notes": "403 Forbidden \u2014 auth/CORS wall"
+    "last_probed_at": "2026-03-08T07:00:06.117933+00:00",
+    "notes": "403 Forbidden \u2014 auth/CORS wall",
+    "transparency_score": 20,
+    "digital_debt_score": 40,
+    "score_breakdown": {
+      "accessibility": "+25 debt (auth wall)",
+      "http_status": "+15 debt (403 Forbidden)",
+      "response_time": "+10 (14ms < 5s)",
+      "ssl": "+5 (valid SSL)",
+      "index_type": "+5 (known pattern: dated_cloudfront)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420296+00:00"
+  },
+  {
+    "insurer_name": "Aetna Life Insurance Company",
+    "trade_names": [
+      "Aetna",
+      "CVS Health"
+    ],
+    "state": "MI",
+    "mrf_url": "https://mrf.aetna.com/",
+    "index_type": "browser_required",
+    "date_pattern": null,
+    "cms_source": false,
+    "accessibility": "browser_required",
+    "notes": "Known browser-required index type",
+    "last_probed_at": "2026-03-08T07:00:02.384661+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420259+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -95,7 +165,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.071984+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384734+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420329+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -113,7 +189,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072071+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384769+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420366+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -127,29 +209,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072119+00:00"
-  },
-  {
-    "insurer_name": "Blue Cross Blue Shield of Michigan",
-    "trade_names": [
-      "BCBSM",
-      "Blue Care Network"
-    ],
-    "state": "MI",
-    "mrf_url": "https://bcbsm.sapphiremrfhub.com/tocs/current/blue_cross_blue_shield_of_michigan",
-    "index_type": "sapphire_hub",
-    "date_pattern": null,
-    "cms_source": false,
-    "http_status": 200,
-    "content_type": "binary/octet-stream",
-    "response_time_ms": 222,
-    "ssl_valid": true,
-    "supports_gzip": false,
-    "file_size_bytes": 264769,
-    "accessibility": "automatable",
-    "mrf_url_verified": true,
-    "last_probed_at": "2026-03-05T20:26:03.892196+00:00",
-    "notes": ""
+    "last_probed_at": "2026-03-08T07:00:02.384790+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420639+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -163,6 +229,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-05T20:26:01.072168+00:00"
+    "last_probed_at": "2026-03-08T07:00:02.384812+00:00",
+    "transparency_score": 0,
+    "digital_debt_score": 30,
+    "score_breakdown": {
+      "accessibility": "+30 debt (browser required)"
+    },
+    "last_scored_at": "2026-03-08T07:00:10.420664+00:00"
   }
 ]

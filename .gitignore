@@ -16,3 +16,5 @@ __pycache__/
 .resendapikey
 clearnetwork/logs/
 clearnetwork/.venv/
+audit-screenshots/
+audit-report.txt
