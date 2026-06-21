@@ -44,7 +44,7 @@ export class PgBenchmarkProvider implements BenchmarkProvider {
   async mueMax(cptHcpcs: string, year: number): Promise<number | null> {
     const { rows } = await this.query(
       `SELECT mue_max_units FROM ref_ncci_edits
-       WHERE edit_type = 'mue' AND code_a = $1 AND effective_year = $2 LIMIT 1`,
+       WHERE edit_type = 'mue' AND code_a = $1 AND effective_year = $2 AND code_b IS NULL LIMIT 1`,
       [cptHcpcs, year],
     );
     if (!rows.length) return null;

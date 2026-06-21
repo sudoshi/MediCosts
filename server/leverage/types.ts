@@ -7,7 +7,7 @@ export interface LineItem {
   cptHcpcs: string | null;
   revenueCode: string | null;
   msDrg: string | null;
-  modifier: string | null;
+  modifier: string | null; // primary modifier only; multi-modifier (CMS-1500 allows 4) deferred to the extraction plan
   units: number;
   billedCents: number;
   allowedCents: number | null;

@@ -32,6 +32,8 @@ export function scoreCase(findings: Finding[]): CaseScore {
     leverageScore: Math.min(100, points),
     strongestRemedy: strongest,
     totalEstimatedOverchargeCents: totalOvercharge,
+    // requires >=1 high-severity finding (a single large overcharge or EOB mismatch);
+    // an accumulation of medium billing-errors alone does not qualify
     marketplaceReady: hasHigh,
   };
 }

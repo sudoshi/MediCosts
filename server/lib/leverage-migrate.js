@@ -117,6 +117,7 @@ const LEVERAGE_INDEXES = `
   CREATE INDEX IF NOT EXISTS ref_cms_fee_idx ON ref_cms_fee_schedule (cpt_hcpcs, effective_year);
   CREATE INDEX IF NOT EXISTS ref_drg_idx ON ref_drg_base_rate (ms_drg, effective_year);
   CREATE INDEX IF NOT EXISTS ref_ncci_idx ON ref_ncci_edits (edit_type, code_a, effective_year);
+  CREATE UNIQUE INDEX IF NOT EXISTS ref_ncci_mue_uniq ON ref_ncci_edits (code_a, effective_year) WHERE edit_type = 'mue' AND code_b IS NULL;
 `;
 
 export async function runLeverageMigrations() {
