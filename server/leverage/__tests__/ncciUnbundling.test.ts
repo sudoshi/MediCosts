@@ -28,7 +28,7 @@ describe('NCCI_UNBUNDLING', () => {
     expect(f[0].remedyType).toBe('billing_error');
     expect(f[0].estimatedRecoveryLowCents).toBe(1500);
     expect(f[0].evidenceRefs.sort()).toEqual(['a', 'b']);
-    expect(f[0].benchmarkSnapshot?.detail).toEqual({ conflictingCode: '80048' });
+    expect(f[0].benchmarkSnapshot?.detail).toEqual({ conflictingCode: '80053' });
   });
 
   it('does NOT flag when a valid 59 modifier is present', async () => {

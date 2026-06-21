@@ -26,6 +26,7 @@ export async function ncciUnbundling(
 
       // The improperly-separated charge is the lesser-billed line of the pair.
       const lesser = a.billedCents <= b.billedCents ? a : b;
+      const other = lesser === a ? b : a;
       findings.push({
         ruleId: RULE_ID,
         severity: 'medium',
@@ -41,7 +42,7 @@ export async function ncciUnbundling(
           code: lesser.cptHcpcs!,
           effectiveYear: claim.serviceYear,
           valueCents: null,
-          detail: { conflictingCode: lesser.cptHcpcs },
+          detail: { conflictingCode: other.cptHcpcs },
         },
       });
     }
