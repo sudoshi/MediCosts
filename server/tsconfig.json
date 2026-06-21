@@ -6,6 +6,7 @@
     "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
+    "allowJs": true,
     "esModuleInterop": true,
     "allowImportingTsExtensions": false,
     "declaration": true,

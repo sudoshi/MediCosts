@@ -1,4 +1,5 @@
 import pool from '../db.js';
+import { runLeverageMigrations } from './leverage-migrate.js';
 
 export async function runMigrations() {
   await pool.query(`
@@ -86,4 +87,6 @@ export async function runMigrations() {
   }
 
   console.log('✦ ai_providers table ready');
+
+  await runLeverageMigrations();
 }
