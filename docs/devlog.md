@@ -22,10 +22,27 @@ have caused a hard outage.
 - Both feature branches (`m1-security-hardening`, `m2-typescript-begin`) were already fully
   merged into `main` — merge was a no-op.
 
-### Follow-up (migration owner)
-Prod-on-tsx is a stopgap — tsx is a root devDependency, so `npm ci --omit=dev` would break
-prod. Finish the migration: convert remaining `server/**` to `.ts`, enable `allowJs` +
-emit to `server/dist/`, run `node dist/index.js`, then revert ExecStart to node.
+### Follow-up — RESOLVED (`57f5a91`, same day)
+Replaced the tsx stopgap with a proper compiled runtime so prod no longer depends on a
+devDependency:
+- `server/tsconfig.build.json` — `allowJs` build of the mixed `.js`/`.ts` tree → `server/dist/`
+  (excludes tests + one-off maintenance scripts).
+- `server/lib/projectRoot.ts` — resolves the repo root (`APP_ROOT` env or walk-up to the dir
+  containing `client/`+`server/`) so the five `__dirname`-relative asset paths (`.env` ×3,
+  `client/dist`, abby `.md`, `.resendapikey`) resolve identically whether running from source
+  (`server/lib`, tsx) or compiled (`server/dist/lib`, node). Anchored in `db.ts`,
+  `middleware/auth.ts`, `lib/email.js`, `lib/abby-prompt.js`, `index.js`.
+- `package.json` — `build`=`tsc -p tsconfig.build.json`, `start`=`node dist/index.js`,
+  added `typecheck`.
+- `medicosts.service` ExecStart → `node server/dist/index.js`, `Environment=APP_ROOT=…`, plus
+  a best-effort `ExecStartPre=-… tsc …` so a stale `dist/` self-heals on reboot (the `-`
+  prefix never blocks startup). **Deploy = `cd server && npm run build && systemctl restart
+  medicosts`.** `server/dist/` is gitignored.
+- Removed a stale untracked `server/lib/validation.js` (duplicated `validation.ts` as a second
+  build input).
+Verified: clean build, public HTTPS 200, `/api/stats` 200, survives `systemctl restart`,
+on-start rebuild fires. Remaining `server/**`→`.ts` conversion can proceed incrementally;
+`allowJs` keeps the build green throughout.
 
 ## Site Outage Recovery + ClearNetwork Scraper Retired (2026-06-20)
 
