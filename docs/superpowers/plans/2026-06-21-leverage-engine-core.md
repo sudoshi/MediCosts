@@ -553,7 +553,8 @@ describe('NCCI_UNBUNDLING', () => {
     // recovery = the lesser-billed (improperly separate) line
     expect(f[0].estimatedRecoveryLowCents).toBe(1500);
     expect(f[0].evidenceRefs.sort()).toEqual(['a', 'b']);
-    expect(f[0].benchmarkSnapshot?.detail).toEqual({ conflictingCode: '80048' });
+    // recovered code is the lesser-billed line (80048); it was unbundled FROM the other code (80053)
+    expect(f[0].benchmarkSnapshot?.detail).toEqual({ conflictingCode: '80053' });
   });
 
   it('does NOT flag when a valid 59 modifier is present', async () => {
