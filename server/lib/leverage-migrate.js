@@ -1,5 +1,3 @@
-import pool from '../db.js';
-
 /**
  * DDL for the leverage engine. Lives in the medicosts schema, prefixed lev_/ref_.
  * Money is integer cents. Findings carry frozen benchmark snapshots for auditability.
@@ -121,6 +119,9 @@ const LEVERAGE_INDEXES = `
 `;
 
 export async function runLeverageMigrations() {
+  // Lazy pool import: keeps this module side-effect-free so the DDL constants
+  // can be unit-tested without resolving or opening a database connection.
+  const { default: pool } = await import('../db.js');
   await pool.query(LEVERAGE_DDL);
   await pool.query(LEVERAGE_INDEXES);
   console.log('✦ leverage (lev_/ref_) tables ready');
