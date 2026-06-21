@@ -2,9 +2,12 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
 import { runMigrations } from './lib/db-migrate.js';
+import pool from './db.js';
 
 // ── Startup env validation (Phase 6.4) ─────────────────────────────────────
 const REQUIRED_ENV = ['PGHOST', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'JWT_SECRET'];
@@ -43,8 +46,31 @@ const isProd = process.env.NODE_ENV === 'production';
 // Trust Apache reverse proxy (required for express-rate-limit X-Forwarded-For)
 app.set('trust proxy', 1);
 
-app.use(cors());
-app.use(express.json());
+// ── Security headers (helmet) ────────────────────────────────────────────
+// Disable CSP — let nginx / reverse-proxy handle Content-Security-Policy
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// ── Gzip / Brotli compression ────────────────────────────────────────────
+app.use(compression());
+
+// ── CORS — explicit origin whitelist via CORS_ORIGIN env var ─────────────
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : [];
+app.use(
+  cors({
+    origin: allowedOrigins.length > 0
+      ? (origin, cb) => {
+          // Allow requests with no origin (server-to-server, curl, etc.)
+          if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+          return cb(new Error('Not allowed by CORS'));
+        }
+      : true, // fall back to permissive if env var is not set (dev mode)
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: '1mb' }));
 
 // ── Request logging (Phase 6.5) ─────────────────────────────────────────────
 app.use((req, _res, next) => {
@@ -77,6 +103,17 @@ const authLimiter = rateLimit({
 
 app.use('/api/', apiLimiter);
 app.use('/api/abby/', abbyLimiter);
+
+// ── Health check (tests DB connectivity) ─────────────────────────────────
+app.get('/api/health', async (_req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    return res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Health check DB failure');
+    return res.status(503).json({ status: 'error', message: 'Database unavailable' });
+  }
+});
 
 // Auth routes — apply strict limiter only to mutating endpoints (login, register, change-password)
 // GET /api/auth/me is read-only JWT validation and needs higher throughput (called on every page load)

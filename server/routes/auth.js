@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { sendTempPassword } from '../lib/email.js';
+import { validateBody, loginSchema, registerSchema, changePasswordSchema } from '../lib/validation.js';
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
@@ -59,18 +60,9 @@ function signToken(user) {
   );
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 // ── POST /api/auth/register ────────────────────────────────────────────────
-router.post('/register', async (req, res) => {
-  const { email, fullName, phone } = req.body || {};
-
-  if (!email || !fullName) {
-    return res.status(400).json({ error: 'email and fullName are required' });
-  }
-  if (!EMAIL_RE.test(email)) {
-    return res.status(400).json({ error: 'Invalid email address' });
-  }
+router.post('/register', validateBody(registerSchema), async (req, res) => {
+  const { email, fullName, phone } = req.validatedBody;
 
   try {
     // Check for duplicate (but always return same message to avoid enumeration)
@@ -104,18 +96,14 @@ router.post('/register', async (req, res) => {
 });
 
 // ── POST /api/auth/login ───────────────────────────────────────────────────
-router.post('/login', async (req, res) => {
+router.post('/login', validateBody(loginSchema), async (req, res) => {
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
 
   if (checkRateLimit(ip)) {
     return res.status(429).json({ error: 'Too many login attempts. Try again in 15 minutes.' });
   }
 
-  const { email, password } = req.body || {};
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email and password are required' });
-  }
+  const { email, password } = req.validatedBody;
 
   try {
     const result = await pool.query(
@@ -154,15 +142,8 @@ router.post('/login', async (req, res) => {
 });
 
 // ── POST /api/auth/change-password  [requireAuth] ─────────────────────────
-router.post('/change-password', requireAuth, async (req, res) => {
-  const { currentPassword, newPassword } = req.body || {};
-
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({ error: 'currentPassword and newPassword are required' });
-  }
-  if (newPassword.length < 8) {
-    return res.status(400).json({ error: 'New password must be at least 8 characters' });
-  }
+router.post('/change-password', requireAuth, validateBody(changePasswordSchema), async (req, res) => {
+  const { currentPassword, newPassword } = req.validatedBody;
 
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);

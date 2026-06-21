@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 1126,
+    "response_time_ms": 804,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-08T07:00:04.401400+00:00",
+    "last_probed_at": "2026-03-09T06:00:04.505438+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (1126ms < 5s)",
+      "response_time": "+10 (804ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420195+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187307+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -53,7 +53,7 @@
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:05.967316+00:00",
+    "last_probed_at": "2026-03-09T06:00:05.870611+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
@@ -64,7 +64,7 @@
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420234+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187347+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -86,7 +86,7 @@
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:06.146227+00:00",
+    "last_probed_at": "2026-03-09T06:00:06.078580+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
@@ -97,7 +97,7 @@
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420306+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187417+00:00"
   },
   {
     "insurer_name": "UPMC Health Plan",
@@ -114,24 +114,24 @@
     "cms_source": false,
     "http_status": 404,
     "content_type": "",
-    "response_time_ms": 239,
+    "response_time_ms": 256,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "dead",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:06.187571+00:00",
+    "last_probed_at": "2026-03-09T06:00:06.122176+00:00",
     "notes": "404 Not Found",
     "transparency_score": 20,
     "digital_debt_score": 60,
     "score_breakdown": {
       "accessibility": "+40 debt (dead/unreachable)",
       "http_status": "+20 debt (404 Not Found)",
-      "response_time": "+10 (239ms < 5s)",
+      "response_time": "+10 (256ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_azure)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420650+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187509+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -146,13 +146,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384670+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944438+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420269+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187380+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -166,13 +166,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384743+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944508+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420338+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187449+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -190,13 +190,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384778+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944544+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420630+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187490+00:00"
   },
   {
     "insurer_name": "Highmark Inc",
@@ -211,13 +211,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384801+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944564+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420651+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187510+00:00"
   },
   {
     "insurer_name": "Independence Blue Cross",
@@ -232,13 +232,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384804+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944567+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420654+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187513+00:00"
   },
   {
     "insurer_name": "Oscar Health",
@@ -252,12 +252,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384815+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944577+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420666+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187523+00:00"
   }
 ]

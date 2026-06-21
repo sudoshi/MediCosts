@@ -1,5 +1,34 @@
 # MediCosts Development Log
 
+## Site Outage Recovery + ClearNetwork Scraper Retired (2026-06-20)
+
+### Problem
+`medicosts.acumenus.net` was returning **503** — Apache (TLS proxy) was up but the
+Express backend on `127.0.0.1:3000` was dead with nothing supervising it (no
+systemd/pm2/docker; the host had rebooted ~16:50 and the manually-started process never
+came back). Two stale-state bugs from the Apr 30 host-PG password rotation also blocked
+startup: `28P01` (stale `PGPASSWORD` in `.env`) and `3F000 no schema has been selected to
+create in` (role `smudoshi` defaulted to cluster `search_path=app, php`; `medicosts` had
+no per-DB override).
+
+### Changes
+- **Restored service:** synced `.env` `PGPASSWORD` from `~/.pgpass`; applied
+  `ALTER ROLE smudoshi IN DATABASE medicosts SET search_path = public` (mirrors
+  medgnosis/copedemo/docuseal); created and enabled **`/etc/systemd/system/medicosts.service`**
+  (`node server/index.js`, `Restart=on-failure`). Verified public HTTPS 200 + `/api/stats` 200.
+- **Halted the nightly crawler** (crontab line commented, backup in `/tmp/crontab.bak.*`).
+
+### Decision — scraper retired (see `docs/adr/0001-retire-clearnetwork-scraper.md`)
+Review showed the scraper had been **non-functional since 2026-04-07** (last run with
+`providers_found > 0`); May 20–Jun 3 runs were no-ops; Jun 4+ hard-failed on a Python-3.14
+venv ABI break (no `requirements.txt` to rebuild from), silently because the report-email
+stage is also broken. Lifetime job reliability was ~69% non-clean (172 failed / 131 orphaned
+of 442). The live site does not depend on it (serves CMS-derived `medicosts`/`stage` data),
+and the blog stage was already removed (commit 5775688). Decision: **leave it retired**; if
+directory freshness is needed, rebuild acquisition during M2 from authoritative sources
+(NPPES bulk, CMS MRF index, payer FHIR `PractitionerRole`) instead of HTML scraping. Do not
+reflexively re-enable the cron job.
+
 ## ClearNetwork: Dashboard & Crawler Hardening (2026-03-04)
 
 ### Problem

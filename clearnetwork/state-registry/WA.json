@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 4824,
+    "response_time_ms": 2958,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 32459382,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-08T07:00:05.209368+00:00",
+    "last_probed_at": "2026-03-09T06:00:05.174638+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (4824ms < 5s)",
+      "response_time": "+10 (2958ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420201+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187315+00:00"
   },
   {
     "insurer_name": "Premera Blue Cross",
@@ -45,13 +45,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "binary/octet-stream",
-    "response_time_ms": 539,
+    "response_time_ms": 448,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 1770490,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-08T07:00:06.310132+00:00",
+    "last_probed_at": "2026-03-09T06:00:06.244223+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -59,11 +59,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (539ms < 5s)",
+      "response_time": "+10 (448ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: sapphire_hub)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420681+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187783+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -79,24 +79,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 19,
+    "response_time_ms": 63,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:06.005542+00:00",
+    "last_probed_at": "2026-03-09T06:00:05.910727+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (19ms < 5s)",
+      "response_time": "+10 (63ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420240+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187354+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -112,24 +112,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 15,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-08T07:00:06.164347+00:00",
+    "last_probed_at": "2026-03-09T06:00:06.093248+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
+      "response_time": "+10 (15ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420314+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187424+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -144,13 +144,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384675+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944443+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420274+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187386+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -164,13 +164,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384748+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944513+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420343+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187455+00:00"
   },
   {
     "insurer_name": "Kaiser Foundation Health Plan",
@@ -184,13 +184,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384755+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944520+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420352+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187462+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -208,13 +208,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384786+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944549+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420635+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187494+00:00"
   },
   {
     "insurer_name": "Molina Healthcare",
@@ -228,12 +228,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-08T07:00:02.384794+00:00",
+    "last_probed_at": "2026-03-09T06:00:01.944558+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-08T07:00:10.420643+00:00"
+    "last_scored_at": "2026-03-09T06:00:11.187502+00:00"
   }
 ]
