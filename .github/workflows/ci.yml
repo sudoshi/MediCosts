@@ -50,26 +50,34 @@ jobs:
 
       - name: Lint server (if eslint config exists)
         working-directory: server
-        run: npx eslint . --ext .js,.mjs 2>/dev/null || echo "No ESLint config — skipping"
-        continue-on-error: true
+        run: |
+          if ls .eslintrc* eslint.config.* >/dev/null 2>&1; then
+            npx eslint . --ext .js,.mjs
+          else
+            echo "No ESLint config — skipping"
+          fi
 
       - name: Verify server starts (smoke test)
         working-directory: server
         run: |
-          timeout 10 node index.js &
+          node index.js &
+          pid=$!
           sleep 4
-          kill %1 2>/dev/null || true
+          if ! kill -0 "$pid" 2>/dev/null; then
+            wait "$pid"
+            exit 1
+          fi
+          kill "$pid"
+          wait "$pid" || true
         env:
           PORT: 3001
           NODE_ENV: test
           DATABASE_URL: postgresql://medicosts:test_pass@localhost:5432/medicosts_test
           JWT_SECRET: ci-test-secret
-        continue-on-error: true
 
       - name: npm audit (server — critical)
         working-directory: server
         run: npm audit --audit-level=critical
-        continue-on-error: true
 
   # ---------------------------------------------------------------------------
   # Client — React/Vite frontend
@@ -106,4 +114,3 @@ jobs:
       - name: npm audit (client — critical)
         working-directory: client
         run: npm audit --audit-level=critical
-        continue-on-error: true

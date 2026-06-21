@@ -13,13 +13,13 @@
     "cms_source": false,
     "http_status": 200,
     "content_type": "application/json; charset=utf-8",
-    "response_time_ms": 962,
+    "response_time_ms": 2880,
     "ssl_valid": true,
     "supports_gzip": false,
-    "file_size_bytes": 32459382,
+    "file_size_bytes": 32269728,
     "accessibility": "automatable",
     "mrf_url_verified": true,
-    "last_probed_at": "2026-03-09T06:00:05.491350+00:00",
+    "last_probed_at": "2026-04-07T06:00:05.240856+00:00",
     "notes": "",
     "transparency_score": 75,
     "digital_debt_score": 0,
@@ -27,11 +27,11 @@
       "accessibility": "+30 (automatable)",
       "http_status": "+10 (200 OK)",
       "content_type": "+15 (machine-readable)",
-      "response_time": "+10 (962ms < 5s)",
+      "response_time": "+10 (2880ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: uhc_blob_api)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187318+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243062+00:00"
   },
   {
     "insurer_name": "Anthem Inc",
@@ -47,24 +47,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "application/xml",
-    "response_time_ms": 22,
+    "response_time_ms": 21,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": null,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-09T06:00:05.924741+00:00",
+    "last_probed_at": "2026-04-07T06:00:05.680375+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (22ms < 5s)",
+      "response_time": "+10 (21ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_s3)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187356+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243102+00:00"
   },
   {
     "insurer_name": "Cigna Health and Life Insurance Company",
@@ -80,24 +80,24 @@
     "cms_source": false,
     "http_status": 403,
     "content_type": "text/xml",
-    "response_time_ms": 14,
+    "response_time_ms": 9,
     "ssl_valid": true,
     "supports_gzip": false,
     "file_size_bytes": 146,
     "accessibility": "auth_required",
     "mrf_url_verified": false,
-    "last_probed_at": "2026-03-09T06:00:06.108293+00:00",
+    "last_probed_at": "2026-04-07T06:00:05.897918+00:00",
     "notes": "403 Forbidden \u2014 auth/CORS wall",
     "transparency_score": 20,
     "digital_debt_score": 40,
     "score_breakdown": {
       "accessibility": "+25 debt (auth wall)",
       "http_status": "+15 debt (403 Forbidden)",
-      "response_time": "+10 (14ms < 5s)",
+      "response_time": "+10 (9ms < 5s)",
       "ssl": "+5 (valid SSL)",
       "index_type": "+5 (known pattern: dated_cloudfront)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187426+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243175+00:00"
   },
   {
     "insurer_name": "Aetna Life Insurance Company",
@@ -112,13 +112,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-09T06:00:01.944445+00:00",
+    "last_probed_at": "2026-04-07T06:00:01.924746+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187389+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243135+00:00"
   },
   {
     "insurer_name": "Humana Insurance Company",
@@ -132,13 +132,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-09T06:00:01.944515+00:00",
+    "last_probed_at": "2026-04-07T06:00:01.924817+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187458+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243208+00:00"
   },
   {
     "insurer_name": "Kaiser Foundation Health Plan",
@@ -152,13 +152,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-09T06:00:01.944521+00:00",
+    "last_probed_at": "2026-04-07T06:00:01.924824+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187463+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243214+00:00"
   },
   {
     "insurer_name": "Centene Corporation",
@@ -176,13 +176,13 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-09T06:00:01.944551+00:00",
+    "last_probed_at": "2026-04-07T06:00:01.924854+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187497+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243245+00:00"
   },
   {
     "insurer_name": "CareFirst BlueCross BlueShield",
@@ -197,12 +197,12 @@
     "cms_source": false,
     "accessibility": "browser_required",
     "notes": "Known browser-required index type",
-    "last_probed_at": "2026-03-09T06:00:01.944569+00:00",
+    "last_probed_at": "2026-04-07T06:00:01.924875+00:00",
     "transparency_score": 0,
     "digital_debt_score": 30,
     "score_breakdown": {
       "accessibility": "+30 debt (browser required)"
     },
-    "last_scored_at": "2026-03-09T06:00:11.187515+00:00"
+    "last_scored_at": "2026-04-07T06:00:14.243266+00:00"
   }
 ]

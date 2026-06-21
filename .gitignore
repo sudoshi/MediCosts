@@ -18,3 +18,9 @@ clearnetwork/logs/
 clearnetwork/.venv/
 audit-screenshots/
 audit-report.txt
+
+# build/test/tooling artifacts
+server/coverage/
+.firecrawl/
+.env.bak*
+server/dist/
