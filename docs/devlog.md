@@ -1,5 +1,32 @@
 # MediCosts Development Log
 
+## Redeploy + tsx runtime fix (2026-06-21)
+
+### Problem
+The M2 TypeScript migration converted `server/lib/logger.js`→`logger.ts` (and
+`validation.js`→`validation.ts`) and committed it to `main`, but `server/index.js`
+and `server/routes/auth.js` still `import './lib/*.js'`, there is no server build step
+(`start`=`node index.js`; `tsconfig` has `outDir: dist` but no `allowJs`, so `tsc`
+won't emit the `.js` siblings), and `logger.js` was deleted. Result: `node server/index.js`
+dies with `ERR_MODULE_NOT_FOUND: logger.js`. The live service stayed up only because it
+was the pre-migration in-memory process — any restart/reboot (`Restart=on-failure`) would
+have caused a hard outage.
+
+### Changes
+- **Runtime switched to tsx.** `medicosts.service` ExecStart →
+  `node_modules/.bin/tsx server/index.js` (tsx resolves `.js`→`.ts`, matches the `dev`
+  script). Verified: clean boot, leverage tables migrate, public HTTPS 200, `/api/stats`
+  200, and **survives `systemctl restart`** (the prior failure mode).
+- Committed April-7 state-registry probe data, hardened CI smoke test, ignored artifacts
+  (`30e3e5f`).
+- Both feature branches (`m1-security-hardening`, `m2-typescript-begin`) were already fully
+  merged into `main` — merge was a no-op.
+
+### Follow-up (migration owner)
+Prod-on-tsx is a stopgap — tsx is a root devDependency, so `npm ci --omit=dev` would break
+prod. Finish the migration: convert remaining `server/**` to `.ts`, enable `allowJs` +
+emit to `server/dist/`, run `node dist/index.js`, then revert ExecStart to node.
+
 ## Site Outage Recovery + ClearNetwork Scraper Retired (2026-06-20)
 
 ### Problem
