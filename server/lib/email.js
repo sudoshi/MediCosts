@@ -3,13 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { projectRoot } from './projectRoot.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.join(projectRoot(), '.env') });
 
 // Read Resend API key: prefer .resendapikey file, fall back to env var
 function loadResendKey() {
-  const keyFile = path.resolve(__dirname, '../../.resendapikey');
+  const keyFile = path.join(projectRoot(), '.resendapikey');
   try {
     const key = fs.readFileSync(keyFile, 'utf8').trim();
     if (key) return key;

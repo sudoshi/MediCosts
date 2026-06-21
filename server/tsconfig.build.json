@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "noEmitOnError": false,
+    "outDir": "./dist",
+    "rootDir": "."
+  },
+  "include": ["./**/*.ts", "./**/*.js"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.js",
+    "assess_datasets.js",
+    "assess_stage_datasets.js",
+    "detailed_assessment.js",
+    "detailed_assessment2.js",
+    "final_counts.js"
+  ]
+}

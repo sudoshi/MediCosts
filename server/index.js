@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
 import { runMigrations } from './lib/db-migrate.js';
 import pool from './db.js';
+import { projectRoot } from './lib/projectRoot.js';
 
 // ── Startup env validation (Phase 6.4) ─────────────────────────────────────
 const REQUIRED_ENV = ['PGHOST', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'JWT_SECRET'];
@@ -149,7 +150,7 @@ app.use('/api/network', networkRouter);
 app.use('/api/drugs', drugsRouter);
 
 if (isProd) {
-  const clientBuild = path.join(__dirname, '../client/dist');
+  const clientBuild = path.join(projectRoot(), 'client/dist');
   // Cache hashed assets aggressively; index.html uses default (no-cache)
   app.use('/assets', express.static(path.join(clientBuild, 'assets'), { maxAge: '1y', immutable: true }));
   app.use(express.static(clientBuild));

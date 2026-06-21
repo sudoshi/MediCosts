@@ -2,9 +2,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pg from 'pg';
+import { projectRoot } from './lib/projectRoot.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.join(projectRoot(), '.env') });
 
 // Ensure password is always a string (pg fails if undefined)
 const config: pg.PoolConfig = {

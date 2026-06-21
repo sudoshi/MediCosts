@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Request, Response, NextFunction } from 'express';
+import { projectRoot } from '../lib/projectRoot.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.join(projectRoot(), '.env') });
 
 export interface JwtPayload {
   id: number;

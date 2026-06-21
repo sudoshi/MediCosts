@@ -10,10 +10,10 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { TOOLS } from './abby-tools.js';
+import { projectRoot } from './projectRoot.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_CONTEXT = readFileSync(
-  path.join(__dirname, 'abby-schema-context.md'),
+  path.join(projectRoot(), 'server/lib/abby-schema-context.md'),
   'utf-8'
 );
 

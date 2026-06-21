@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --watch index.js",
-    "build": "tsc -p tsconfig.json",
-    "start": "node index.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js",
     "test": "vitest run",
     "test:ci": "vitest run --coverage",
     "test:watch": "vitest"
