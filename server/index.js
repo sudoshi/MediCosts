@@ -7,6 +7,7 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
 import { runMigrations } from './lib/db-migrate.js';
+import { runOidcMigrations } from './lib/oidc-migrate.js';
 import pool from './db.js';
 import { projectRoot } from './lib/projectRoot.js';
 
@@ -20,6 +21,7 @@ REQUIRED_ENV.forEach(k => {
 });
 
 import authRouter from './routes/auth.js';
+import authOidcRouter from './routes/auth-oidc.js';
 import { requireAuth, requireAdmin } from './middleware/auth.js';
 import apiRouter from './routes/api.js';
 import qualityRouter from './routes/quality.js';
@@ -122,6 +124,9 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/change-password', authLimiter);
 app.use('/api/auth', authRouter);
+// Authentik OIDC SSO — public handshake routes, mounted before the requireAuth
+// gate. Additive; does not touch routes/auth.js.
+app.use('/api/auth', authOidcRouter);
 
 // Stats route — public (no auth, cached 24h, used by landing/login pages)
 app.use('/api/stats', statsRouter);
@@ -180,6 +185,7 @@ app.use((err, req, res, _next) => {
 
 // Run DB migrations then start
 runMigrations()
+  .then(() => runOidcMigrations())
   .then(() => {
     app.listen(PORT, () => {
       logger.info(`MediCosts API listening on http://localhost:${PORT}`);

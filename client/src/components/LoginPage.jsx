@@ -91,6 +91,21 @@ export default function LoginPage({ onLogin, onRegister }) {
   const [error, setError] = useState('');
   const [exiting, setExiting] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [oidc, setOidc] = useState(null);
+
+  // Discover whether Authentik SSO is available (best-effort; local login always works).
+  useEffect(() => {
+    let active = true;
+    fetch(`${API_BASE}/auth/providers`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active && d && d.oidc_enabled && d.oidc_redirect_path) {
+          setOidc({ label: d.oidc_label || 'Authentik', redirectPath: d.oidc_redirect_path });
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -236,6 +251,29 @@ export default function LoginPage({ onLogin, onRegister }) {
               {busy ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+
+          {/* Authentik SSO — shown only when the provider is enabled */}
+          {oidc && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#9ca3af', fontSize: 13, margin: '0 0 14px' }}>
+                <span style={{ flex: 1, height: 1, background: 'rgba(148,163,184,0.25)' }} />
+                or
+                <span style={{ flex: 1, height: 1, background: 'rgba(148,163,184,0.25)' }} />
+              </div>
+              <a
+                href={`${API_BASE}${oidc.redirectPath}`}
+                data-testid="oidc-login-button"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  width: '100%', boxSizing: 'border-box', padding: '12px 20px',
+                  borderRadius: 10, border: '1px solid #14b8a6', color: '#0d9488',
+                  background: 'rgba(20,184,166,0.06)', fontWeight: 600, textDecoration: 'none',
+                }}
+              >
+                Continue with {oidc.label}
+              </a>
+            </div>
+          )}
 
           <div className={s.footer}>
             <div className={s.footerDivider} />

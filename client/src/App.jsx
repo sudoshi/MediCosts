@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
+import OidcCallback from './components/OidcCallback';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import AppShell from './components/AppShell';
 const LandingPage = lazy(() => import('./views/LandingPage'));
@@ -143,6 +144,9 @@ export default function App() {
                   : <LoginPage onLogin={handleLogin} onRegister={() => setShowRegister(true)} />
             }
           />
+
+          {/* ── Authentik OIDC callback (public; completes SSO sign-in) ── */}
+          <Route path="/auth/callback" element={<OidcCallback onLogin={handleLogin} />} />
 
           {/* ── Public blog routes ── */}
           <Route path="/blog" element={<ErrorBoundary><BlogIndex /></ErrorBoundary>} />
