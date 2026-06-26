@@ -36,6 +36,12 @@ plan outcome evidence.
 - Production workflow remains manual: build server, build client, restart
   `medicosts.service`, then verify `https://medicosts.acumenus.net` and
   `/api/health`.
+- Deployed commit `a568402` to production on 2026-06-26. `medicosts.service`
+  restarted cleanly, startup logs confirmed `consumer advocacy (con_*) tables ready`
+  and `plan identity and attribution (plan_*) tables ready`.
+- Public verification: `/api/health` returned 200 JSON, `/my-healthcare-costs`
+  and `/cases` returned the SPA shell, and unauthenticated `/api/cases` returned
+  the expected 401.
 - Legal status unchanged: HIPAA release copy and action packet language are draft
   product scaffolding and require counsel review before production reliance.
 
