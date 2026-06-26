@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Panel from '../components/Panel.jsx';
 import s from './ForPatients.module.css';
@@ -16,51 +16,9 @@ export default function ForPatients() {
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [priority, setPriority] = useState('quality');
-  const [fileText, setFileText] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [extracting, setExtracting] = useState(false);
-  const fileRef = useRef(null);
-
-  async function handleFileUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFileName(file.name);
-    setExtracting(true);
-
-    try {
-      if (file.type === 'application/pdf') {
-        // Dynamic import of pdfjs-dist for PDF extraction
-        const pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.mjs',
-          import.meta.url
-        ).toString();
-
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let text = '';
-        for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          text += content.items.map(item => item.str).join(' ') + '\n\n';
-        }
-        setFileText(text.trim());
-      } else {
-        // Plain text files
-        const text = await file.text();
-        setFileText(text.trim());
-      }
-    } catch (err) {
-      setFileText(`[Could not extract text from ${file.name}. Please paste your medical information below.]`);
-    }
-    setExtracting(false);
-  }
 
   function buildContext() {
     const parts = [];
-    if (fileText) {
-      parts.push(`Here is information from my medical records:\n${fileText.slice(0, 3000)}`);
-    }
     if (condition) {
       parts.push(`I need care for: ${condition}`);
     }
@@ -77,7 +35,7 @@ export default function ForPatients() {
     navigate('/abby', { state: { patientContext: context } });
   }
 
-  const canSubmit = condition || fileText;
+  const canSubmit = condition;
 
   return (
     <div className={s.page}>
@@ -87,46 +45,16 @@ export default function ForPatients() {
       </header>
 
       <div className={s.grid}>
-        {/* Upload Section */}
-        <Panel title="Upload Medical Records (Optional)">
-          <div className={s.uploadZone} onClick={() => fileRef.current?.click()}>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.txt"
-              className={s.fileInput}
-              onChange={handleFileUpload}
-            />
-            {extracting ? (
-              <div className={s.uploadContent}>
-                <span className={s.uploadIcon}>⏳</span>
-                <span className={s.uploadText}>Extracting text...</span>
-              </div>
-            ) : fileName ? (
-              <div className={s.uploadContent}>
-                <span className={s.uploadIcon}>✓</span>
-                <span className={s.uploadText}>{fileName}</span>
-                <span className={s.uploadHint}>Click to change file</span>
-              </div>
-            ) : (
-              <div className={s.uploadContent}>
-                <span className={s.uploadIcon}>📄</span>
-                <span className={s.uploadText}>Drop a PDF or click to upload</span>
-                <span className={s.uploadHint}>Your records stay on your device — nothing is stored</span>
-              </div>
-            )}
-          </div>
-          {fileText && (
-            <div className={s.extractedPreview}>
-              <span className={s.previewLabel}>Extracted Text Preview</span>
-              <textarea
-                className={s.previewText}
-                value={fileText}
-                onChange={e => setFileText(e.target.value)}
-                rows={6}
-              />
+        <Panel title="Medical Record Uploads">
+          <div className={s.uploadZone}>
+            <div className={s.uploadContent}>
+              <span className={s.uploadText}>Uploads now require a signed HIPAA authorization / medical record release.</span>
+              <span className={s.uploadHint}>Create a case, sign the release, then upload bills, EOBs, insurance cards, and medical documents.</span>
+              <button className={s.caseButton} type="button" onClick={() => navigate('/cases')}>
+                Open My Cases
+              </button>
             </div>
-          )}
+          </div>
         </Panel>
 
         {/* Questionnaire */}
@@ -195,7 +123,7 @@ export default function ForPatients() {
           disabled={!canSubmit}
           onClick={handleTalkToAbby}
         >
-          Talk to Abby — Find My Best Care →
+          Talk to Abby - Find My Best Care
         </button>
         <p className={s.ctaHint}>
           Abby will analyze your needs against quality ratings, patient satisfaction, safety records, and cost data

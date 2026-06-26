@@ -32,6 +32,9 @@ const AccountabilityDashboard = lazy(() => import('./views/AccountabilityDashboa
 const HospitalCompare = lazy(() => import('./views/HospitalCompare'));
 const CostEstimator = lazy(() => import('./views/CostEstimator'));
 const ForPatients = lazy(() => import('./views/ForPatients'));
+const ConsumerHome = lazy(() => import('./views/ConsumerHome'));
+const MyCases = lazy(() => import('./views/MyCases'));
+const CaseDetail = lazy(() => import('./views/CaseDetail'));
 const DataConnectors = lazy(() => import('./views/DataConnectors'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
 const PaymentsExplorer = lazy(() => import('./views/PaymentsExplorer'));
@@ -174,6 +177,9 @@ export default function App() {
               <Route path="/compare" element={<ErrorBoundary><HospitalCompare /></ErrorBoundary>} />
               <Route path="/estimate" element={<ErrorBoundary><CostEstimator /></ErrorBoundary>} />
               <Route path="/for-patients" element={<ErrorBoundary><ForPatients /></ErrorBoundary>} />
+              <Route path="/my-healthcare-costs" element={<ErrorBoundary><ConsumerHome /></ErrorBoundary>} />
+              <Route path="/cases" element={<ErrorBoundary><MyCases /></ErrorBoundary>} />
+              <Route path="/cases/:caseId" element={<ErrorBoundary><CaseDetail /></ErrorBoundary>} />
               <Route path="/spending" element={<ErrorBoundary><SpendingValue /></ErrorBoundary>} />
               <Route path="/clinicians" element={<ErrorBoundary><ClinicianDirectory /></ErrorBoundary>} />
               <Route path="/clinicians/:npi" element={<ErrorBoundary><ClinicianProfile /></ErrorBoundary>} />

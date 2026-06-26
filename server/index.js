@@ -40,6 +40,7 @@ import networkRouter from './routes/network.js';
 import drugsRouter from './routes/drugs.js';
 import statsRouter from './routes/stats.js';
 import aiProvidersRouter from './routes/ai-providers.js';
+import consumerCasesRouter from './routes/consumer-cases.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -153,6 +154,7 @@ app.use('/api/shortage-areas', shortageRouter);
 app.use('/api/community-health', communityHealthRouter);
 app.use('/api/network', networkRouter);
 app.use('/api/drugs', drugsRouter);
+app.use('/api/cases', consumerCasesRouter);
 
 if (isProd) {
   const clientBuild = path.join(projectRoot(), 'client/dist');

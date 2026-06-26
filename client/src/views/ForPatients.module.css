@@ -37,15 +37,15 @@
 /* Upload Zone */
 .uploadZone {
   border: 2px dashed var(--border-mid);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 40px 20px;
   text-align: center;
-  cursor: pointer;
+  cursor: default;
   transition: border-color 0.2s, background 0.2s;
 }
 .uploadZone:hover {
-  border-color: var(--accent);
-  background: rgba(59, 130, 246, 0.04);
+  border-color: var(--border-mid);
+  background: rgba(59, 130, 246, 0.03);
 }
 
 .fileInput {
@@ -72,6 +72,26 @@
 .uploadHint {
   font-size: 11px;
   color: var(--text-tertiary);
+  line-height: 1.5;
+  max-width: 420px;
+}
+
+.caseButton {
+  margin-top: 8px;
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.caseButton:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-mid);
 }
 
 /* Extracted preview */

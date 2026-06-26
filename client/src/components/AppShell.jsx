@@ -55,10 +55,12 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: 'Patient Tools',
+    label: 'My Healthcare Costs',
     items: [
-      { path: '/for-patients', label: 'For Patients',   icon: ClipboardHeartIcon },
-      { path: '/estimate',     label: 'Cost Estimator', icon: SearchDollarIcon },
+      { path: '/my-healthcare-costs', label: 'Home',           icon: ClipboardHeartIcon },
+      { path: '/cases',               label: 'My Cases',       icon: ClipboardHeartIcon },
+      { path: '/estimate',            label: 'Shop Care',      icon: SearchDollarIcon },
+      { path: '/for-patients',        label: 'Care Guide',     icon: ClipboardHeartIcon },
     ],
   },
   {
@@ -97,6 +99,8 @@ const PAGE_CONTEXT_MAP = [
   ['/post-acute',     'Post-Acute Care'],
   ['/physicians',     'Physician Analytics'],
   ['/geography',      'Geographic Analysis'],
+  ['/my-healthcare-costs', 'My Healthcare Costs'],
+  ['/cases',          'My Cases'],
   ['/for-patients',   'For Patients'],
   ['/estimate',       'Cost Estimator'],
   ['/about',          'About & Data Sources'],

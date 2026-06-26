@@ -1,5 +1,44 @@
 # MediCosts Development Log
 
+## Consumer Advocacy Workspace + Plan Outcome Evidence (2026-06-26)
+
+### Summary
+Built the first end-to-end consumer advocacy workspace so MediCosts can move from
+public cost exploration into case-backed patient advocacy, medical bill review, and
+plan outcome evidence.
+
+### Changes
+- Added consumer case intake and case detail routes under `/my-healthcare-costs`,
+  `/cases`, and `/cases/:caseId`.
+- Added a case-specific HIPAA authorization / medical record release gate. Document
+  uploads are blocked until an active signed release exists, and uploaded documents
+  are encrypted at rest.
+- Added manual bill / EOB entry, deterministic bill analysis, leverage scoring, and
+  initial action packet generation for itemized bill requests and EOB mismatch
+  disputes.
+- Added coverage profile capture for payer, plan, year, product, network, HIOS,
+  CMS contract/plan IDs, PBM/TPA, and hash-only member/group/employer identifiers.
+- Added plan outcome attribution drafts that tie deterministic EOB mismatch findings
+  to payer/plan identity with confidence, evidence refs, and review status.
+- Added document-derived coverage extraction candidates for text insurance cards,
+  EOBs, denial letters, and plan documents. Extracted facts do not update the plan
+  profile until the user explicitly confirms them.
+- Added the detailed consumer healthcare usefulness roadmap, master TODO, and
+  implementation plan under `docs/superpowers/`.
+
+### Verification
+- `npm --prefix server test`
+- `npm --prefix server run build`
+- `npm --prefix client run build`
+- Local API health: `http://localhost:3091/api/health`
+
+### Deployment Notes
+- Production workflow remains manual: build server, build client, restart
+  `medicosts.service`, then verify `https://medicosts.acumenus.net` and
+  `/api/health`.
+- Legal status unchanged: HIPAA release copy and action packet language are draft
+  product scaffolding and require counsel review before production reliance.
+
 ## Redeploy + tsx runtime fix (2026-06-21)
 
 ### Problem
@@ -2605,4 +2644,3 @@ Made the 4 hero KPI cards on the Overview page clickable:
 - `client/src/views/OverviewView.module.css` — added `.shockCardLink` rule: `cursor: pointer`, hover border highlight + 2px translateY lift
 
 **SOP established:** Deploy to production (`vite build && systemctl --user restart medicosts`) after every frontend change.
-
